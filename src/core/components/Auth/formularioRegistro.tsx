@@ -6,7 +6,6 @@ type RegistroPayload = {
   email: string;
   password: string;
   nombre: string;
-  role: string
 };
 
 type FormularioRegistroProps = {
@@ -25,7 +24,7 @@ export default function FormularioRegistro({ onSubmit }: FormularioRegistroProps
     e.preventDefault();
     setError(null);
 
-    // Validaciones simples
+    // Validaciones 
     if (!email) return setError("El email es obligatorio.");
     if (!password || password.length < 6)
       return setError("La contraseña debe tener al menos 6 caracteres.");
@@ -34,8 +33,7 @@ export default function FormularioRegistro({ onSubmit }: FormularioRegistroProps
     const payload: RegistroPayload = {
       email,
       password,
-      nombre,
-      role: "user"
+      nombre
     };
 
     try {
@@ -49,7 +47,7 @@ export default function FormularioRegistro({ onSubmit }: FormularioRegistroProps
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.registerForm}>
+    <form onSubmit={handleSubmit} noValidate className={styles.registerForm}>
       {error && (
         <div className={styles.error} role="alert">
           {error}
@@ -99,8 +97,8 @@ export default function FormularioRegistro({ onSubmit }: FormularioRegistroProps
             placeholder="contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            minLength={6}
             required
+            minLength={6}
           />
         </div>
       </div>
