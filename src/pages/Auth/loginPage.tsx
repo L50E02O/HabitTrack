@@ -15,7 +15,7 @@ export default function LoginPage() {
         try {
             const data = await signIn(email, password);
             if (data?.user) {
-                navigate("/");
+                navigate("/dashboard");
             } else {
                 setError("No se pudo iniciar sesión. Revisa tus credenciales.");
             }

@@ -60,7 +60,7 @@ describe("LoginPage", () => {
 		expect(signInMock).toHaveBeenCalledWith("test@example.com", "password123");
 		});
 
-		expect(mockNavigate).toHaveBeenCalledWith("/");
+		expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
 	});
 
 	it("muestra estado de carga mientras procesa y vuelve a mostrar el formulario al finalizar", async () => {
