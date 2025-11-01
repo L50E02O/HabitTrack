@@ -37,6 +37,7 @@ describe("HabitoService", () => {
 
     (supabase.from as any).mockReturnValue({
       insert: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: mockHabito, error: null }),
     });
 
