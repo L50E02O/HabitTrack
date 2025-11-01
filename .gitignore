@@ -1,0 +1,119 @@
+# =========================================
+# 🗂️ GENERAL
+# =========================================
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*.bak
+*.old
+*.orig
+
+# Entornos
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# =========================================
+# ⚛️ REACT FRONTEND
+# =========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+.pnpm-store/
+
+# Builds y distribuciones
+build/
+dist/
+.cache/
+.vite/
+coverage/
+
+# Archivos de configuración específicos
+*.tsbuildinfo
+
+# =========================================
+# 🧠 SUPABASE CONFIG
+# =========================================
+.supabase/
+supabase/.temp/
+supabase/.history/
+supabase/config.toml
+supabase/.env
+supabase/functions/.env
+supabase/functions/**/node_modules/
+supabase/functions/**/dist/
+
+# =========================================
+# 🧪 TESTS (TDD / XP)
+# =========================================
+/coverage/
+.jest/
+.cypress/
+playwright-report/
+test-results/
+junit.xml
+
+# =========================================
+# ⚙️ GITHUB ACTIONS / CI-CD
+# =========================================
+# Logs y caches locales de CI/CD
+.github/workflows/*.yml~
+.github/workflows/*.bak
+actions-runner/
+ci-cache/
+.tmp/
+
+# =========================================
+# 🧰 VS CODE / IDE
+# =========================================
+.vscode/
+.idea/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# =========================================
+# 📸 ASSETS / DATA TEMPORAL
+# =========================================
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.webp
+!src/assets/**    # excepto si están dentro del código fuente
+uploads/
+temp/
+
+# ----- REACT
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

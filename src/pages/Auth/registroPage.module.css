@@ -1,0 +1,80 @@
+.authPage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
+.iconContainer {
+  width: 80px;
+  height: 80px;
+  background-color: #d4f1f4;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.icon {
+  font-size: 40px;
+  color: #5dccdb;
+}
+
+.authPage h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #6b6b6b;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.error {
+  background-color: #fee;
+  color: #c33;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.loading {
+  font-size: 16px;
+  color: #6b6b6b;
+  text-align: center;
+}
+
+.footer {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.footerText {
+  color: #6b6b6b;
+  font-size: 14px;
+  display: inline;
+  margin-right: 5px;
+}
+
+.footerLink {
+  color: #5dccdb;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
+}

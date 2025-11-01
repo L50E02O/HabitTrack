@@ -1,0 +1,95 @@
+.registerForm {
+  background-color: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 400px;
+}
+
+.inputGroup {
+  margin-bottom: 20px;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 16px;
+  color: #999;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  padding-left: 45px;
+  font-size: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #5dccdb;
+  background-color: white;
+}
+
+.input::placeholder {
+  color: #b0b0b0;
+}
+
+.error {
+  background-color: #fee;
+  color: #c33;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.botonRegistro {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #5dccdb 0%, #4fb3c4 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(93, 204, 219, 0.3);
+}
+
+.botonRegistro:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4fb3c4 0%, #3a9ab0 100%);
+  box-shadow: 0 6px 16px rgba(93, 204, 219, 0.4);
+  transform: translateY(-2px);
+}
+
+.botonRegistro:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.botonRegistro:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
