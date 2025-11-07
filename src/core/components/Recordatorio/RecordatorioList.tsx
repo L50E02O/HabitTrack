@@ -1,0 +1,255 @@
+import { useState, useEffect } from 'react';
+import { Bell, Trash2, Edit2, Clock, Power } from 'lucide-react';
+import { supabase } from '../../../config/supabase';
+import {
+    getRecordatoriosByPerfil,
+    deleteRecordatorio,
+    toggleRecordatorio,
+    updateHoraRecordatorio,
+    updateMensajeRecordatorio
+} from '../../../services/recordatorio/recordatorioService';
+import './RecordatorioList.css';
+
+interface RecordatorioExtended {
+    id_recordatorio: string;
+    id_perfil: string;
+    id_habito: string;
+    mensaje: string;
+    activo: boolean;
+    intervalo_recordar: string;
+    habito?: {
+        nombre_habito: string;
+        descripcion?: string;
+    };
+}
+
+export default function RecordatorioList() {
+    const [recordatorios, setRecordatorios] = useState<RecordatorioExtended[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [editando, setEditando] = useState<string | null>(null);
+    const [mensajeTemp, setMensajeTemp] = useState('');
+    const [horaTemp, setHoraTemp] = useState('');
+
+    useEffect(() => {
+        cargarRecordatorios();
+    }, []);
+
+    const cargarRecordatorios = async () => {
+        try {
+            setLoading(true);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                throw new Error('Usuario no autenticado');
+            }
+
+            const data = await getRecordatoriosByPerfil(user.id) as RecordatorioExtended[];
+            setRecordatorios(data);
+        } catch (error) {
+            console.error('Error cargando recordatorios:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleEliminar = async (id: string) => {
+        if (!confirm('¿Estás seguro de eliminar este recordatorio?')) {
+            return;
+        }
+
+        try {
+            await deleteRecordatorio(id);
+            setRecordatorios(prev => prev.filter(r => r.id_recordatorio !== id));
+        } catch (error) {
+            console.error('Error eliminando recordatorio:', error);
+            alert('Error al eliminar recordatorio');
+        }
+    };
+
+    const handleToggle = async (id: string, activo: boolean) => {
+        try {
+            await toggleRecordatorio(id, !activo);
+            setRecordatorios(prev =>
+                prev.map(r =>
+                    r.id_recordatorio === id ? { ...r, activo: !activo } : r
+                )
+            );
+        } catch (error) {
+            console.error('Error actualizando recordatorio:', error);
+            alert('Error al actualizar recordatorio');
+        }
+    };
+
+    const handleEditar = (recordatorio: RecordatorioExtended) => {
+        setEditando(recordatorio.id_recordatorio);
+        setMensajeTemp(recordatorio.mensaje);
+        // Extraer solo HH:MM del intervalo_recordar
+        setHoraTemp(recordatorio.intervalo_recordar.substring(0, 5));
+    };
+
+    const handleGuardarEdicion = async (id: string) => {
+        try {
+            await updateMensajeRecordatorio(id, mensajeTemp);
+            await updateHoraRecordatorio(id, `${horaTemp}:00`);
+
+            setRecordatorios(prev =>
+                prev.map(r =>
+                    r.id_recordatorio === id
+                        ? { ...r, mensaje: mensajeTemp, intervalo_recordar: `${horaTemp}:00` }
+                        : r
+                )
+            );
+
+            setEditando(null);
+        } catch (error) {
+            console.error('Error guardando cambios:', error);
+            alert('Error al guardar cambios');
+        }
+    };
+
+    const handleCancelarEdicion = () => {
+        setEditando(null);
+        setMensajeTemp('');
+        setHoraTemp('');
+    };
+
+    const formatearHora = (intervalo: string) => {
+        return intervalo.substring(0, 5); // HH:MM
+    };
+
+    if (loading) {
+        return (
+            <div className="recordatorio-list-container">
+                <div className="loading-spinner">
+                    <div className="spinner"></div>
+                    <p>Cargando recordatorios...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (recordatorios.length === 0) {
+        return (
+            <div className="recordatorio-list-container">
+                <div className="empty-state">
+                    <Bell size={64} strokeWidth={1} />
+                    <h3>No tienes recordatorios</h3>
+                    <p>Agrega recordatorios desde las opciones de cada hábito</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="recordatorio-list-container">
+            <div className="recordatorio-list-header">
+                <Bell size={24} />
+                <h2>Mis Recordatorios ({recordatorios.length})</h2>
+            </div>
+
+            <div className="recordatorios-grid">
+                {recordatorios.map((recordatorio) => (
+                    <div
+                        key={recordatorio.id_recordatorio}
+                        className={`recordatorio-item ${!recordatorio.activo ? 'inactivo' : ''}`}
+                    >
+                        {editando === recordatorio.id_recordatorio ? (
+                            // Modo edición
+                            <div className="recordatorio-edit-mode">
+                                <div className="edit-field">
+                                    <label>Hábito:</label>
+                                    <p className="habit-name-edit">{recordatorio.habito?.nombre_habito}</p>
+                                </div>
+
+                                <div className="edit-field">
+                                    <label>Mensaje:</label>
+                                    <input
+                                        type="text"
+                                        value={mensajeTemp}
+                                        onChange={(e) => setMensajeTemp(e.target.value)}
+                                        className="edit-input"
+                                    />
+                                </div>
+
+                                <div className="edit-field">
+                                    <label>Hora:</label>
+                                    <input
+                                        type="time"
+                                        value={horaTemp}
+                                        onChange={(e) => setHoraTemp(e.target.value)}
+                                        className="edit-input"
+                                    />
+                                </div>
+
+                                <div className="edit-actions">
+                                    <button
+                                        onClick={() => handleGuardarEdicion(recordatorio.id_recordatorio)}
+                                        className="btn-save"
+                                    >
+                                        Guardar
+                                    </button>
+                                    <button onClick={handleCancelarEdicion} className="btn-cancel">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            // Modo vista
+                            <>
+                                <div className="recordatorio-header-item">
+                                    <div className="habit-badge">
+                                        {recordatorio.habito?.nombre_habito || 'Hábito eliminado'}
+                                    </div>
+                                    <button
+                                        onClick={() => handleToggle(recordatorio.id_recordatorio, recordatorio.activo)}
+                                        className={`toggle-btn ${recordatorio.activo ? 'activo' : 'inactivo'}`}
+                                        title={recordatorio.activo ? 'Desactivar' : 'Activar'}
+                                    >
+                                        <Power size={18} />
+                                    </button>
+                                </div>
+
+                                <div className="recordatorio-body-item">
+                                    <div className="mensaje-section">
+                                        <Bell size={20} className="icon-mensaje" />
+                                        <p className="mensaje-text">{recordatorio.mensaje}</p>
+                                    </div>
+
+                                    <div className="hora-section">
+                                        <Clock size={18} />
+                                        <span className="hora-text">
+                                            {formatearHora(recordatorio.intervalo_recordar)}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="recordatorio-footer-item">
+                                    <button
+                                        onClick={() => handleEditar(recordatorio)}
+                                        className="btn-icon edit"
+                                        title="Editar"
+                                    >
+                                        <Edit2 size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleEliminar(recordatorio.id_recordatorio)}
+                                        className="btn-icon delete"
+                                        title="Eliminar"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            <div className="recordatorio-list-footer">
+                <p className="footer-info">
+                    💡 Los recordatorios se envían automáticamente por email a la hora configurada
+                </p>
+            </div>
+        </div>
+    );
+}
