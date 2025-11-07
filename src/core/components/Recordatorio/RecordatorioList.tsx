@@ -23,6 +23,29 @@ interface RecordatorioExtended {
     };
 }
 
+// Funciones de conversión de zona horaria
+const convertirUTCALocal = (horaUTC: string): string => {
+    // horaUTC viene como "HH:MM:SS" o "HH:MM"
+    const [horas, minutos] = horaUTC.split(':');
+    const fecha = new Date();
+    fecha.setUTCHours(parseInt(horas), parseInt(minutos), 0, 0);
+    
+    const horaLocal = fecha.getHours().toString().padStart(2, '0');
+    const minutoLocal = fecha.getMinutes().toString().padStart(2, '0');
+    return `${horaLocal}:${minutoLocal}`;
+};
+
+const convertirLocalAUTC = (horaLocal: string): string => {
+    // horaLocal viene como "HH:MM"
+    const [horas, minutos] = horaLocal.split(':');
+    const fecha = new Date();
+    fecha.setHours(parseInt(horas), parseInt(minutos), 0, 0);
+    
+    const horaUTC = fecha.getUTCHours().toString().padStart(2, '0');
+    const minutoUTC = fecha.getUTCMinutes().toString().padStart(2, '0');
+    return `${horaUTC}:${minutoUTC}:00`;
+};
+
 export default function RecordatorioList() {
     const [recordatorios, setRecordatorios] = useState<RecordatorioExtended[]>([]);
     const [loading, setLoading] = useState(true);
@@ -83,19 +106,23 @@ export default function RecordatorioList() {
     const handleEditar = (recordatorio: RecordatorioExtended) => {
         setEditando(recordatorio.id_recordatorio);
         setMensajeTemp(recordatorio.mensaje);
-        // Extraer solo HH:MM del intervalo_recordar
-        setHoraTemp(recordatorio.intervalo_recordar.substring(0, 5));
+        // Convertir de UTC a hora local para mostrar
+        const horaLocal = convertirUTCALocal(recordatorio.intervalo_recordar);
+        setHoraTemp(horaLocal);
     };
 
     const handleGuardarEdicion = async (id: string) => {
         try {
+            // Convertir hora local a UTC antes de guardar
+            const horaUTC = convertirLocalAUTC(horaTemp);
+            
             await updateMensajeRecordatorio(id, mensajeTemp);
-            await updateHoraRecordatorio(id, `${horaTemp}:00`);
+            await updateHoraRecordatorio(id, horaUTC);
 
             setRecordatorios(prev =>
                 prev.map(r =>
                     r.id_recordatorio === id
-                        ? { ...r, mensaje: mensajeTemp, intervalo_recordar: `${horaTemp}:00` }
+                        ? { ...r, mensaje: mensajeTemp, intervalo_recordar: horaUTC }
                         : r
                 )
             );
@@ -114,7 +141,8 @@ export default function RecordatorioList() {
     };
 
     const formatearHora = (intervalo: string) => {
-        return intervalo.substring(0, 5); // HH:MM
+        // Convertir de UTC a hora local para mostrar
+        return convertirUTCALocal(intervalo);
     };
 
     if (loading) {
