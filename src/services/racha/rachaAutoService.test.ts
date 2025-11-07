@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { 
-  updateRachaOnHabitCompletion, 
+import {
+  updateRachaOnHabitCompletion,
   // getRachaActivaByHabito, // No usado en tests
   getDiasRachaByHabito,
   getRachasMultiplesHabitos,
@@ -125,7 +125,7 @@ describe('rachaAutoService', () => {
     it('debería manejar errores de base de datos graciosamente', async () => {
       // Arrange
       const mockError = new Error('Database error');
-      
+
       mockSupabase.from.mockReturnValueOnce({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
