@@ -27,6 +27,18 @@ export default function RecordatorioConfig({ habitoId, nombreHabito, onClose }: 
                 throw new Error('Usuario no autenticado');
             }
 
+            // Convertir hora local a UTC
+            // Crear fecha con la hora seleccionada en zona horaria local
+            const [horas, minutos] = hora.split(':');
+            const fechaLocal = new Date();
+            fechaLocal.setHours(parseInt(horas), parseInt(minutos), 0, 0);
+            
+            // Obtener la hora en UTC
+            const horaUTC = fechaLocal.toISOString().substring(11, 19); // HH:MM:SS en UTC
+
+            console.log(`📍 Hora local seleccionada: ${hora}:00`);
+            console.log(`🌍 Hora UTC a guardar: ${horaUTC}`);
+
             // Crear recordatorio usando la estructura REAL de la base de datos
             const { data, error } = await supabase
                 .from('recordatorio')
@@ -35,7 +47,7 @@ export default function RecordatorioConfig({ habitoId, nombreHabito, onClose }: 
                     id_perfil: user.id,
                     mensaje: mensajeRecordatorio,
                     activo: activo,
-                    intervalo_recordar: `${hora}:00`, // Formato time HH:MM:SS
+                    intervalo_recordar: horaUTC, // Guardamos en UTC
                 })
                 .select()
                 .single();
@@ -46,8 +58,9 @@ export default function RecordatorioConfig({ habitoId, nombreHabito, onClose }: 
             }
 
             console.log('✅ Recordatorio creado:', data);
-            setMensaje({ texto: '✅ Recordatorio guardado correctamente', tipo: 'success' });
-            console.log(`✅ Recordatorio configurado para ${nombreHabito} a las ${hora}`);
+            setMensaje({ texto: `✅ Recordatorio guardado para las ${hora} (hora local)`, tipo: 'success' });
+            console.log(`✅ Recordatorio configurado para ${nombreHabito} a las ${hora} (hora local) / ${horaUTC} (UTC)`);
+
 
             setTimeout(() => {
                 onClose();

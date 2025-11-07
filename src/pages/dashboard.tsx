@@ -11,6 +11,7 @@ import './dashboard.css';
 import CreateHabitoModal from '../core/components/Habito/CreateHabitoModal';
 import EditHabitoModal from '../core/components/Habito/EditHabitoModal';
 import RecordatorioConfig from '../core/components/Recordatorio/RecordatorioConfig';
+import RecordatorioList from '../core/components/Recordatorio/RecordatorioList';
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -283,6 +284,14 @@ export default function Dashboard() {
                                 </>
                             )}
                         </div>
+
+                        {/* Sección de Recordatorios */}
+                        {habitos.length > 0 && (
+                            <div className="recordatorios-section">
+                                <RecordatorioList />
+                            </div>
+                        )}
+
                         {/* Modal Crear Hábito */}
                         <CreateHabitoModal
                             userId={user.id}

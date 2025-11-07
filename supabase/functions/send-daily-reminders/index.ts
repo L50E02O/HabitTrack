@@ -14,7 +14,7 @@ interface Recordatorio {
     activo: boolean
     intervalo_recordar: string
     perfil: {
-        email: string
+        id: string
         nombre?: string
     }
     habito: {
@@ -30,6 +30,12 @@ serve(async (req) => {
     }
 
     try {
+        // Log de variables de entorno para debug
+        console.log('🔧 Verificando configuración...')
+        console.log('SUPABASE_URL:', Deno.env.get('SUPABASE_URL') ? '✅ Configurada' : '❌ No configurada')
+        console.log('SUPABASE_SERVICE_ROLE_KEY:', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ? '✅ Configurada' : '❌ No configurada')
+        console.log('RESEND_API_KEY:', Deno.env.get('RESEND_API_KEY') ? '✅ Configurada' : '❌ No configurada')
+
         // Cliente de Supabase
         const supabaseClient = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
@@ -46,12 +52,12 @@ serve(async (req) => {
         const now = new Date()
         const currentHour = String(now.getHours()).padStart(2, '0')
         const currentMinute = String(now.getMinutes()).padStart(2, '0')
-        const currentTime = `${currentHour}:${currentMinute}`
+        const currentTime = `${currentHour}:${currentMinute}:00`
 
         console.log(`🕐 Buscando recordatorios para las ${currentTime}...`)
 
         // Consultar recordatorios activos que coincidan con la hora actual
-        // Nota: Comparamos solo HH:MM (los primeros 5 caracteres del intervalo_recordar)
+        // Usamos una función para convertir time a text y comparar solo HH:MM
         const { data: recordatorios, error: fetchError } = await supabaseClient
             .from('recordatorio')
             .select(`
@@ -62,7 +68,7 @@ serve(async (req) => {
         activo,
         intervalo_recordar,
         perfil:id_perfil (
-          email,
+          id,
           nombre
         ),
         habito:id_habito (
@@ -71,7 +77,8 @@ serve(async (req) => {
         )
       `)
             .eq('activo', true)
-            .like('intervalo_recordar', `${currentTime}%`)
+            .gte('intervalo_recordar', `${currentHour}:${currentMinute}:00`)
+            .lt('intervalo_recordar', `${currentHour}:${currentMinute}:59`)
 
         if (fetchError) {
             throw fetchError
@@ -104,9 +111,13 @@ serve(async (req) => {
         const results = []
         for (const recordatorio of recordatorios as Recordatorio[]) {
             try {
-                const userEmail = recordatorio.perfil?.email
-                const userName = recordatorio.perfil?.nombre || 'Usuario'
-                const habitName = recordatorio.habito?.nombre_habito || 'tu hábito'
+                // Obtener el email usando la función SQL (con cast explícito a UUID)
+                const { data: userEmail, error: emailError } = await supabaseClient
+                    .rpc('get_user_email', { user_id: recordatorio.id_perfil })
+
+                if (emailError) {
+                    console.error(`❌ Error obteniendo email para ${recordatorio.id_perfil}:`, emailError)
+                }
 
                 if (!userEmail) {
                     console.error(`❌ No se encontró email para perfil ${recordatorio.id_perfil}`)
@@ -117,6 +128,11 @@ serve(async (req) => {
                     })
                     continue
                 }
+
+                console.log(`📧 Email encontrado: ${userEmail}`)
+
+                const userName = recordatorio.perfil?.nombre || 'Usuario'
+                const habitName = recordatorio.habito?.nombre_habito || 'tu hábito'
 
                 // Enviar email usando Resend
                 const emailResponse = await fetch('https://api.resend.com/emails', {
@@ -133,21 +149,21 @@ serve(async (req) => {
                     }),
                 })
 
-                const emailData = await emailResponse.json()
+                const resendData = await emailResponse.json()
 
                 if (!emailResponse.ok) {
-                    console.error(`❌ Error enviando email a ${userEmail}:`, emailData)
+                    console.error(`❌ Error enviando email a ${userEmail}:`, resendData)
                     results.push({
                         id: recordatorio.id_recordatorio,
                         success: false,
-                        error: emailData.message || 'Error desconocido'
+                        error: resendData.message || 'Error desconocido'
                     })
                 } else {
                     console.log(`✅ Email enviado exitosamente a ${userEmail}`)
                     results.push({
                         id: recordatorio.id_recordatorio,
                         success: true,
-                        emailId: emailData.id
+                        emailId: resendData.id
                     })
                 }
 
