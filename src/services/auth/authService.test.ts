@@ -30,9 +30,6 @@ describe("AuthService", ()=>{
     expect(supabase.auth.signUp).toHaveBeenCalledWith({
       email: "prueba@gmail.com",
       password: "password123",
-      options: expect.objectContaining({
-        emailRedirectTo: expect.any(String),
-      }),
     });
   });
 

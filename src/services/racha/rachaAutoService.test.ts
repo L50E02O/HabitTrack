@@ -1,55 +1,60 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { 
-  updateRachaOnHabitCompletion, 
-  getDiasRachaByHabito,
-  getRachasMultiplesHabitos,
-} from './rachaAutoService';
 
-// Mock de Supabase
-const mockSupabase = {
-  from: vi.fn(() => ({
-    select: vi.fn(() => ({
-      eq: vi.fn(() => ({
+// Mock de Supabase - debe estar dentro del vi.mock
+vi.mock('../../config/supabase', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
         eq: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            order: vi.fn(() => ({
+              limit: vi.fn(() => ({
+                data: [],
+                error: null
+              }))
+            })),
+            single: vi.fn(() => ({
+              data: null,
+              error: null
+            }))
+          })),
           order: vi.fn(() => ({
             limit: vi.fn(() => ({
               data: [],
               error: null
             }))
-          })),
+          }))
+        }))
+      })),
+      insert: vi.fn(() => ({
+        select: vi.fn(() => ({
           single: vi.fn(() => ({
             data: null,
             error: null
           }))
-        })),
-        order: vi.fn(() => ({
-          limit: vi.fn(() => ({
-            data: [],
-            error: null
-          }))
         }))
-      }))
-    })),
-    insert: vi.fn(() => ({
-      select: vi.fn(() => ({
-        single: vi.fn(() => ({
+      })),
+      update: vi.fn(() => ({
+        eq: vi.fn(() => ({
           data: null,
           error: null
         }))
       }))
-    })),
-    update: vi.fn(() => ({
-      eq: vi.fn(() => ({
-        data: null,
-        error: null
-      }))
     }))
-  }))
-};
-
-vi.mock('../../config/supabase', () => ({
-  supabase: mockSupabase
+  }
 }));
+
+import { 
+  updateRachaOnHabitCompletion, 
+  getDiasRachaByHabito,
+  getRachasMultiplesHabitos,
+} from './rachaAutoService';
+import { supabase } from '../../config/supabase';
+
+// Obtener referencia al mock para poder usar mockReturnValueOnce
+const mockSupabase = supabase as any;
 
 describe('rachaAutoService', () => {
   beforeEach(() => {
@@ -263,11 +268,24 @@ describe('rachaAutoService', () => {
         }))
       });
 
+      // Mock para update (extenderRacha)
       mockSupabase.from.mockReturnValueOnce({
         update: vi.fn(() => ({
           eq: vi.fn(() => Promise.resolve({
             data: { ...mockRachaActiva, dias_consecutivos: 6 },
             error: null
+          }))
+        }))
+      });
+
+      // Mock para select después del update (extenderRacha)
+      mockSupabase.from.mockReturnValueOnce({
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn(() => Promise.resolve({
+              data: { ...mockRachaActiva, dias_consecutivos: 6 },
+              error: null
+            }))
           }))
         }))
       });
@@ -328,15 +346,7 @@ describe('rachaAutoService', () => {
         }))
       });
 
-      mockSupabase.from.mockReturnValueOnce({
-        update: vi.fn(() => ({
-          eq: vi.fn(() => Promise.resolve({
-            data: { ...mockRachaVieja, racha_activa: false },
-            error: null
-          }))
-        }))
-      });
-
+      // Mock para insert (crearNuevaRacha)
       mockSupabase.from.mockReturnValueOnce({
         insert: vi.fn(() => ({
           select: vi.fn(() => ({
@@ -351,6 +361,16 @@ describe('rachaAutoService', () => {
               },
               error: null
             }))
+          }))
+        }))
+      });
+
+      // Mock para update - desactivar racha anterior (crearNuevaRacha)
+      mockSupabase.from.mockReturnValueOnce({
+        update: vi.fn(() => ({
+          eq: vi.fn(() => Promise.resolve({
+            data: { ...mockRachaVieja, racha_activa: false },
+            error: null
           }))
         }))
       });
@@ -411,11 +431,24 @@ describe('rachaAutoService', () => {
         }))
       });
 
+      // Mock para update (extenderRacha)
       mockSupabase.from.mockReturnValueOnce({
         update: vi.fn(() => ({
           eq: vi.fn(() => Promise.resolve({
             data: { ...mockRachaActiva, dias_consecutivos: 4 },
             error: null
+          }))
+        }))
+      });
+
+      // Mock para select después del update (extenderRacha)
+      mockSupabase.from.mockReturnValueOnce({
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn(() => Promise.resolve({
+              data: { ...mockRachaActiva, dias_consecutivos: 4 },
+              error: null
+            }))
           }))
         }))
       });
@@ -476,15 +509,7 @@ describe('rachaAutoService', () => {
         }))
       });
 
-      mockSupabase.from.mockReturnValueOnce({
-        update: vi.fn(() => ({
-          eq: vi.fn(() => Promise.resolve({
-            data: { ...mockRachaVieja, racha_activa: false },
-            error: null
-          }))
-        }))
-      });
-
+      // Mock para insert (crearNuevaRacha - primero inserta)
       mockSupabase.from.mockReturnValueOnce({
         insert: vi.fn(() => ({
           select: vi.fn(() => ({
@@ -499,6 +524,16 @@ describe('rachaAutoService', () => {
               },
               error: null
             }))
+          }))
+        }))
+      });
+
+      // Mock para update (crearNuevaRacha - después desactiva la vieja)
+      mockSupabase.from.mockReturnValueOnce({
+        update: vi.fn(() => ({
+          eq: vi.fn(() => Promise.resolve({
+            data: { ...mockRachaVieja, racha_activa: false },
+            error: null
           }))
         }))
       });
@@ -559,11 +594,24 @@ describe('rachaAutoService', () => {
         }))
       });
 
+      // Mock para update (extenderRacha)
       mockSupabase.from.mockReturnValueOnce({
         update: vi.fn(() => ({
           eq: vi.fn(() => Promise.resolve({
             data: { ...mockRachaActiva, dias_consecutivos: 3 },
             error: null
+          }))
+        }))
+      });
+
+      // Mock para select después del update (extenderRacha)
+      mockSupabase.from.mockReturnValueOnce({
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn(() => Promise.resolve({
+              data: { ...mockRachaActiva, dias_consecutivos: 3 },
+              error: null
+            }))
           }))
         }))
       });
@@ -624,15 +672,7 @@ describe('rachaAutoService', () => {
         }))
       });
 
-      mockSupabase.from.mockReturnValueOnce({
-        update: vi.fn(() => ({
-          eq: vi.fn(() => Promise.resolve({
-            data: { ...mockRachaVieja, racha_activa: false },
-            error: null
-          }))
-        }))
-      });
-
+      // Mock para insert (crearNuevaRacha - primero inserta)
       mockSupabase.from.mockReturnValueOnce({
         insert: vi.fn(() => ({
           select: vi.fn(() => ({
@@ -647,6 +687,16 @@ describe('rachaAutoService', () => {
               },
               error: null
             }))
+          }))
+        }))
+      });
+
+      // Mock para update (crearNuevaRacha - después desactiva la vieja)
+      mockSupabase.from.mockReturnValueOnce({
+        update: vi.fn(() => ({
+          eq: vi.fn(() => Promise.resolve({
+            data: { ...mockRachaVieja, racha_activa: false },
+            error: null
           }))
         }))
       });
