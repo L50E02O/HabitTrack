@@ -12,7 +12,7 @@ export default function LoginPage() {
     const handleLogin = async (email: string, password: string) => {
         setError(null);
         setLoading(true);
-        try {
+        try { 
             const data = await signIn(email, password);
             if (data?.user) {
                 navigate("/dashboard");
