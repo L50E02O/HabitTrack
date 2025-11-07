@@ -1,5 +1,5 @@
 import { supabase } from "../../config/supabase";
-import { shouldResetProgress } from "../../utils/progressResetUtils";
+// import { shouldResetProgress } from "../../utils/progressResetUtils"; // No usado actualmente
 import { updateRachaOnHabitCompletion, checkAndDeactivateExpiredRachas } from "../racha/rachaAutoService";
 import type { IRegistroIntervalo } from "../../types/IRegistroIntervalo";
 
@@ -229,8 +229,8 @@ function calcularPuntosPorDificultad(dificultad: string): number {
 
 async function guardarRegistroProgreso(
   idHabito: string,
-  lastRegistro: IRegistroIntervalo | null,
-  intervaloMeta: string,
+  _lastRegistro: IRegistroIntervalo | null, // Prefijo _ indica parámetro no usado
+  _intervaloMeta: string, // No usado actualmente
   newProgress: number,
   habitoCompletado: boolean
 ): Promise<string> {
@@ -283,7 +283,8 @@ async function actualizarPuntosUsuario(idPerfil: string, puntosADar: number): Pr
 }
 
 // Esta función decide si dos fechas están en el mismo período
-function estamosEnElMismoPeriodo(fecha1: Date, fecha2: Date, intervalo: string): boolean {
+// Comentada temporalmente - no se usa actualmente pero puede ser útil en el futuro
+/* function estamosEnElMismoPeriodo(fecha1: Date, fecha2: Date, intervalo: string): boolean {
   const d1 = new Date(fecha1);
   const d2 = new Date(fecha2);
 
@@ -305,4 +306,4 @@ function estamosEnElMismoPeriodo(fecha1: Date, fecha2: Date, intervalo: string):
   }
 
   return false;
-}
+} */

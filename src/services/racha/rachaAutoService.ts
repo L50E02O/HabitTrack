@@ -70,7 +70,7 @@ async function buscarRachaActiva(idHabito: string): Promise<IRacha | null> {
 }
 
 // Cuenta días consecutivos con límite de 24 horas entre registros
-async function calcularDiasConsecutivos(idHabito: string, intervaloMeta: string, fechaHoy: Date): Promise<number> {
+async function calcularDiasConsecutivos(idHabito: string, _intervaloMeta: string, _fechaHoy: Date): Promise<number> {
   // Obtener todos los registros ordenados por fecha
   const { data: registros, error } = await supabase
     .from("registro_intervalo")
@@ -112,7 +112,7 @@ async function crearNuevaRacha(
   idRegistroIntervalo: string,
   rachaAnterior: IRacha | null,
   diasConsecutivos: number,
-  intervaloMeta: string
+  _intervaloMeta: string // No usado actualmente
 ): Promise<RachaUpdateResult> {
 
   const hoy = new Date();
@@ -157,7 +157,7 @@ async function extenderRacha(
   idRegistroIntervalo: string,
   fechaHoy: Date,
   diasConsecutivos: number,
-  intervaloMeta: string
+  _intervaloMeta: string // No usado actualmente
 ): Promise<RachaUpdateResult> {
 
   const datosActualizados: UpdateIRacha = {
@@ -192,8 +192,9 @@ async function extenderRacha(
 }
 
 // Funciones que ayudan con las fechas
+// Comentadas temporalmente - no se usan actualmente
 
-function calcularFechaAnterior(fecha: Date, intervaloMeta: string): Date {
+/* function calcularFechaAnterior(fecha: Date, intervaloMeta: string): Date {
   const fechaAnterior = new Date(fecha);
 
   if (intervaloMeta === 'diario') {
@@ -205,7 +206,7 @@ function calcularFechaAnterior(fecha: Date, intervaloMeta: string): Date {
   }
 
   return fechaAnterior;
-}
+} */
 
 function calcularFechaSiguiente(fecha: Date, intervaloMeta: string): Date {
   const fechaSiguiente = new Date(fecha);
@@ -221,12 +222,12 @@ function calcularFechaSiguiente(fecha: Date, intervaloMeta: string): Date {
   return fechaSiguiente;
 }
 
-function obtenerUnidadTiempo(intervaloMeta: string): string {
+/* function obtenerUnidadTiempo(intervaloMeta: string): string {
   if (intervaloMeta === 'diario') return 'días';
   if (intervaloMeta === 'semanal') return 'semanas';
   if (intervaloMeta === 'mensual') return 'meses';
   return 'períodos';
-}
+} */
 
 // Funciones públicas que usan otros archivos
 
@@ -320,7 +321,7 @@ export async function getRachasMultiplesHabitos(idsHabitos: string[]): Promise<R
 function calcularDiasConsecutivosConLimite24hYCompletado(
   registros: Array<{ fecha: any; cumplido?: boolean }>,
   metaRepeticion: number,
-  intervaloMeta: string
+  _intervaloMeta: string // No usado actualmente
 ): number {
   if (!registros || registros.length === 0) return 0;
 

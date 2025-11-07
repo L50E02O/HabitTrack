@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { 
   updateRachaOnHabitCompletion, 
-  getRachaActivaByHabito,
+  // getRachaActivaByHabito, // No usado en tests
   getDiasRachaByHabito,
   getRachasMultiplesHabitos,
-  checkAndDeactivateExpiredRachas
+  // checkAndDeactivateExpiredRachas // No usado en tests
 } from './rachaAutoService';
 
 // Mock de Supabase

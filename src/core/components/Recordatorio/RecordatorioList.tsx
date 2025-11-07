@@ -162,22 +162,26 @@ export default function RecordatorioList() {
                                 </div>
 
                                 <div className="edit-field">
-                                    <label>Mensaje:</label>
+                                    <label htmlFor="edit-mensaje">Mensaje:</label>
                                     <input
+                                        id="edit-mensaje"
                                         type="text"
                                         value={mensajeTemp}
                                         onChange={(e) => setMensajeTemp(e.target.value)}
                                         className="edit-input"
+                                        placeholder="Escribe el mensaje del recordatorio"
                                     />
                                 </div>
 
                                 <div className="edit-field">
-                                    <label>Hora:</label>
+                                    <label htmlFor="edit-hora">Hora:</label>
                                     <input
+                                        id="edit-hora"
                                         type="time"
                                         value={horaTemp}
                                         onChange={(e) => setHoraTemp(e.target.value)}
                                         className="edit-input"
+                                        title="Hora del recordatorio"
                                     />
                                 </div>
 
