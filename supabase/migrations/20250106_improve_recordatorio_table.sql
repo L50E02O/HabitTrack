@@ -47,16 +47,3 @@ CREATE TRIGGER trigger_update_recordatorio_timestamp
 BEFORE UPDATE ON recordatorio
 FOR EACH ROW
 EXECUTE FUNCTION update_recordatorio_timestamp();
-
--- 9. Ver la estructura mejorada
-\d recordatorio;
-
--- 10. Query de prueba para ver recordatorios activos agrupados por hora
-SELECT 
-  LEFT(intervalo_recordar::text, 5) as hora,
-  COUNT(*) as total_recordatorios,
-  COUNT(DISTINCT id_perfil) as usuarios_unicos
-FROM recordatorio
-WHERE activo = true
-GROUP BY hora
-ORDER BY hora;

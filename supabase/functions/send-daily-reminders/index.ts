@@ -126,7 +126,7 @@ serve(async (req) => {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        from: 'HabitTrack <recordatorios@habittrack.app>',
+                        from: 'HabitTrack <onboarding@resend.dev>',
                         to: [userEmail],
                         subject: `🔔 Recordatorio: ${habitName}`,
                         html: generateEmailHTML(userName, habitName, recordatorio.mensaje),
