@@ -1,0 +1,357 @@
+/* Dashboard Principal */
+.dashboard {
+    min-height: 100vh;
+    background-color: #f5f5f5;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.dashboard.dark {
+    background-color: #1a1a1a;
+    color: #e5e7eb;
+}
+
+.dashboard.dark .header {
+    background: #111;
+    border-bottom: 1px solid #333;
+}
+
+.dashboard.dark .logoText {
+    color: #fff;
+}
+
+.dashboard.dark .themeToggle,
+.dashboard.dark .logoutButton {
+    color: #9ca3af;
+}
+
+.dashboard.dark .themeToggle:hover,
+.dashboard.dark .logoutButton:hover {
+    background-color: #374151;
+}
+
+.dashboard.dark .habitCard {
+    background: #262626;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+}
+
+.dashboard.dark .habitTitle {
+    color: #f3f4f6;
+}
+
+.dashboard.dark .habitFreq,
+.dashboard.dark .habitDesc,
+.dashboard.dark .progressTop {
+    color: #9ca3af;
+}
+
+.dashboard.dark .habitMenu {
+    color: #9ca3af;
+}
+
+.dashboard.dark .habitMenu:hover {
+    background: #374151;
+}
+
+.dashboard.dark .habitDropdown {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+.dashboard.dark .dropdownItem {
+    color: #d1d5db;
+}
+
+.dashboard.dark .dropdownItem:hover {
+    background: #374151;
+}
+
+.dashboard.dark .title {
+    color: #f9fafb;
+}
+
+.dashboard.dark .subtitle {
+    color: #9ca3af;
+}
+
+.dashboard.dark .emptyState {
+    background: #262626;
+}
+
+.dashboard.dark .emptyState h3 {
+    color: #f3f4f6;
+}
+
+.dashboard.dark .emptyState p {
+    color: #9ca3af;
+}
+
+/* Header */
+.header {
+    background: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Logo */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logoIcon {
+    font-size: 1.8rem;
+}
+
+.logoText {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+/* Header Actions */
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.themeToggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    color: #666;
+}
+
+.themeToggle:hover {
+    background-color: #f0f0f0;
+}
+
+.logoutButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    color: #666;
+}
+
+.logoutButton:hover {
+    background-color: #f0f0f0;
+}
+
+.userAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.userAvatar:hover {
+    transform: scale(1.05);
+}
+
+/* Título y Botón */
+.titleSection {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+    color: #666;
+    margin: 0;
+    font-size: 1rem;
+}
+
+.createButton {
+    background: #f97316;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+}
+
+.createButton:hover {
+    background: #ea580c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+}
+
+.createButton:active {
+    transform: translateY(0);
+}
+
+/* Grid de Hábitos */
+.habitsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Estado Vacío */
+.emptyState {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.emptyIcon {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.emptyState h3 {
+    color: #333;
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+}
+
+.emptyState p {
+    color: #666;
+    margin: 0;
+}
+
+/* Loading */
+.loading {
+    text-align: center;
+    padding: 4rem;
+    color: #666;
+    font-size: 1.1rem;
+}
+
+/* Notificaciones */
+.notification {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    max-width: 400px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+    animation: slideIn 0.3s ease;
+    z-index: 1000;
+}
+
+.notification-success {
+    background-color: #d1fae5;
+    color: #065f46;
+    border-left: 4px solid #10b981;
+}
+
+.notification-error {
+    background-color: #fee2e2;
+    color: #7f1d1d;
+    border-left: 4px solid #ef4444;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .notification {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .titleSection {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .createButton {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .habitsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .header {
+        padding: 1rem;
+    }
+
+    .logoText {
+        font-size: 1.2rem;
+    }
+}

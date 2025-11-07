@@ -1,0 +1,133 @@
+import { useState } from 'react';
+import { Bell } from 'lucide-react';
+import { supabase } from '../../../config/supabase';
+import './RecordatorioConfig.css';
+
+interface RecordatorioConfigProps {
+    habitoId: string;
+    nombreHabito: string;
+    onClose: () => void;
+}
+
+export default function RecordatorioConfig({ habitoId, nombreHabito, onClose }: RecordatorioConfigProps) {
+    const [hora, setHora] = useState('09:00');
+    const [activo, setActivo] = useState(true);
+    const [mensajeRecordatorio, setMensajeRecordatorio] = useState(`Es hora de: ${nombreHabito}`);
+    const [guardando, setGuardando] = useState(false);
+    const [mensaje, setMensaje] = useState<{ texto: string; tipo: 'success' | 'error' } | null>(null);
+
+    const handleGuardar = async () => {
+        setGuardando(true);
+        setMensaje(null);
+
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                throw new Error('Usuario no autenticado');
+            }
+
+            // Crear recordatorio usando la estructura REAL de la base de datos
+            const { data, error } = await supabase
+                .from('recordatorio')
+                .insert({
+                    id_habito: habitoId,
+                    id_perfil: user.id,
+                    mensaje: mensajeRecordatorio,
+                    activo: activo,
+                    intervalo_recordar: `${hora}:00`, // Formato time HH:MM:SS
+                })
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Error de Supabase:', error);
+                throw error;
+            }
+
+            console.log('✅ Recordatorio creado:', data);
+            setMensaje({ texto: '✅ Recordatorio guardado correctamente', tipo: 'success' });
+            console.log(`✅ Recordatorio configurado para ${nombreHabito} a las ${hora}`);
+
+            setTimeout(() => {
+                onClose();
+            }, 2000);
+        } catch (error: any) {
+            console.error('❌ Error al guardar recordatorio:', error);
+            setMensaje({
+                texto: `❌ Error: ${error.message || 'Error al guardar recordatorio'}`,
+                tipo: 'error'
+            });
+        } finally {
+            setGuardando(false);
+        }
+    };
+
+    return (
+        <div className="recordatorio-overlay" onClick={onClose}>
+            <div className="recordatorio-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="recordatorio-header">
+                    <Bell size={24} />
+                    <h2>Configurar Recordatorio</h2>
+                </div>
+
+                <div className="recordatorio-body">
+                    <p className="habito-nombre">Hábito: <strong>{nombreHabito}</strong></p>
+
+                    <div className="form-group">
+                        <label htmlFor="mensaje">Mensaje del recordatorio:</label>
+                        <input
+                            type="text"
+                            id="mensaje"
+                            value={mensajeRecordatorio}
+                            onChange={(e) => setMensajeRecordatorio(e.target.value)}
+                            className="text-input"
+                            placeholder="Ej: Es hora de hacer ejercicio"
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="hora">Hora del recordatorio:</label>
+                        <input
+                            type="time"
+                            id="hora"
+                            value={hora}
+                            onChange={(e) => setHora(e.target.value)}
+                            className="time-input"
+                        />
+                    </div>
+
+                    <div className="form-group checkbox-group">
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={activo}
+                                onChange={(e) => setActivo(e.target.checked)}
+                            />
+                            <span>Activar recordatorio diario por email</span>
+                        </label>
+                    </div>
+
+                    <div className="info-box">
+                        <p>📧 Recibirás un email recordatorio todos los días a las <strong>{hora}</strong> en tu correo registrado.</p>
+                    </div>
+
+                    {mensaje && (
+                        <div className={`mensaje ${mensaje.tipo}`}>
+                            {mensaje.texto}
+                        </div>
+                    )}
+                </div>
+
+                <div className="recordatorio-footer">
+                    <button onClick={onClose} className="btn-cancelar" disabled={guardando}>
+                        Cancelar
+                    </button>
+                    <button onClick={handleGuardar} className="btn-guardar" disabled={guardando}>
+                        {guardando ? 'Guardando...' : 'Guardar'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}

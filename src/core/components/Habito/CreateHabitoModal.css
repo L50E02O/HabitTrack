@@ -1,0 +1,133 @@
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200
+}
+
+.modalCard {
+    width: 100%;
+    max-width: 560px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .2);
+    overflow: hidden
+}
+
+.modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #eee
+}
+
+.iconBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 6px;
+    border-radius: 8px
+}
+
+.iconBtn:hover {
+    background: #f3f4f6
+}
+
+.form {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px
+}
+
+.field label {
+    font-size: 13px;
+    color: #374151
+}
+
+.field input,
+.field textarea,
+.field select {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    outline: none
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+    border-color: #a78bfa;
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, .2)
+}
+
+.actions {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px
+}
+
+.btnPrimary {
+    background: #f97316;
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, .3)
+}
+
+.btnPrimary:hover {
+    background: #ea580c
+}
+
+.btnGhost {
+    background: #f3f4f6;
+    color: #374151;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer
+}
+
+.btnGhost:hover {
+    background: #e5e7eb
+}
+
+.errorMsg {
+    color: #b91c1c;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 13px
+}
+
+@media (max-width:768px) {
+    .row {
+        grid-template-columns: 1fr;
+    }
+}
