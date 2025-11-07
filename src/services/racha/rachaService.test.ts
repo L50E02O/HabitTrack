@@ -24,7 +24,7 @@ describe("RachaService", () => {
     const mockRacha = {
       id_racha: "1",
       id_registro_intervalo: "reg1",
-      inicio_recha: new Date(),
+      inicio_racha: new Date(),
       fin_racha: new Date(),
       dias_consecutivos: 5,
       racha_activa: true,

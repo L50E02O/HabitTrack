@@ -64,44 +64,33 @@ export async function recordHabitProgress(
     // Le damos puntos al usuario
     await actualizarPuntosUsuario(idPerfil, puntosADar);
 
-    // Actualizamos la racha en cada avance (no solo al completar)
+    // Actualizamos la racha SOLO cuando se completa el objetivo (para diarios)
+    // o cuando hay avances (para semanales/mensuales)
     let infoRacha: ProgressResponse['rachaInfo'] | undefined;
 
-    // Siempre actualizamos la racha cuando hay progreso
-    console.log("Actualizando racha para hábito:", idHabito);
-    const resultadoRacha = await updateRachaOnHabitCompletion(
-      registroId,
-      idHabito,
-      intervaloMeta
-    );
+    // SOLO actualizar la racha cuando el hábito se completa
+    if (habitoCompletado) {
+      console.log("✅ Hábito completado. Actualizando racha para hábito:", idHabito);
+      const resultadoRacha = await updateRachaOnHabitCompletion(
+        registroId,
+        idHabito,
+        intervaloMeta,
+        habitoCompletado,
+        metaRepeticion
+      );
 
-    console.log("Resultado de actualización de racha:", resultadoRacha);
+      console.log("Resultado de actualización de racha:", resultadoRacha);
 
-    if (resultadoRacha.success) {
-      infoRacha = {
-        diasConsecutivos: resultadoRacha.diasConsecutivos,
-        isNewRacha: resultadoRacha.isNewRacha,
-        rachaMessage: resultadoRacha.message,
-      };
-      console.log("Info de racha creada:", infoRacha);
+      if (resultadoRacha.success && resultadoRacha.racha) {
+        infoRacha = {
+          diasConsecutivos: resultadoRacha.diasConsecutivos,
+          isNewRacha: resultadoRacha.isNewRacha,
+          rachaMessage: resultadoRacha.message,
+        };
+        console.log("Info de racha creada:", infoRacha);
+      }
     } else {
-      // Si falla la actualización de racha, al menos devolvemos algo
-      // Contamos cuántos días consecutivos hay para este hábito
-      const { data: registros } = await supabase
-        .from("registro_intervalo")
-        .select("fecha")
-        .eq("id_habito", idHabito)
-        .order("fecha", { ascending: false })
-        .limit(100);
-
-      // Usar la misma lógica de 24 horas
-      const diasConsecutivos = registros && registros.length > 0 ? 1 : 0;
-      infoRacha = {
-        diasConsecutivos,
-        isNewRacha: false,
-        rachaMessage: `Llevas ${diasConsecutivos} día${diasConsecutivos > 1 ? 's' : ''}`,
-      };
-      console.log("Info de racha calculada manualmente:", infoRacha);
+      console.log("⏳ Hábito no completado aún. La racha no se actualiza hasta completar el objetivo.");
     }
 
     // Revisamos si hay rachas que deben expirar

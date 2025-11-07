@@ -11,30 +11,58 @@ export interface RachaUpdateResult {
 }
 
 /**
- * Esta función se ejecuta cada vez que alguien avanza en un hábito
- * Crea o actualiza la racha con cada avance
+ * Esta función se ejecuta cuando se COMPLETA un hábito
+ * NUEVA LÓGICA:
+ * - Diaria: Se llama solo cuando se completa el objetivo del día
+ * - Semanal: Se llama cuando se completa el objetivo, actualiza semanas con avances
+ * - Mensual: Se llama cuando se completa el objetivo, actualiza meses con avances
  */
 export async function updateRachaOnHabitCompletion(
   idRegistroIntervalo: string,
   idHabito: string,
-  intervaloMeta: string
+  intervaloMeta: string,
+  habitoCompletado?: boolean,
+  metaRepeticion?: number
 ): Promise<RachaUpdateResult> {
   try {
+    // Obtener información del hábito si no se proporcionó
+    if (habitoCompletado === undefined || metaRepeticion === undefined) {
+      const { data: habito, error: habitoError } = await supabase
+        .from("habito")
+        .select("meta_repeticion, intervalo_meta")
+        .eq("id_habito", idHabito)
+        .single();
+
+      if (habitoError) throw habitoError;
+      
+      metaRepeticion = habito.meta_repeticion;
+      intervaloMeta = habito.intervalo_meta;
+      habitoCompletado = true; // Si se llama esta función, es porque se completó
+    }
+
     // Primero buscamos si ya tiene una racha activa para este hábito
     const rachaActual = await buscarRachaActiva(idHabito);
 
     const hoy = new Date();
     hoy.setUTCHours(0, 0, 0, 0);
 
-    // Calculamos cuántos avances lleva (cada clic cuenta)
-    const diasConsecutivos = await calcularDiasConsecutivos(idHabito, intervaloMeta, hoy);
+    // Asegurar que metaRepeticion tiene un valor
+    const metaFinal = metaRepeticion || 1;
+
+    // Calculamos cuántos períodos consecutivos lleva
+    const periodosConsecutivos = await calcularPeriodosConsecutivos(
+      idHabito, 
+      intervaloMeta, 
+      hoy, 
+      metaFinal
+    );
 
     // Si no tiene racha, creamos una nueva
     if (!rachaActual) {
-      return await crearNuevaRacha(idRegistroIntervalo, null, diasConsecutivos, intervaloMeta);
+      return await crearNuevaRacha(idRegistroIntervalo, null, periodosConsecutivos, intervaloMeta);
     } else {
       // Si ya tiene racha, la actualizamos
-      return await extenderRacha(rachaActual, idRegistroIntervalo, hoy, diasConsecutivos, intervaloMeta);
+      return await extenderRacha(rachaActual, idRegistroIntervalo, hoy, periodosConsecutivos, intervaloMeta);
     }
 
   } catch (error: any) {
@@ -69,15 +97,21 @@ async function buscarRachaActiva(idHabito: string): Promise<IRacha | null> {
   return rachas[0];
 }
 
-// Cuenta días consecutivos con límite de 24 horas entre registros
-async function calcularDiasConsecutivos(idHabito: string, _intervaloMeta: string, _fechaHoy: Date): Promise<number> {
+// Cuenta períodos consecutivos según el tipo de intervalo
+// IMPORTANTE: Esta función solo se llama cuando se COMPLETA un hábito
+async function calcularPeriodosConsecutivos(
+  idHabito: string, 
+  intervaloMeta: string, 
+  fechaHoy: Date,
+  metaRepeticion: number
+): Promise<number> {
   // Obtener todos los registros ordenados por fecha
   const { data: registros, error } = await supabase
     .from("registro_intervalo")
     .select("fecha")
     .eq("id_habito", idHabito)
     .order("fecha", { ascending: false })
-    .limit(100);
+    .limit(365); // Un año de registros como máximo
 
   console.log(`Registros encontrados para hábito ${idHabito}:`, registros?.length || 0);
 
@@ -90,29 +124,101 @@ async function calcularDiasConsecutivos(idHabito: string, _intervaloMeta: string
     return 1; // Este es el primer avance
   }
 
-  // Calcular días consecutivos usando la función auxiliar
-  const diasConsecutivos = calcularDiasConsecutivosConLimite24h(registros);
+  // Para hábitos diarios: contar días donde se alcanzó la meta
+  if (intervaloMeta === 'diario') {
+    // Agrupar registros por día y contar cuántos hay en cada día
+    const registrosPorDia = new Map<string, number>();
+    
+    registros.forEach(reg => {
+      const fecha = new Date(reg.fecha);
+      fecha.setUTCHours(0, 0, 0, 0);
+      const diaKey = fecha.toISOString();
+      registrosPorDia.set(diaKey, (registrosPorDia.get(diaKey) || 0) + 1);
+    });
 
-  console.log(`Total de días consecutivos calculados: ${diasConsecutivos}`);
+    // Solo contar días donde se completó el objetivo
+    const diasCompletados = Array.from(registrosPorDia.entries())
+      .filter(([_, count]) => count >= metaRepeticion)
+      .map(([diaKey]) => new Date(diaKey))
+      .sort((a, b) => b.getTime() - a.getTime());
 
-  return Math.max(1, diasConsecutivos);
-}// Revisa si la racha se rompió porque pasó mucho tiempo
-function seRompioLaRacha(racha: IRacha, fechaHoy: Date, intervaloMeta: string): boolean {
+    if (diasCompletados.length === 0) return 1;
+
+    // Contar días consecutivos desde hoy
+    let consecutivos = 0;
+    let fechaEsperada = new Date(fechaHoy);
+    fechaEsperada.setUTCHours(0, 0, 0, 0);
+
+    for (const dia of diasCompletados) {
+      if (dia.getTime() === fechaEsperada.getTime()) {
+        consecutivos++;
+        fechaEsperada.setDate(fechaEsperada.getDate() - 1);
+      } else if (dia.getTime() < fechaEsperada.getTime()) {
+        break;
+      }
+    }
+
+    return Math.max(1, consecutivos);
+  }
+
+  // Para semanales y mensuales: contar períodos con al menos 1 registro
+  if (intervaloMeta === 'semanal') {
+    const semanas = new Set<string>();
+    registros.forEach(reg => {
+      const fecha = new Date(reg.fecha);
+      const año = fecha.getFullYear();
+      const primerDia = new Date(año, 0, 1);
+      const dias = Math.floor((fecha.getTime() - primerDia.getTime()) / (24 * 60 * 60 * 1000));
+      const semana = Math.ceil((dias + primerDia.getDay() + 1) / 7);
+      semanas.add(`${año}-W${semana}`);
+    });
+    return Math.max(1, semanas.size);
+  }
+
+  if (intervaloMeta === 'mensual') {
+    const meses = new Set<string>();
+    registros.forEach(reg => {
+      const fecha = new Date(reg.fecha);
+      meses.add(`${fecha.getFullYear()}-${fecha.getMonth() + 1}`);
+    });
+    return Math.max(1, meses.size);
+  }
+
+  return 1;
+}
+
+// Revisa si la racha se rompió porque pasó mucho tiempo
+function seRompioLaRacha(racha: IRacha, _fechaHoy: Date, intervaloMeta: string): boolean {
   const ultimaFecha = new Date(racha.fin_racha);
-  ultimaFecha.setUTCHours(0, 0, 0, 0);
+  const ahora = new Date();
 
-  const fechaEsperada = calcularFechaSiguiente(ultimaFecha, intervaloMeta);
+  // Calcular la diferencia en milisegundos
+  const diferenciaMs = ahora.getTime() - ultimaFecha.getTime();
 
-  // Si hoy es después de cuando esperábamos el siguiente registro, se rompió
-  return fechaHoy.getTime() > fechaEsperada.getTime();
+  // Tiempos de expiración según el tipo de intervalo
+  if (intervaloMeta === 'diario') {
+    // 1 día = 24 horas
+    const unDiaEnMs = 24 * 60 * 60 * 1000;
+    return diferenciaMs > unDiaEnMs;
+  } else if (intervaloMeta === 'semanal') {
+    // 7 días
+    const sieteDiasEnMs = 7 * 24 * 60 * 60 * 1000;
+    return diferenciaMs > sieteDiasEnMs;
+  } else if (intervaloMeta === 'mensual') {
+    // 31 días
+    const treintaYUnDiasEnMs = 31 * 24 * 60 * 60 * 1000;
+    return diferenciaMs > treintaYUnDiasEnMs;
+  }
+
+  return false;
 }
 
 // Crea una racha completamente nueva
 async function crearNuevaRacha(
   idRegistroIntervalo: string,
   rachaAnterior: IRacha | null,
-  diasConsecutivos: number,
-  _intervaloMeta: string // No usado actualmente
+  periodosConsecutivos: number,
+  intervaloMeta: string
 ): Promise<RachaUpdateResult> {
 
   const hoy = new Date();
@@ -120,9 +226,9 @@ async function crearNuevaRacha(
 
   const nuevaRacha: CreateIRacha = {
     id_registro_intervalo: idRegistroIntervalo,
-    inicio_recha: hoy, // Mantengo el typo del interface original
+    inicio_racha: hoy,
     fin_racha: hoy,
-    dias_consecutivos: diasConsecutivos,
+    dias_consecutivos: periodosConsecutivos,
     racha_activa: true,
   };
 
@@ -142,11 +248,15 @@ async function crearNuevaRacha(
       .eq("id_racha", rachaAnterior.id_racha);
   }
 
+  // Crear mensaje según el tipo de intervalo
+  const unidad = obtenerUnidadTiempo(intervaloMeta);
+  const mensaje = `¡Empezaste una nueva racha! Llevas ${periodosConsecutivos} ${unidad}${periodosConsecutivos > 1 ? 's' : ''} 🔥`;
+
   return {
     success: true,
     racha: rachaCreada,
-    diasConsecutivos,
-    message: `¡Empezaste una nueva racha! Llevas ${diasConsecutivos} día${diasConsecutivos > 1 ? 's' : ''} 🔥`,
+    diasConsecutivos: periodosConsecutivos,
+    message: mensaje,
     isNewRacha: true,
   };
 }
@@ -156,13 +266,13 @@ async function extenderRacha(
   racha: IRacha,
   idRegistroIntervalo: string,
   fechaHoy: Date,
-  diasConsecutivos: number,
-  _intervaloMeta: string // No usado actualmente
+  periodosConsecutivos: number,
+  intervaloMeta: string
 ): Promise<RachaUpdateResult> {
 
   const datosActualizados: UpdateIRacha = {
     fin_racha: fechaHoy,
-    dias_consecutivos: diasConsecutivos,
+    dias_consecutivos: periodosConsecutivos,
     id_registro_intervalo: idRegistroIntervalo,
   };
 
@@ -182,52 +292,27 @@ async function extenderRacha(
 
   if (fetchError) throw fetchError;
 
+  // Crear mensaje según el tipo de intervalo
+  const unidad = obtenerUnidadTiempo(intervaloMeta);
+  const mensaje = `¡Sigue así! Ya llevas ${periodosConsecutivos} ${unidad}${periodosConsecutivos > 1 ? 's' : ''} consecutivos 💪`;
+
   return {
     success: true,
     racha: rachaActualizada,
-    diasConsecutivos,
-    message: `¡Sigue así! Ya llevas ${diasConsecutivos} día${diasConsecutivos > 1 ? 's' : ''} consecutivos 💪`,
+    diasConsecutivos: periodosConsecutivos,
+    message: mensaje,
     isNewRacha: false,
   };
 }
 
 // Funciones que ayudan con las fechas
-// Comentadas temporalmente - no se usan actualmente
 
-/* function calcularFechaAnterior(fecha: Date, intervaloMeta: string): Date {
-  const fechaAnterior = new Date(fecha);
-
-  if (intervaloMeta === 'diario') {
-    fechaAnterior.setDate(fechaAnterior.getDate() - 1);
-  } else if (intervaloMeta === 'semanal') {
-    fechaAnterior.setDate(fechaAnterior.getDate() - 7);
-  } else if (intervaloMeta === 'mensual') {
-    fechaAnterior.setMonth(fechaAnterior.getMonth() - 1);
-  }
-
-  return fechaAnterior;
-} */
-
-function calcularFechaSiguiente(fecha: Date, intervaloMeta: string): Date {
-  const fechaSiguiente = new Date(fecha);
-
-  if (intervaloMeta === 'diario') {
-    fechaSiguiente.setDate(fechaSiguiente.getDate() + 1);
-  } else if (intervaloMeta === 'semanal') {
-    fechaSiguiente.setDate(fechaSiguiente.getDate() + 7);
-  } else if (intervaloMeta === 'mensual') {
-    fechaSiguiente.setMonth(fechaSiguiente.getMonth() + 1);
-  }
-
-  return fechaSiguiente;
+function obtenerUnidadTiempo(intervaloMeta: string): string {
+  if (intervaloMeta === 'diario') return 'día';
+  if (intervaloMeta === 'semanal') return 'semana';
+  if (intervaloMeta === 'mensual') return 'mes';
+  return 'período';
 }
-
-/* function obtenerUnidadTiempo(intervaloMeta: string): string {
-  if (intervaloMeta === 'diario') return 'días';
-  if (intervaloMeta === 'semanal') return 'semanas';
-  if (intervaloMeta === 'mensual') return 'meses';
-  return 'períodos';
-} */
 
 // Funciones públicas que usan otros archivos
 
@@ -246,8 +331,7 @@ export async function getDiasRachaByHabito(idHabito: string): Promise<number> {
 
 /**
  * Busca las rachas de varios hábitos de una vez
- * NUEVA LÓGICA: Calcula rachas basándose en días consecutivos (1 minuto para pruebas)
- * La racha NO se reinicia si el hábito fue completado exitosamente
+ * Lee directamente desde la tabla `racha` en la base de datos
  */
 export async function getRachasMultiplesHabitos(idsHabitos: string[]): Promise<Record<string, number>> {
   try {
@@ -255,56 +339,37 @@ export async function getRachasMultiplesHabitos(idsHabitos: string[]): Promise<R
 
     const rachasMap: Record<string, number> = {};
 
-    // Para cada hábito, calculamos su racha de días consecutivos
-    for (const idHabito of idsHabitos) {
-      try {
-        // Obtener información del hábito para saber si fue completado
-        const { data: habito, error: habitoError } = await supabase
-          .from("habito")
-          .select("meta_repeticion, intervalo_meta")
-          .eq("id_habito", idHabito)
-          .single();
+    // Inicializar todos los hábitos en 0
+    idsHabitos.forEach(id => {
+      rachasMap[id] = 0;
+    });
 
-        if (habitoError) {
-          console.error(`Error al obtener hábito ${idHabito}:`, habitoError);
-          rachasMap[idHabito] = 0;
-          continue;
-        }
+    // Obtener todas las rachas activas de estos hábitos desde la tabla racha
+    const { data: rachas, error } = await supabase
+      .from("racha")
+      .select(`
+        id_racha,
+        dias_consecutivos,
+        racha_activa,
+        registro_intervalo!inner(id_habito)
+      `)
+      .in("registro_intervalo.id_habito", idsHabitos)
+      .eq("racha_activa", true);
 
-        const { data: registros, error } = await supabase
-          .from("registro_intervalo")
-          .select("fecha, cumplido")
-          .eq("id_habito", idHabito)
-          .order("fecha", { ascending: false })
-          .limit(100);
-
-        if (error) {
-          console.error(`Error al obtener registros para hábito ${idHabito}:`, error);
-          rachasMap[idHabito] = 0;
-          continue;
-        }
-
-        if (!registros || registros.length === 0) {
-          rachasMap[idHabito] = 0;
-          continue;
-        }
-
-        // Calcular días consecutivos (verificando si el hábito fue completado)
-        const diasConsecutivos = calcularDiasConsecutivosConLimite24hYCompletado(
-          registros,
-          habito.meta_repeticion,
-          habito.intervalo_meta
-        );
-        rachasMap[idHabito] = diasConsecutivos;
-        console.log(`Hábito ${idHabito}: ${diasConsecutivos} días de racha`);
-
-      } catch (err) {
-        console.error(`Error procesando hábito ${idHabito}:`, err);
-        rachasMap[idHabito] = 0;
-      }
+    if (error) {
+      console.error("Error al obtener rachas:", error);
+      return rachasMap;
     }
 
-    console.log("Rachas calculadas (días consecutivos):", rachasMap);
+    // Actualizar el mapa con las rachas activas encontradas
+    if (rachas && rachas.length > 0) {
+      rachas.forEach((racha: any) => {
+        const idHabito = racha.registro_intervalo.id_habito;
+        rachasMap[idHabito] = racha.dias_consecutivos;
+      });
+    }
+
+    console.log("Rachas obtenidas desde BD:", rachasMap);
     return rachasMap;
 
   } catch (error: any) {
@@ -317,118 +382,7 @@ export async function getRachasMultiplesHabitos(idsHabitos: string[]): Promise<R
   }
 }
 
-// Nueva función: Calcula días consecutivos verificando si el hábito fue completado
-function calcularDiasConsecutivosConLimite24hYCompletado(
-  registros: Array<{ fecha: any; cumplido?: boolean }>,
-  metaRepeticion: number,
-  _intervaloMeta: string // No usado actualmente
-): number {
-  if (!registros || registros.length === 0) return 0;
-
-  const ahora = new Date();
-  const registroMasReciente = new Date(registros[0].fecha);
-
-  // Calcular cuántos registros tiene el período actual
-  const hoy = new Date();
-  hoy.setUTCHours(0, 0, 0, 0);
-
-  const registrosHoy = registros.filter(reg => {
-    const fechaReg = new Date(reg.fecha);
-    fechaReg.setUTCHours(0, 0, 0, 0);
-    return fechaReg.getTime() === hoy.getTime();
-  });
-
-  const registrosHoyCount = registrosHoy.length;
-  const habitoCompletado = registrosHoyCount >= metaRepeticion;
-
-  // Si el hábito fue completado exitosamente, NO verificar el límite de tiempo
-  if (habitoCompletado) {
-    console.log(`✅ Hábito completado (${registrosHoyCount}/${metaRepeticion}). Racha NO se reinicia.`);
-  } else {
-    // Solo verificar el límite de 1 minuto si el hábito NO está completado
-    const diferenciaMinutos = (ahora.getTime() - registroMasReciente.getTime()) / (1000 * 60);
-    if (diferenciaMinutos > 1) {
-      console.log(`⚠️ Racha rota: último registro hace ${diferenciaMinutos.toFixed(2)} minutos y NO completaste el hábito (${registrosHoyCount}/${metaRepeticion})`);
-      return 0;
-    }
-    console.log(`✅ Racha activa: último registro hace ${diferenciaMinutos.toFixed(2)} minutos (${registrosHoyCount}/${metaRepeticion})`);
-  }
-
-  // Agrupar registros por día (fecha sin hora)
-  const fechasUnicas = new Set<string>();
-  registros.forEach(reg => {
-    const fecha = new Date(reg.fecha);
-    fecha.setUTCHours(0, 0, 0, 0);
-    fechasUnicas.add(fecha.toISOString());
-  });
-
-  const diasUnicos = Array.from(fechasUnicas).sort().reverse();
-
-  // Contar días consecutivos desde hoy hacia atrás
-  let diasConsecutivos = 0;
-  let fechaEsperada = new Date();
-  fechaEsperada.setUTCHours(0, 0, 0, 0);
-
-  for (const diaStr of diasUnicos) {
-    const diaRegistro = new Date(diaStr);
-
-    if (diaRegistro.getTime() === fechaEsperada.getTime()) {
-      diasConsecutivos++;
-      fechaEsperada.setDate(fechaEsperada.getDate() - 1);
-    } else if (diaRegistro.getTime() < fechaEsperada.getTime()) {
-      break;
-    }
-  }
-
-  return diasConsecutivos;
-}
-
-// Función anterior (mantenerla por compatibilidad)
-function calcularDiasConsecutivosConLimite24h(registros: Array<{ fecha: any }>): number {
-  if (!registros || registros.length === 0) return 0;
-
-  const ahora = new Date();
-  const registroMasReciente = new Date(registros[0].fecha);
-
-  // Si el último registro fue hace más de 1 MINUTO, la racha se rompió (para pruebas)
-  const diferenciaMinutos = (ahora.getTime() - registroMasReciente.getTime()) / (1000 * 60);
-  if (diferenciaMinutos > 1) {
-    console.log(`⚠️ Racha rota: último registro hace ${diferenciaMinutos.toFixed(2)} minutos (límite: 1 minuto)`);
-    return 0;
-  }
-
-  console.log(`✅ Racha activa: último registro hace ${diferenciaMinutos.toFixed(2)} minutos`);
-
-  // Agrupar registros por día (fecha sin hora)
-  const fechasUnicas = new Set<string>();
-  registros.forEach(reg => {
-    const fecha = new Date(reg.fecha);
-    fecha.setUTCHours(0, 0, 0, 0);
-    fechasUnicas.add(fecha.toISOString());
-  });
-
-  const diasUnicos = Array.from(fechasUnicas).sort().reverse();
-
-  // Contar días consecutivos desde hoy hacia atrás
-  let diasConsecutivos = 0;
-  let fechaEsperada = new Date();
-  fechaEsperada.setUTCHours(0, 0, 0, 0);
-
-  for (const diaStr of diasUnicos) {
-    const diaRegistro = new Date(diaStr);
-
-    if (diaRegistro.getTime() === fechaEsperada.getTime()) {
-      diasConsecutivos++;
-      // Retroceder un día
-      fechaEsperada.setDate(fechaEsperada.getDate() - 1);
-    } else if (diaRegistro.getTime() < fechaEsperada.getTime()) {
-      // Hay un salto de días, la racha se rompió
-      break;
-    }
-  }
-
-  return diasConsecutivos;
-}/**
+/**
  * Obtiene la racha activa de un hábito (función pública)
  */
 export async function getRachaActivaByHabito(idHabito: string): Promise<IRacha | null> {

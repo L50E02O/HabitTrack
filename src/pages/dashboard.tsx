@@ -174,16 +174,16 @@ export default function Dashboard() {
                 [habito.id_habito]: result.newProgress,
             }));
 
-            // Actualizar rachas SIEMPRE sumando 1 al contador actual
-            setHabitosRachas(prev => {
-                const rachaActual = prev[habito.id_habito] || 0;
-                const nuevaRacha = rachaActual + 1; // Siempre suma 1 por cada avance
-                console.log(`Actualizando racha de ${rachaActual} a ${nuevaRacha}`);
-                return {
+            // Actualizar rachas SOLO si el hábito se completó y hay info de racha
+            if (result.isComplete && result.rachaInfo) {
+                setHabitosRachas(prev => ({
                     ...prev,
-                    [habito.id_habito]: nuevaRacha,
-                };
-            });
+                    [habito.id_habito]: result.rachaInfo!.diasConsecutivos,
+                }));
+                console.log(`✅ Racha actualizada a ${result.rachaInfo.diasConsecutivos}`);
+            } else {
+                console.log(`⏳ Hábito no completado, racha no cambia`);
+            }
 
             // Limpiar notificación después de 3 segundos
             setTimeout(() => setNotification(null), 3000);
