@@ -3,6 +3,7 @@ import FormularioLogin from "../../core/components/Auth/fomularioLogin";
 import { signIn } from "../../services/auth/authService";
 import { useNavigate } from "react-router-dom";
 import styles from "./loginPage.module.css";
+import { Sprout } from "lucide-react";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -29,7 +30,10 @@ export default function LoginPage() {
     return (
         <div className={styles.authPage}>
             <div className={styles.iconContainer}>
-                <span className={styles.icon}>🌱</span>
+                <span className={styles.icon}>
+                    <Sprout size={24} />
+                    
+                </span>
             </div>
             <h1>Bienvenido de nuevo</h1>
             <p className={styles.subtitle}>Inicia sesión para continuar tu progreso.</p>

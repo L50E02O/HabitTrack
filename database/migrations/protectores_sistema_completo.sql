@@ -10,8 +10,6 @@ CREATE TABLE IF NOT EXISTS compra_protector (
   cantidad INTEGER NOT NULL DEFAULT 1,
   costo_puntos INTEGER NOT NULL DEFAULT 250,
   fecha_compra TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  semana_compra INTEGER GENERATED ALWAYS AS (EXTRACT(WEEK FROM fecha_compra)) STORED,
-  año_compra INTEGER GENERATED ALWAYS AS (EXTRACT(YEAR FROM fecha_compra)) STORED,
   CONSTRAINT compra_protector_cantidad_positiva CHECK (cantidad > 0),
   CONSTRAINT compra_protector_costo_positivo CHECK (costo_puntos > 0)
 );
@@ -19,11 +17,9 @@ CREATE TABLE IF NOT EXISTS compra_protector (
 -- Índices para optimizar consultas
 CREATE INDEX IF NOT EXISTS idx_compra_protector_perfil ON compra_protector(id_perfil);
 CREATE INDEX IF NOT EXISTS idx_compra_protector_fecha ON compra_protector(fecha_compra);
-CREATE INDEX IF NOT EXISTS idx_compra_protector_semana ON compra_protector(id_perfil, semana_compra, año_compra);
+CREATE INDEX IF NOT EXISTS idx_compra_protector_perfil_fecha ON compra_protector(id_perfil, fecha_compra);
 
 COMMENT ON TABLE compra_protector IS 'Registro de compras de protectores de racha con puntos';
-COMMENT ON COLUMN compra_protector.semana_compra IS 'Semana del año en que se realizó la compra (1-53)';
-COMMENT ON COLUMN compra_protector.año_compra IS 'Año en que se realizó la compra';
 
 -- PASO 2: Tabla para registrar uso de protectores
 -- ============================================
@@ -61,8 +57,8 @@ BEGIN
   SELECT COUNT(*) INTO compras_esta_semana
   FROM compra_protector
   WHERE id_perfil = user_id
-    AND semana_compra = semana_actual
-    AND año_compra = año_actual;
+    AND EXTRACT(WEEK FROM fecha_compra) = semana_actual
+    AND EXTRACT(YEAR FROM fecha_compra) = año_actual;
   
   -- Permitir si no ha comprado esta semana (límite: 1 por semana)
   RETURN compras_esta_semana < 1;
@@ -96,13 +92,15 @@ SELECT
   p.id,
   p.nombre,
   p.protectores_racha,
-  COALESCE(MAX(r.racha_actual), 0) as racha_maxima_actual,
-  calcular_protectores_por_racha(COALESCE(MAX(r.racha_maxima), 0)) as protectores_esperados_por_racha,
+  COALESCE(MAX(r.dias_consecutivos), 0) as racha_maxima_actual,
+  calcular_protectores_por_racha(COALESCE(MAX(r.dias_consecutivos), 0)) as protectores_esperados_por_racha,
   COUNT(DISTINCT cp.id_compra) as total_compras,
   COALESCE(SUM(cp.costo_puntos), 0) as total_puntos_gastados,
   COUNT(DISTINCT up.id_uso) as total_protectores_usados
 FROM perfil p
-LEFT JOIN racha r ON r.id_perfil = p.id
+LEFT JOIN habito h ON h.id_perfil = p.id
+LEFT JOIN registro_intervalo ri ON ri.id_habito = h.id_habito
+LEFT JOIN racha r ON r.id_registro_intervalo = ri.id_registro AND r.racha_activa = true
 LEFT JOIN compra_protector cp ON cp.id_perfil = p.id
 LEFT JOIN uso_protector up ON up.id_perfil = p.id
 GROUP BY p.id, p.nombre, p.protectores_racha;
