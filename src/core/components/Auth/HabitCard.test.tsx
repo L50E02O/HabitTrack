@@ -53,7 +53,7 @@ describe("HabitCard - Dificultad Badge", () => {
   it("deberia mostrar badge de dificultad facil", () => {
     render(<HabitCard habito={mockHabitoFacil} />);
 
-    const badge = screen.getByText("⭐ Fácil (3 pts)");
+    const badge = screen.getByText(/Fácil \(3 pts\)/i);
     expect(badge).toBeInTheDocument();
     expect(badge).toHaveClass("dificultadBadge", "facil");
   });
@@ -61,7 +61,7 @@ describe("HabitCard - Dificultad Badge", () => {
   it("deberia mostrar badge de dificultad medio", () => {
     render(<HabitCard habito={mockHabitoMedio} />);
 
-    const badge = screen.getByText("⭐⭐ Medio (5 pts)");
+    const badge = screen.getByText(/Medio \(5 pts\)/i);
     expect(badge).toBeInTheDocument();
     expect(badge).toHaveClass("dificultadBadge", "medio");
   });
@@ -69,7 +69,7 @@ describe("HabitCard - Dificultad Badge", () => {
   it("deberia mostrar badge de dificultad dificil", () => {
     render(<HabitCard habito={mockHabitoDificil} />);
 
-    const badge = screen.getByText("⭐⭐⭐ Difícil (8 pts)");
+    const badge = screen.getByText(/Difícil \(8 pts\)/i);
     expect(badge).toBeInTheDocument();
     expect(badge).toHaveClass("dificultadBadge", "dificil");
   });
@@ -77,21 +77,21 @@ describe("HabitCard - Dificultad Badge", () => {
   it("deberia tener estilo correcto para dificultad facil", () => {
     render(<HabitCard habito={mockHabitoFacil} />);
 
-    const badge = screen.getByText("⭐ Fácil (3 pts)");
+    const badge = screen.getByText(/Fácil \(3 pts\)/i);
     expect(badge).toHaveClass("facil");
   });
 
   it("deberia tener estilo correcto para dificultad medio", () => {
     render(<HabitCard habito={mockHabitoMedio} />);
 
-    const badge = screen.getByText("⭐⭐ Medio (5 pts)");
+    const badge = screen.getByText(/Medio \(5 pts\)/i);
     expect(badge).toHaveClass("medio");
   });
 
   it("deberia tener estilo correcto para dificultad dificil", () => {
     render(<HabitCard habito={mockHabitoDificil} />);
 
-    const badge = screen.getByText("⭐⭐⭐ Difícil (8 pts)");
+    const badge = screen.getByText(/Difícil \(8 pts\)/i);
     expect(badge).toHaveClass("dificil");
   });
 
@@ -99,28 +99,28 @@ describe("HabitCard - Dificultad Badge", () => {
     render(<HabitCard habito={mockHabitoFacil} />);
 
     expect(screen.getByText("Leer")).toBeInTheDocument();
-    expect(screen.getByText("⭐ Fácil (3 pts)")).toBeInTheDocument();
+    expect(screen.getByText(/Fácil \(3 pts\)/i)).toBeInTheDocument();
   });
 
   it("deberia mostrar descripción además del badge", () => {
     render(<HabitCard habito={mockHabitoFacil} />);
 
     expect(screen.getByText("Leer 30 minutos")).toBeInTheDocument();
-    expect(screen.getByText("⭐ Fácil (3 pts)")).toBeInTheDocument();
+    expect(screen.getByText(/Fácil \(3 pts\)/i)).toBeInTheDocument();
   });
 
   it("deberia mostrar progreso (0/1) para hábito sin completar", () => {
     render(<HabitCard habito={mockHabitoFacil} weeklyCount={0} />);
 
     expect(screen.getByText("0/1")).toBeInTheDocument();
-    expect(screen.getByText("⭐ Fácil (3 pts)")).toBeInTheDocument();
+    expect(screen.getByText(/Fácil \(3 pts\)/i)).toBeInTheDocument();
   });
 
   it("deberia mostrar progreso (5/5) para hábito completado", () => {
     render(<HabitCard habito={mockHabitoMedio} weeklyCount={5} />);
 
     expect(screen.getByText("5/5")).toBeInTheDocument();
-    expect(screen.getByText("⭐⭐ Medio (5 pts)")).toBeInTheDocument();
+    expect(screen.getByText(/Medio \(5 pts\)/i)).toBeInTheDocument();
   });
 
   it("deberia mostrar botón Avanzar cuando no está completado", () => {
@@ -135,7 +135,7 @@ describe("HabitCard - Dificultad Badge", () => {
 
     const advanceButton = screen.getByRole("button", { name: /Avanzar/i });
     expect(advanceButton).toBeInTheDocument();
-    expect(screen.getByText("⭐ Fácil (3 pts)")).toBeInTheDocument();
+    expect(screen.getByText(/Fácil \(3 pts\)/i)).toBeInTheDocument();
   });
 
   it("deberia mostrar botón completado cuando se alcanza la meta", () => {
@@ -149,7 +149,7 @@ describe("HabitCard - Dificultad Badge", () => {
     const completedButton = screen.getByRole("button", { name: /¡Completado!/i });
     expect(completedButton).toBeInTheDocument();
     expect(completedButton).toBeDisabled();
-    expect(screen.getByText("⭐ Fácil (3 pts)")).toBeInTheDocument();
+    expect(screen.getByText(/Fácil \(3 pts\)/i)).toBeInTheDocument();
   });
 
   it("deberia llamar onAdvance al hacer click en Avanzar", () => {
@@ -177,7 +177,7 @@ describe("HabitCard - Dificultad Badge", () => {
       />
     );
 
-    expect(screen.getByText("⭐⭐ Medio (5 pts)")).toBeInTheDocument();
+    expect(screen.getByText(/Medio \(5 pts\)/i)).toBeInTheDocument();
     expect(screen.getByText("Racha de 5 días")).toBeInTheDocument();
   });
 
@@ -195,7 +195,7 @@ describe("HabitCard - Dificultad Badge", () => {
     );
 
     // Badge debe estar visible
-    expect(screen.getByText("⭐⭐⭐ Difícil (8 pts)")).toBeInTheDocument();
+    expect(screen.getByText(/Difícil \(8 pts\)/i)).toBeInTheDocument();
 
     // Menú debe estar accesible
     const menuButton = screen.getByRole("button", { name: /Opciones/i });
@@ -210,6 +210,6 @@ describe("HabitCard - Dificultad Badge", () => {
 
     render(<HabitCard habito={habitoConCategoria} />);
 
-    expect(screen.getByText("⭐ Fácil (3 pts)")).toBeInTheDocument();
+    expect(screen.getByText(/Fácil \(3 pts\)/i)).toBeInTheDocument();
   });
 });

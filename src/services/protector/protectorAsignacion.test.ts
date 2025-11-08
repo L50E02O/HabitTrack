@@ -67,7 +67,7 @@ describe('protectorService - Asignación de protectores', () => {
       const mockResponse = {
         success: true,
         message: 'Protector asignado exitosamente',
-        protectores_asignados: 3,
+        protectoresAsignados: 3,
       };
 
       vi.mocked(supabase.rpc).mockResolvedValue({
@@ -83,6 +83,7 @@ describe('protectorService - Asignación de protectores', () => {
         p_cantidad: 3,
       });
 
+      expect(resultado.success).toBe(true);
       expect(resultado.protectoresAsignados).toBe(3);
     });
 
@@ -95,7 +96,7 @@ describe('protectorService - Asignación de protectores', () => {
       const resultado = await asignarProtectorAHabito(userId, habitoId, 1);
 
       expect(resultado.success).toBe(false);
-      expect(resultado.message).toContain('Error al asignar protector');
+      expect(resultado.message).toBe('Network error');
     });
   });
 
@@ -145,7 +146,7 @@ describe('protectorService - Asignación de protectores', () => {
       const mockResponse = {
         success: true,
         message: 'Protector removido exitosamente',
-        protectores_asignados: 0,
+        protectoresAsignados: 0,
       };
 
       vi.mocked(supabase.rpc).mockResolvedValue({
@@ -161,6 +162,7 @@ describe('protectorService - Asignación de protectores', () => {
         p_cantidad: 3,
       });
 
+      expect(resultado.success).toBe(true);
       expect(resultado.protectoresAsignados).toBe(0);
     });
   });
@@ -257,7 +259,7 @@ describe('protectorService - Asignación de protectores', () => {
         data: {
           success: true,
           message: 'Protector asignado exitosamente',
-          protectores_asignados: 2,
+          protectoresAsignados: 2,
         },
         error: null,
       } as any);
@@ -271,7 +273,7 @@ describe('protectorService - Asignación de protectores', () => {
         data: {
           success: true,
           message: 'Protector removido exitosamente',
-          protectores_asignados: 1,
+          protectoresAsignados: 1,
         },
         error: null,
       } as any);

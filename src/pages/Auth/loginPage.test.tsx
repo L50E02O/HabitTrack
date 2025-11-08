@@ -140,7 +140,8 @@ describe("LoginPage", () => {
 	it("renderiza el icono en el contenedor", () => {
 		render(<LoginPage />);
 
-		const icon = screen.getByText("🌱");
-		expect(icon).toBeInTheDocument();
+		// Verificar que el SVG del icono existe en el contenedor
+		const svg = document.querySelector(".lucide-sprout");
+		expect(svg).toBeInTheDocument();
 	});
 });

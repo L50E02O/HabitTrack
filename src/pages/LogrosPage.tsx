@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Trophy, Lock, ArrowLeft } from 'lucide-react';
+import { Trophy, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LogroCard from '../core/components/Logro/LogroCard';
 import { obtenerLogrosUsuario, obtenerProgresoLogros } from '../services/logro/logroAutoService';
@@ -20,7 +20,7 @@ export const LogrosPage: React.FC = () => {
   const [progreso, setProgreso] = useState({ logrosObtenidos: 0, logosTotales: 0, porcentaje: 0 });
   const [loading, setLoading] = useState(true);
   const [maxStreak, setMaxStreak] = useState(0);
-  const [darkMode, setDarkMode] = useState(() => {
+  const [darkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : true;
   });

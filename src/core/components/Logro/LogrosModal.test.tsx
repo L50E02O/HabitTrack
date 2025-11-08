@@ -101,37 +101,41 @@ describe('LogrosModal', () => {
   });
 
   it('debe mostrar la racha máxima del usuario', async () => {
-    const mockFrom = vi.fn().mockImplementation((table) => {
-      if (table === 'racha') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              order: vi.fn().mockReturnValue({
-                limit: vi.fn().mockReturnValue({
-                  single: vi.fn().mockResolvedValue({
-                    data: { racha_maxima: 15 },
-                    error: null,
-                  }),
-                }),
-              }),
-            }),
-          }),
-        };
-      } else if (table === 'logro') {
-        return {
-          select: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: mockLogros, error: null }),
-          }),
-        };
-      } else if (table === 'logro_usuario') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({ data: [], error: null }),
-          }),
-        };
-      }
-      return {};
-    });
+    // Mock para la consulta de rachas (primera llamada a from('racha'))
+    const mockRachaQuery = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({
+          data: [{ racha_maxima: 15 }],
+          error: null,
+        }),
+      }),
+    };
+
+    // Mock para la consulta de logros (segunda llamada a from('logro'))
+    const mockLogrosQuery = {
+      select: vi.fn().mockReturnValue({
+        order: vi.fn().mockResolvedValue({
+          data: mockLogros,
+          error: null,
+        }),
+      }),
+    };
+
+    // Mock para la consulta de logro_usuario (tercera llamada a from('logro_usuario'))
+    const mockLogroUsuarioQuery = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({
+          data: [],
+          error: null,
+        }),
+      }),
+    };
+
+    const mockFrom = vi.fn()
+      .mockReturnValueOnce(mockRachaQuery)
+      .mockReturnValueOnce(mockLogrosQuery)
+      .mockReturnValueOnce(mockLogroUsuarioQuery);
+
     (supabase.from as any) = mockFrom;
 
     render(<LogrosModal isOpen={true} onClose={mockOnClose} userId={mockUserId} />);
@@ -142,37 +146,41 @@ describe('LogrosModal', () => {
   });
 
   it('debe mostrar logros desbloqueados', async () => {
-    const mockFrom = vi.fn().mockImplementation((table) => {
-      if (table === 'racha') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              order: vi.fn().mockReturnValue({
-                limit: vi.fn().mockReturnValue({
-                  single: vi.fn().mockResolvedValue({
-                    data: { racha_maxima: 5 },
-                    error: null,
-                  }),
-                }),
-              }),
-            }),
-          }),
-        };
-      } else if (table === 'logro') {
-        return {
-          select: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: mockLogros, error: null }),
-          }),
-        };
-      } else if (table === 'logro_usuario') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({ data: mockLogrosUsuario, error: null }),
-          }),
-        };
-      }
-      return {};
-    });
+    // Mock para la consulta de rachas (primera llamada a from('racha'))
+    const mockRachaQuery = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({
+          data: [{ racha_maxima: 5 }],
+          error: null,
+        }),
+      }),
+    };
+
+    // Mock para la consulta de logros (segunda llamada a from('logro'))
+    const mockLogrosQuery = {
+      select: vi.fn().mockReturnValue({
+        order: vi.fn().mockResolvedValue({
+          data: mockLogros,
+          error: null,
+        }),
+      }),
+    };
+
+    // Mock para la consulta de logro_usuario (tercera llamada a from('logro_usuario'))
+    const mockLogroUsuarioQuery = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({
+          data: mockLogrosUsuario,
+          error: null,
+        }),
+      }),
+    };
+
+    const mockFrom = vi.fn()
+      .mockReturnValueOnce(mockRachaQuery)
+      .mockReturnValueOnce(mockLogrosQuery)
+      .mockReturnValueOnce(mockLogroUsuarioQuery);
+
     (supabase.from as any) = mockFrom;
 
     render(<LogrosModal isOpen={true} onClose={mockOnClose} userId={mockUserId} />);
@@ -342,66 +350,70 @@ describe('LogrosModal', () => {
   });
 
   it('debe mostrar spinner mientras carga', () => {
-    const mockFrom = vi.fn().mockImplementation(() => ({
+    // Mock para la consulta de rachas que nunca se resuelve (para mostrar spinner)
+    const mockRachaQuery = {
       select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          order: vi.fn().mockReturnValue({
-            limit: vi.fn().mockReturnValue({
-              single: vi.fn().mockImplementation(
-                () => new Promise(() => {}) // Never resolves
-              ),
-            }),
-          }),
-        }),
+        eq: vi.fn().mockImplementation(
+          () => new Promise(() => {}) // Never resolves
+        ),
       }),
-    }));
+    };
+
+    const mockFrom = vi.fn().mockReturnValueOnce(mockRachaQuery);
     (supabase.from as any) = mockFrom;
 
     render(<LogrosModal isOpen={true} onClose={mockOnClose} userId={mockUserId} />);
 
-    expect(screen.getByText(/Cargando logros/i)).toBeInTheDocument();
+    expect(screen.getByText(/Cargando logros\.\.\./i)).toBeInTheDocument();
   });
 
   it('debe mostrar días faltantes para logros bloqueados', async () => {
-    const mockFrom = vi.fn().mockImplementation((table) => {
-      if (table === 'racha') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              order: vi.fn().mockReturnValue({
-                limit: vi.fn().mockReturnValue({
-                  single: vi.fn().mockResolvedValue({
-                    data: { racha_maxima: 2 }, // Usuario tiene 2 días
-                    error: null,
-                  }),
-                }),
-              }),
-            }),
-          }),
-        };
-      } else if (table === 'logro') {
-        return {
-          select: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: mockLogros, error: null }),
-          }),
-        };
-      } else if (table === 'logro_usuario') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({ data: [], error: null }),
-          }),
-        };
-      }
-      return {};
-    });
+    // Mock para la consulta de rachas (primera llamada a from('racha'))
+    const mockRachaQuery = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({
+          data: [{ racha_maxima: 2 }], // Usuario tiene 2 días
+          error: null,
+        }),
+      }),
+    };
+
+    // Mock para la consulta de logros (segunda llamada a from('logro'))
+    const mockLogrosQuery = {
+      select: vi.fn().mockReturnValue({
+        order: vi.fn().mockResolvedValue({
+          data: mockLogros,
+          error: null,
+        }),
+      }),
+    };
+
+    // Mock para la consulta de logro_usuario (tercera llamada a from('logro_usuario'))
+    const mockLogroUsuarioQuery = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({
+          data: [],
+          error: null,
+        }),
+      }),
+    };
+
+    const mockFrom = vi.fn()
+      .mockReturnValueOnce(mockRachaQuery)
+      .mockReturnValueOnce(mockLogrosQuery)
+      .mockReturnValueOnce(mockLogroUsuarioQuery);
+
     (supabase.from as any) = mockFrom;
 
     render(<LogrosModal isOpen={true} onClose={mockOnClose} userId={mockUserId} />);
 
     await waitFor(() => {
-      // Para "En Marcha" (3 días): Faltan 1 días
-      expect(screen.getByText(/Faltan/i)).toBeInTheDocument();
-      expect(screen.getByText(/1/)).toBeInTheDocument();
+      // Para "En Marcha" (3 días, usuario tiene 2): Faltan 1 días
+      const faltanElements = screen.getAllByText(/Faltan/i);
+      expect(faltanElements.length).toBeGreaterThan(0);
+      // Hay 3 elementos con "Faltan" - verificamos que al menos uno es para "En Marcha" que requiere 1 día más
+      const enMarchaElement = faltanElements.find(el => el.textContent?.includes('1') && el.textContent?.includes('días'));
+      expect(enMarchaElement).toBeTruthy();
     });
   });
 });

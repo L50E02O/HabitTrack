@@ -1,6 +1,5 @@
 import { supabase } from "../../config/supabase";
 import type { IRacha } from "../../types/IRacha";
-import type { IPerfil } from "../../types/IPerfil";
 
 export interface UsarProtectorResult {
   success: boolean;

@@ -2,14 +2,13 @@
 // Este código muestra cómo usar LogroUnlockModal cuando se complete un hábito
 
 import { useState } from 'react';
-import { recordHabitProgress } from '@/services/habito/progressService';
-import LogroUnlockModal from '@/core/components/Logro/LogroUnlockModal';
-import { ILogro } from '@/types/ILogro';
+import { recordHabitProgress } from '../services/habito/progressService';
+import LogroUnlockModal from '../core/components/Logro/LogroUnlockModal';
+import { ILogro } from '../types/ILogro';
 
 export const HabitCompletionExample = () => {
   const [showModal, setShowModal] = useState(false);
   const [unlockedLogro, setUnlockedLogro] = useState<ILogro | null>(null);
-  const [protectoresGanados, setProtectoresGanados] = useState(0);
 
   const handleCompleteHabit = async (
     idHabito: string,
@@ -28,27 +27,15 @@ export const HabitCompletionExample = () => {
         nivelDificultad
       );
 
-      // Verificar si hay logros desbloqueados
-      if (result.logrosInfo && result.logrosInfo.logrosNuevos.length > 0) {
-        // Mostrar el primer logro desbloqueado
-        const primerLogro = result.logrosInfo.logrosNuevos[0];
-        
-        setUnlockedLogro(primerLogro);
-        setProtectoresGanados(result.logrosInfo.protectoresGanados);
-        setShowModal(true);
-
-        // Opcional: Mostrar los demás logros en secuencia
-        if (result.logrosInfo.logrosNuevos.length > 1) {
-          // Esperar 3 segundos y mostrar el siguiente
-          setTimeout(() => {
-            setUnlockedLogro(result.logrosInfo.logrosNuevos[1]);
-            setShowModal(true);
-          }, 3000);
-        }
+      // El servicio progressService maneja internamente los logros
+      // pero no los retorna directamente en ProgressResponse
+      // Los logros se manejan automáticamente dentro del servicio
+      console.log(result.message);
+      
+      if (result.rachaInfo) {
+        console.log(`Racha: ${result.rachaInfo.diasConsecutivos} días consecutivos`);
+        console.log(result.rachaInfo.rachaMessage);
       }
-
-      // Mostrar mensaje de éxito normal
-      console.log(result.mensaje);
 
     } catch (error) {
       console.error('Error al completar hábito:', error);
@@ -80,7 +67,7 @@ export const HabitCompletionExample = () => {
             setShowModal(false);
             setUnlockedLogro(null);
           }}
-          protectoresGanados={protectoresGanados}
+          protectoresGanados={0}
         />
       )}
     </div>

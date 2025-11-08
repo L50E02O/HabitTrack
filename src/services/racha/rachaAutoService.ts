@@ -1,6 +1,6 @@
 import { supabase } from "../../config/supabase";
 import type { IRacha, CreateIRacha, UpdateIRacha } from "../../types/IRacha";
-import { verificarYDesbloquearLogros, type LogroDesbloqueadoResult } from "../logro/logroAutoService";
+import { verificarYDesbloquearLogros } from "../logro/logroAutoService";
 import { usarProtector } from "../protector/protectorService";
 import type { ILogro } from "../../types/ILogro";
 
@@ -164,9 +164,9 @@ async function buscarRachaActiva(idHabito: string): Promise<IRacha | null> {
 // IMPORTANTE: Cuenta TODOS los registros del hábito
 async function calcularPeriodosConsecutivos(
   idHabito: string,
-  _intervaloMeta: string,
-  _fechaHoy: Date,
-  _metaRepeticion: number
+  intervaloMeta: string,
+  fechaHoy: Date,
+  metaRepeticion: number
 ): Promise<number> {
   // Obtener TODOS los registros del hábito (sin filtrar por cumplido)
   const { data: registros, error } = await supabase
@@ -325,32 +325,6 @@ async function seRompioLaRachaConProteccion(
     console.error('Error al intentar usar protector:', error);
     return { seRompio: true, usóProtector: false };
   }
-}
-
-// Versión síncrona original (mantener para compatibilidad)
-function seRompioLaRacha(racha: IRacha, _fechaHoy: Date, intervaloMeta: string): boolean {
-  const ultimaFecha = new Date(racha.fin_racha);
-  const ahora = new Date();
-
-  // Calcular la diferencia en milisegundos
-  const diferenciaMs = ahora.getTime() - ultimaFecha.getTime();
-
-  // Tiempos de expiración según el tipo de intervalo
-  if (intervaloMeta === 'diario') {
-    // 1 día = 24 horas
-    const unDiaEnMs = 24 * 60 * 60 * 1000;
-    return diferenciaMs > unDiaEnMs;
-  } else if (intervaloMeta === 'semanal') {
-    // 7 días
-    const sieteDiasEnMs = 7 * 24 * 60 * 60 * 1000;
-    return diferenciaMs > sieteDiasEnMs;
-  } else if (intervaloMeta === 'mensual') {
-    // 31 días
-    const treintaYUnDiasEnMs = 31 * 24 * 60 * 60 * 1000;
-    return diferenciaMs > treintaYUnDiasEnMs;
-  }
-
-  return false;
 }
 
 // Crea una racha completamente nueva

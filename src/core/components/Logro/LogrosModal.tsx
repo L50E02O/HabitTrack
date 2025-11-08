@@ -39,14 +39,22 @@ export default function LogrosModal({ isOpen, onClose, userId }: LogrosModalProp
       setLoading(true);
 
       // Obtener la racha máxima de TODOS los hábitos del usuario
+      // Necesitamos hacer JOIN: racha → registro_intervalo → habito
       const { data: rachaData } = await supabase
         .from('racha')
-        .select('racha_maxima')
-        .eq('id_perfil', userId);
+        .select(`
+          racha_maxima,
+          registro_intervalo!inner(
+            habito!inner(
+              id_perfil
+            )
+          )
+        `)
+        .eq('registro_intervalo.habito.id_perfil', userId);
 
       // Calcular el máximo de todas las rachas del usuario
       const maxRacha = rachaData && rachaData.length > 0
-        ? Math.max(...rachaData.map(r => r.racha_maxima || 0))
+        ? Math.max(...rachaData.map((r: any) => r.racha_maxima || 0))
         : 0;
       
       setRachaMaxima(maxRacha);
