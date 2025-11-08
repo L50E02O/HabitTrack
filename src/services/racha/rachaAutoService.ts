@@ -60,8 +60,11 @@ export async function updateRachaOnHabitCompletion(
     // Si no tiene racha, creamos una nueva
     if (!rachaActual) {
       return await crearNuevaRacha(idRegistroIntervalo, null, periodosConsecutivos, intervaloMeta);
+    } else if (seRompioLaRacha(rachaActual, hoy, intervaloMeta)) {
+      // Si la racha se rompió por tiempo, creamos una nueva
+      return await crearNuevaRacha(idRegistroIntervalo, rachaActual, periodosConsecutivos, intervaloMeta);
     } else {
-      // Si ya tiene racha, la actualizamos
+      // Si la racha sigue activa, la extendemos
       return await extenderRacha(rachaActual, idRegistroIntervalo, hoy, periodosConsecutivos, intervaloMeta);
     }
 
