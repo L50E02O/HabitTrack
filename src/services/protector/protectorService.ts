@@ -280,3 +280,157 @@ export async function getHistorialUsos(userId: string): Promise<any[]> {
     return [];
   }
 }
+
+/**
+ * Asigna un protector a un hábito específico
+ */
+export async function asignarProtectorAHabito(
+  userId: string,
+  habitoId: string,
+  cantidad: number = 1
+): Promise<{
+  success: boolean;
+  message: string;
+  protectoresAsignados?: number;
+}> {
+  try {
+    const { data, error } = await supabase.rpc('asignar_protector_a_habito', {
+      p_user_id: userId,
+      p_habito_id: habitoId,
+      p_cantidad: cantidad,
+    });
+
+    if (error) throw error;
+
+    return data || {
+      success: false,
+      message: 'Error al asignar protector',
+    };
+  } catch (error: any) {
+    console.error('Error asignando protector:', error);
+    return {
+      success: false,
+      message: error?.message || 'Error al asignar protector',
+    };
+  }
+}
+
+/**
+ * Quita un protector de un hábito específico
+ */
+export async function quitarProtectorDeHabito(
+  userId: string,
+  habitoId: string,
+  cantidad: number = 1
+): Promise<{
+  success: boolean;
+  message: string;
+  protectoresAsignados?: number;
+}> {
+  try {
+    const { data, error } = await supabase.rpc('quitar_protector_de_habito', {
+      p_user_id: userId,
+      p_habito_id: habitoId,
+      p_cantidad: cantidad,
+    });
+
+    if (error) throw error;
+
+    return data || {
+      success: false,
+      message: 'Error al quitar protector',
+    };
+  } catch (error: any) {
+    console.error('Error quitando protector:', error);
+    return {
+      success: false,
+      message: error?.message || 'Error al quitar protector',
+    };
+  }
+}
+
+/**
+ * Obtiene los protectores asignados a un hábito específico
+ */
+export async function getProtectoresPorHabito(
+  userId: string,
+  habitoId: string
+): Promise<number> {
+  try {
+    const { data, error } = await supabase.rpc('obtener_protectores_de_habito', {
+      p_user_id: userId,
+      p_habito_id: habitoId,
+    });
+
+    if (error) throw error;
+    return data || 0;
+  } catch (error) {
+    console.error('Error obteniendo protectores del hábito:', error);
+    // Fallback: consultar directamente la tabla racha
+    return await getProtectoresPorHabitoFallback(userId, habitoId);
+  }
+}
+
+/**
+ * Fallback para obtener protectores de un hábito
+ */
+async function getProtectoresPorHabitoFallback(
+  userId: string,
+  habitoId: string
+): Promise<number> {
+  try {
+    const { data, error } = await supabase
+      .from('racha')
+      .select('protectores_asignados')
+      .eq('id_perfil', userId)
+      .eq('id_habito', habitoId)
+      .single();
+
+    if (error) throw error;
+    return data?.protectores_asignados || 0;
+  } catch (error) {
+    console.error('Error en fallback de protectores:', error);
+    return 0;
+  }
+}
+
+/**
+ * Obtiene estadísticas de protectores por hábito
+ */
+export async function getEstadisticasProtectoresHabito(
+  userId: string,
+  habitoId: string
+): Promise<any> {
+  try {
+    const { data, error } = await supabase
+      .from('estadisticas_protectores_habito')
+      .select('*')
+      .eq('id_perfil', userId)
+      .eq('id_habito', habitoId)
+      .single();
+
+    if (error) throw error;
+    return data || null;
+  } catch (error) {
+    console.error('Error obteniendo estadísticas:', error);
+    return null;
+  }
+}
+
+/**
+ * Obtiene todos los hábitos con sus protectores asignados
+ */
+export async function getAllHabitosConProtectores(userId: string): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from('estadisticas_protectores_habito')
+      .select('*')
+      .eq('id_perfil', userId);
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error obteniendo hábitos con protectores:', error);
+    return [];
+  }
+}

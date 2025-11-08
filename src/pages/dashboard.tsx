@@ -1,19 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
-import { Moon, Sun, Plus, LogOut, ChevronRight } from 'lucide-react';
+import { Moon, Sun, Plus, LogOut, ChevronRight, ShoppingCart, Sprout } from 'lucide-react';
 import HabitCard from '../core/components/Auth/HabitCard';
 import type { IHabito } from '../types/IHabito';
 import { getAllHabitos, deleteHabito } from '../services/habito/habitoService';
 import { recordHabitProgress, getHabitCurrentProgress } from '../services/habito/progressService';
 import { getRachasMultiplesHabitos } from '../services/racha/rachaAutoService';
+import { 
+    asignarProtectorAHabito, 
+    quitarProtectorDeHabito, 
+    getProtectoresPorHabito,
+    getProtectoresActuales
+} from '../services/protector/protectorService';
 import './dashboard.css';
 import CreateHabitoModal from '../core/components/Habito/CreateHabitoModal';
 import EditHabitoModal from '../core/components/Habito/EditHabitoModal';
 import RecordatorioConfig from '../core/components/Recordatorio/RecordatorioConfig';
 import RecordatorioList from '../core/components/Recordatorio/RecordatorioList';
 import LogrosModal from '../core/components/Logro/LogrosModal';
-import ProtectorWidget from '../core/components/Protector/ProtectorWidget';
+import TiendaProtectores from '../core/components/Protector/TiendaProtectores';
+import RankingWidget from '../core/components/Ranking/RankingWidget';
+import RankUpModal from '../core/components/Ranking/RankUpModal';
+import { useRankDetection } from '../hooks/useRankDetection';
+import { getPuntosActuales } from '../services/protector/protectorService';
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -26,6 +36,8 @@ export default function Dashboard() {
     const [habitos, setHabitos] = useState<IHabito[]>([]);
     const [habitosProgress, setHabitosProgress] = useState<Record<string, number>>({});
     const [habitosRachas, setHabitosRachas] = useState<Record<string, number>>({});
+    const [habitosProtectores, setHabitosProtectores] = useState<Record<string, number>>({});
+    const [protectoresDisponibles, setProtectoresDisponibles] = useState<number>(0);
     const [openCreate, setOpenCreate] = useState(false);
     const [openEdit, setOpenEdit] = useState(false);
     const [habitoEditando, setHabitoEditando] = useState<IHabito | null>(null);
@@ -34,6 +46,11 @@ export default function Dashboard() {
     const [openRecordatorio, setOpenRecordatorio] = useState(false);
     const [habitoParaRecordatorio, setHabitoParaRecordatorio] = useState<IHabito | null>(null);
     const [openLogros, setOpenLogros] = useState(false);
+    const [openTienda, setOpenTienda] = useState(false);
+    const [puntosUsuario, setPuntosUsuario] = useState(0);
+
+    // Hook para detectar cambios de rango
+    const { rangoAnterior, rangoActual, huboRankUp, resetRankUp } = useRankDetection(puntosUsuario);
 
     // Sincronizar tema oscuro con localStorage
     useEffect(() => {
@@ -67,6 +84,22 @@ export default function Dashboard() {
                 // Cargar rachas de todos los hábitos
                 const habitoIds = mine.map(h => h.id_habito);
                 const rachasMapNuevo = await getRachasMultiplesHabitos(habitoIds);
+
+                // Cargar protectores asignados a cada hábito
+                const protectoresMap: Record<string, number> = {};
+                for (const habito of mine) {
+                    const protectores = await getProtectoresPorHabito(session.user.id, habito.id_habito);
+                    protectoresMap[habito.id_habito] = protectores;
+                }
+                setHabitosProtectores(protectoresMap);
+
+                // Cargar protectores disponibles del usuario
+                const protectoresDisp = await getProtectoresActuales(session.user.id);
+                setProtectoresDisponibles(protectoresDisp);
+
+                // Cargar puntos del usuario para detección de rango
+                const puntosActuales = await getPuntosActuales(session.user.id);
+                setPuntosUsuario(puntosActuales);
 
                 // Detectar si alguna racha se rompió (comparar con el estado anterior)
                 Object.keys(rachasMapNuevo).forEach(habitoId => {
@@ -197,6 +230,10 @@ export default function Dashboard() {
                 console.log(`⏳ Hábito no completado, racha no cambia`);
             }
 
+            // Actualizar puntos del usuario para detectar cambios de rango
+            const puntosActuales = await getPuntosActuales(user.id);
+            setPuntosUsuario(puntosActuales);
+
             // Limpiar notificación después de 3 segundos
             setTimeout(() => setNotification(null), 3000);
         } catch (err: any) {
@@ -210,9 +247,107 @@ export default function Dashboard() {
         }
     };
 
+    const handleAsignarProtector = async (habito: IHabito) => {
+        if (protectoresDisponibles <= 0) {
+            setNotification({
+                message: 'No tienes protectores disponibles. Cómpralos en la tienda o gana más completando rachas.',
+                type: 'error',
+            });
+            setTimeout(() => setNotification(null), 3000);
+            return;
+        }
+
+        try {
+            const result = await asignarProtectorAHabito(user.id, habito.id_habito, 1);
+            
+            if (result.success) {
+                setNotification({
+                    message: `🛡️ Protector asignado a "${habito.nombre_habito}"`,
+                    type: 'success',
+                });
+
+                // Actualizar protectores del hábito
+                setHabitosProtectores(prev => ({
+                    ...prev,
+                    [habito.id_habito]: (prev[habito.id_habito] || 0) + 1,
+                }));
+
+                // Actualizar protectores disponibles
+                setProtectoresDisponibles(prev => prev - 1);
+            } else {
+                setNotification({
+                    message: result.message || 'Error al asignar protector',
+                    type: 'error',
+                });
+            }
+
+            setTimeout(() => setNotification(null), 3000);
+        } catch (err: any) {
+            setNotification({
+                message: err?.message || 'Error al asignar protector',
+                type: 'error',
+            });
+            setTimeout(() => setNotification(null), 3000);
+        }
+    };
+
+    const handleQuitarProtector = async (habito: IHabito) => {
+        const protectoresActuales = habitosProtectores[habito.id_habito] || 0;
+        
+        if (protectoresActuales <= 0) {
+            setNotification({
+                message: 'Este hábito no tiene protectores asignados',
+                type: 'error',
+            });
+            setTimeout(() => setNotification(null), 3000);
+            return;
+        }
+
+        try {
+            const result = await quitarProtectorDeHabito(user.id, habito.id_habito, 1);
+            
+            if (result.success) {
+                setNotification({
+                    message: `🛡️ Protector removido de "${habito.nombre_habito}"`,
+                    type: 'success',
+                });
+
+                // Actualizar protectores del hábito
+                setHabitosProtectores(prev => ({
+                    ...prev,
+                    [habito.id_habito]: Math.max(0, (prev[habito.id_habito] || 0) - 1),
+                }));
+
+                // Actualizar protectores disponibles
+                setProtectoresDisponibles(prev => prev + 1);
+            } else {
+                setNotification({
+                    message: result.message || 'Error al quitar protector',
+                    type: 'error',
+                });
+            }
+
+            setTimeout(() => setNotification(null), 3000);
+        } catch (err: any) {
+            setNotification({
+                message: err?.message || 'Error al quitar protector',
+                type: 'error',
+            });
+            setTimeout(() => setNotification(null), 3000);
+        }
+    };
+
     return (
         <div className={`dashboard ${darkMode ? 'dark' : ''}`}>
-            {/* Botón flotante de logros */}
+            {/* Botones flotantes */}
+            <button 
+                className="floating-protectores-button"
+                onClick={() => setOpenTienda(true)}
+                title="Tienda de Protectores"
+            >
+                <ShoppingCart size={24} />
+            </button>
+
             <button 
                 className="floating-logros-button"
                 onClick={() => setOpenLogros(true)}
@@ -224,8 +359,10 @@ export default function Dashboard() {
             {/* 1. HEADER */}
             <header className="header">
                 <div className="logo">
-                    <span className="logoIcon">🌱</span>
-                    <h1 className="logoText">HabitTracker</h1>
+                    <span className="logoIcon">
+                        <Sprout size={24} />
+                    </span>
+                    <h1 className="logoText">HabitTrack</h1>
                 </div>
 
                 <div className="headerActions">
@@ -265,9 +402,6 @@ export default function Dashboard() {
                             </div>
                         )}
 
-                        {/* Widget de Protectores */}
-                        <ProtectorWidget userId={user.id} />
-
                         {/* Sección de Título y Botón */}
                         <div className="titleSection">
                             <div>
@@ -297,11 +431,14 @@ export default function Dashboard() {
                                             habito={h}
                                             weeklyCount={habitosProgress[h.id_habito] || 0}
                                             streakDays={habitosRachas[h.id_habito] || 0}
+                                            protectoresAsignados={habitosProtectores[h.id_habito] || 0}
                                             onDelete={() => handleDeleteHabito(h.id_habito)}
                                             onEdit={() => handleEditHabito(h)}
                                             onAdvance={() => handleAdvanceHabito(h)}
                                             isAdvancing={advancingHabitId === h.id_habito}
                                             onConfigureReminder={() => handleConfigureReminder(h)}
+                                            onAsignarProtector={() => handleAsignarProtector(h)}
+                                            onQuitarProtector={() => handleQuitarProtector(h)}
                                         />
                                     ))}
                                 </>
@@ -321,6 +458,7 @@ export default function Dashboard() {
                             open={openCreate}
                             onClose={() => setOpenCreate(false)}
                             onCreated={(h) => setHabitos(prev => [h, ...prev])}
+                            habitosActuales={habitos.length}
                         />
 
                         {/* Modal Editar Hábito */}
@@ -354,6 +492,34 @@ export default function Dashboard() {
                                 isOpen={openLogros}
                                 onClose={() => setOpenLogros(false)}
                                 userId={user.id}
+                            />
+                        )}
+
+                        {/* Modal de Tienda de Protectores */}
+                        {openTienda && user && (
+                            <TiendaProtectores
+                                isOpen={openTienda}
+                                onClose={() => setOpenTienda(false)}
+                                userId={user.id}
+                                onCompraExitosa={async () => {
+                                    console.log('Protector comprado exitosamente');
+                                    // Recargar protectores disponibles
+                                    const protectoresDisp = await getProtectoresActuales(user.id);
+                                    setProtectoresDisponibles(protectoresDisp);
+                                }}
+                            />
+                        )}
+
+                        {/* Widget de Ranking Flotante */}
+                        <RankingWidget userId={user.id} onVerCompleto={() => navigate('/ranking')} />
+
+                        {/* Modal de Subida de Rango */}
+                        {huboRankUp && rangoAnterior && rangoActual && (
+                            <RankUpModal
+                                nuevoRango={rangoActual}
+                                rangoAnterior={rangoAnterior}
+                                isOpen={huboRankUp}
+                                onClose={resetRankUp}
                             />
                         )}
                     </>

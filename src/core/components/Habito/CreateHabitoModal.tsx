@@ -9,9 +9,10 @@ type Props = {
     open: boolean;
     onClose: () => void;
     onCreated: (h: IHabito) => void;
+    habitosActuales?: number;
 };
 
-export default function CreateHabitoModal({ userId, open, onClose, onCreated }: Props) {
+export default function CreateHabitoModal({ userId, open, onClose, onCreated, habitosActuales = 0 }: Props) {
     const [nombre_habito, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
     const [categoria, setCategoria] = useState<string>('salud');
@@ -22,6 +23,10 @@ export default function CreateHabitoModal({ userId, open, onClose, onCreated }: 
     const [error, setError] = useState<string | null>(null);
 
     if (!open) return null;
+
+    // Validar límite de 9 hábitos
+    const LIMITE_HABITOS = 9;
+    const puedeCrearMas = habitosActuales < LIMITE_HABITOS;
 
     const reset = () => {
         setNombre('');
@@ -37,6 +42,14 @@ export default function CreateHabitoModal({ userId, open, onClose, onCreated }: 
         e.preventDefault();
         setSubmitting(true);
         setError(null);
+
+        // Validar límite de 9 hábitos
+        if (!puedeCrearMas) {
+            setError(`Has alcanzado el límite máximo de ${LIMITE_HABITOS} hábitos. Elimina alguno para crear uno nuevo.`);
+            setSubmitting(false);
+            return;
+        }
+
         try {
             // Calcular puntos base según dificultad
             let puntosBase = 5;
@@ -77,6 +90,20 @@ export default function CreateHabitoModal({ userId, open, onClose, onCreated }: 
                     </button>
                 </div>
 
+                {!puedeCrearMas ? (
+                    <div className="form">
+                        <div className="errorMsg">
+                            <strong>⚠️ Límite alcanzado</strong>
+                            <p>Solo puedes tener un máximo de {LIMITE_HABITOS} hábitos (3 filas × 3 columnas).</p>
+                            <p>Elimina un hábito existente para crear uno nuevo.</p>
+                        </div>
+                        <div className="actions">
+                            <button type="button" className="btnPrimary" onClick={() => { reset(); onClose(); }}>
+                                Entendido
+                            </button>
+                        </div>
+                    </div>
+                ) : (
                 <form className="form" onSubmit={handleSubmit}>
                     <div className="field">
                         <label>Nombre</label>
@@ -155,6 +182,7 @@ export default function CreateHabitoModal({ userId, open, onClose, onCreated }: 
                         </button>
                     </div>
                 </form>
+                )}
             </div>
         </div>
     );

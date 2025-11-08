@@ -5,7 +5,36 @@
     padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px
+    gap: 10px;
+    position: relative;
+}
+
+/* Badge de protector asignado */
+.protector-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    z-index: 10;
+    animation: pulse-shield 2s infinite;
+}
+
+@keyframes pulse-shield {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 12px rgba(16, 185, 129, 0.5);
+    }
 }
 
 .habitHeader {
@@ -82,6 +111,14 @@
 
 .dropdownItem.danger:hover {
     background: #fef2f2;
+}
+
+.dropdownItem.protector-item {
+    color: #10b981;
+}
+
+.dropdownItem.protector-item:hover {
+    background: #d1fae5;
 }
 
 .habitTitle {
@@ -226,12 +263,19 @@
 }
 
 .dificultadBadge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
     text-transform: capitalize;
+}
+
+.dificultadBadge .star-icon {
+    display: inline-flex;
+    margin-right: 2px;
 }
 
 .dificultadBadge.facil {

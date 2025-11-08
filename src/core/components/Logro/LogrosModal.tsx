@@ -38,16 +38,17 @@ export default function LogrosModal({ isOpen, onClose, userId }: LogrosModalProp
     try {
       setLoading(true);
 
-      // Obtener la racha máxima del usuario
+      // Obtener la racha máxima de TODOS los hábitos del usuario
       const { data: rachaData } = await supabase
         .from('racha')
         .select('racha_maxima')
-        .eq('id_perfil', userId)
-        .order('racha_maxima', { ascending: false })
-        .limit(1)
-        .single();
+        .eq('id_perfil', userId);
 
-      const maxRacha = rachaData?.racha_maxima || 0;
+      // Calcular el máximo de todas las rachas del usuario
+      const maxRacha = rachaData && rachaData.length > 0
+        ? Math.max(...rachaData.map(r => r.racha_maxima || 0))
+        : 0;
+      
       setRachaMaxima(maxRacha);
 
       // Obtener todos los logros
