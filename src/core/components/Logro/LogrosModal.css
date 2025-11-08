@@ -1,0 +1,360 @@
+/* Modal Overlay */
+.logros-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content */
+.logros-modal-content {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease-out;
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.logros-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.logros-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.trophy-icon {
+  color: #fbbf24;
+  filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.5));
+}
+
+.logros-modal-title h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.logros-modal-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logros-modal-close:hover {
+  background: rgba(148, 163, 184, 0.1);
+  color: #f1f5f9;
+}
+
+/* Progreso */
+.logros-modal-progress {
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.5);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.progress-text {
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.progress-percent {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+}
+
+.progress-bar-container {
+  height: 12px;
+  background: rgba(30, 41, 59, 0.8);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #ea580c 100%);
+  border-radius: 6px;
+  transition: width 0.5s ease-out;
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+}
+
+.racha-maxima {
+  text-align: center;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.racha-maxima strong {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+/* Body */
+.logros-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+/* Loading */
+.logros-modal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #cbd5e1;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(148, 163, 184, 0.2);
+  border-top-color: #fbbf24;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Secciones */
+.logros-section {
+  margin-bottom: 2rem;
+}
+
+.logros-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid rgba(148, 163, 184, 0.1);
+}
+
+.section-title.unlocked {
+  color: #fbbf24;
+}
+
+.section-title.locked {
+  color: #64748b;
+}
+
+/* Lista de Logros */
+.logros-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.logro-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.logro-item.unlocked {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8));
+  border: 2px solid rgba(251, 191, 36, 0.3);
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.1);
+}
+
+.logro-item.unlocked:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(251, 191, 36, 0.2);
+}
+
+.logro-item.locked {
+  background: rgba(30, 41, 59, 0.4);
+  border: 2px solid rgba(71, 85, 105, 0.3);
+  opacity: 0.7;
+}
+
+.logro-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logro-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.logro-info h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.logro-description {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+.logro-criteria {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.logro-date {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #10b981;
+  font-weight: 500;
+}
+
+.logro-missing {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #f59e0b;
+}
+
+.logro-missing strong {
+  font-weight: 700;
+}
+
+/* Empty State */
+.logros-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #64748b;
+  text-align: center;
+}
+
+.logros-empty svg {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .logros-modal-content {
+    max-height: 90vh;
+    border-radius: 16px;
+  }
+
+  .logros-modal-header {
+    padding: 1rem;
+  }
+
+  .logros-modal-title h2 {
+    font-size: 1.25rem;
+  }
+
+  .logros-modal-progress {
+    padding: 1rem;
+  }
+
+  .logros-modal-body {
+    padding: 1rem;
+  }
+
+  .logro-item {
+    padding: 0.75rem;
+  }
+
+  .logro-icon {
+    display: flex;
+    align-items: flex-start;
+  }
+}
+
+/* Scrollbar personalizado */
+.logros-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.logros-modal-body::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 4px;
+}
+
+.logros-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+}
+
+.logros-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}

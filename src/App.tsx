@@ -5,6 +5,7 @@ import RegistroPage from './pages/Auth/registroPage'
 import ForgotPasswordPage from './pages/Auth/forgotPasswordPage'
 import NewPasswordPage from './pages/Auth/newPasswordPage'
 import Dashboard from './pages/dashboard'
+import LogrosPage from './pages/LogrosPage'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/new-password" element={<NewPasswordPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/logros" element={<LogrosPage />} />
     </Routes>
   )
 }

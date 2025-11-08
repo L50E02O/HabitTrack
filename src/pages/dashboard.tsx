@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
-import { Moon, Sun, Plus, LogOut } from 'lucide-react';
+import { Moon, Sun, Plus, LogOut, ChevronRight } from 'lucide-react';
 import HabitCard from '../core/components/Auth/HabitCard';
 import type { IHabito } from '../types/IHabito';
 import { getAllHabitos, deleteHabito } from '../services/habito/habitoService';
@@ -12,12 +12,17 @@ import CreateHabitoModal from '../core/components/Habito/CreateHabitoModal';
 import EditHabitoModal from '../core/components/Habito/EditHabitoModal';
 import RecordatorioConfig from '../core/components/Recordatorio/RecordatorioConfig';
 import RecordatorioList from '../core/components/Recordatorio/RecordatorioList';
+import LogrosModal from '../core/components/Logro/LogrosModal';
+import ProtectorWidget from '../core/components/Protector/ProtectorWidget';
 
 export default function Dashboard() {
     const navigate = useNavigate();
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [darkMode, setDarkMode] = useState(false);
+    const [darkMode, setDarkMode] = useState(() => {
+        const saved = localStorage.getItem('darkMode');
+        return saved ? JSON.parse(saved) : true;
+    });
     const [habitos, setHabitos] = useState<IHabito[]>([]);
     const [habitosProgress, setHabitosProgress] = useState<Record<string, number>>({});
     const [habitosRachas, setHabitosRachas] = useState<Record<string, number>>({});
@@ -28,6 +33,12 @@ export default function Dashboard() {
     const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [openRecordatorio, setOpenRecordatorio] = useState(false);
     const [habitoParaRecordatorio, setHabitoParaRecordatorio] = useState<IHabito | null>(null);
+    const [openLogros, setOpenLogros] = useState(false);
+
+    // Sincronizar tema oscuro con localStorage
+    useEffect(() => {
+        localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    }, [darkMode]);
 
     useEffect(() => {
         const run = async () => {
@@ -201,6 +212,15 @@ export default function Dashboard() {
 
     return (
         <div className={`dashboard ${darkMode ? 'dark' : ''}`}>
+            {/* Botón flotante de logros */}
+            <button 
+                className="floating-logros-button"
+                onClick={() => setOpenLogros(true)}
+                title="Ver mis logros"
+            >
+                <ChevronRight size={24} />
+            </button>
+
             {/* 1. HEADER */}
             <header className="header">
                 <div className="logo">
@@ -244,6 +264,9 @@ export default function Dashboard() {
                                 {notification.message}
                             </div>
                         )}
+
+                        {/* Widget de Protectores */}
+                        <ProtectorWidget userId={user.id} />
 
                         {/* Sección de Título y Botón */}
                         <div className="titleSection">
@@ -322,6 +345,15 @@ export default function Dashboard() {
                                     setOpenRecordatorio(false);
                                     setHabitoParaRecordatorio(null);
                                 }}
+                            />
+                        )}
+
+                        {/* Modal de Logros */}
+                        {openLogros && user && (
+                            <LogrosModal
+                                isOpen={openLogros}
+                                onClose={() => setOpenLogros(false)}
+                                userId={user.id}
                             />
                         )}
                     </>

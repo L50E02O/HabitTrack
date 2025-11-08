@@ -1,0 +1,461 @@
+/* Sidebar de Logros */
+.logros-sidebar {
+  position: fixed;
+  left: 0;
+  top: 60px;
+  bottom: 0;
+  width: 280px;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  z-index: 40;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.logros-sidebar.collapsed {
+  width: 80px;
+}
+
+.logros-sidebar.loading {
+  padding: 1rem;
+}
+
+/* Header */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 0.95rem;
+}
+
+.sidebar-icon {
+  color: #fbbf24;
+  flex-shrink: 0;
+}
+
+.collapsed .sidebar-title {
+  justify-content: center;
+}
+
+.view-all-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.view-all-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fbbf24;
+}
+
+/* Progreso */
+.sidebar-progress {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.progress-text {
+  font-size: 0.875rem;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.progress-percentage {
+  font-size: 1rem;
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  border-radius: 999px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+}
+
+/* Contenido */
+.sidebar-content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.collapsed .sidebar-content {
+  padding: 0.5rem;
+}
+
+.section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+  margin-top: 0;
+}
+
+.next-title {
+  margin-top: 1.5rem;
+}
+
+/* Grid de Badges */
+.badges-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.badges-grid.collapsed {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.badge-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.badges-grid.collapsed .badge-item {
+  flex-direction: column;
+  padding: 0.5rem;
+  gap: 0;
+  justify-content: center;
+}
+
+.badge-item.unlocked {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.badge-item:hover {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.badges-grid.collapsed .badge-item:hover {
+  transform: scale(1.05);
+}
+
+.badge-item.unlocked:hover {
+  border-color: rgba(251, 191, 36, 0.4);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+}
+
+.badge-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.badge-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badge-days {
+  font-size: 0.75rem;
+  color: #fbbf24;
+}
+
+/* Empty State */
+.empty-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.empty-icon {
+  color: #475569;
+  margin-bottom: 0.75rem;
+}
+
+.empty-text {
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Próximo Logro */
+.next-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.next-badge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.next-badge-icon {
+  flex-shrink: 0;
+}
+
+.next-badge-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.next-badge-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  line-height: 1.2;
+}
+
+.next-badge-requirement {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Botón Collapse */
+.collapse-btn {
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #cbd5e1;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.collapse-btn:hover {
+  background: #334155;
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+.collapse-btn svg {
+  transition: transform 0.3s;
+}
+
+.collapse-btn svg.rotated {
+  transform: rotate(180deg);
+}
+
+.collapsed .collapse-btn svg {
+  transform: rotate(0deg);
+}
+
+/* Skeletons Loading */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 0.5rem;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-text {
+  height: 20px;
+  width: 120px;
+}
+
+.skeleton-badge {
+  height: 60px;
+  margin-bottom: 0.75rem;
+}
+
+/* Scrollbar */
+.logros-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.logros-sidebar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.logros-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.logros-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .logros-sidebar {
+    width: 80px;
+  }
+  
+  .sidebar-title span,
+  .sidebar-progress,
+  .section-title,
+  .badge-info,
+  .next-badge-info,
+  .view-all-btn,
+  .next-title,
+  .next-badge {
+    display: none;
+  }
+  
+  .badges-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .badge-item {
+    padding: 0.5rem;
+    justify-content: center;
+  }
+  
+  .collapse-btn {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .logros-sidebar {
+    position: fixed;
+    width: 100%;
+    height: auto;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-right: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    max-height: none;
+    z-index: 100;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.75rem;
+  }
+  
+  .sidebar-header {
+    padding: 0;
+    border: none;
+    background: none;
+    margin-right: 1rem;
+    flex-shrink: 0;
+  }
+  
+  .sidebar-title {
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+  }
+  
+  .sidebar-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .sidebar-content {
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex: 1;
+  }
+  
+  .badges-grid {
+    display: flex;
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+  
+  .badge-item {
+    flex: 0 0 auto;
+    width: 60px;
+    height: 60px;
+    padding: 0.5rem;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .sidebar-progress,
+  .section-title,
+  .badge-info,
+  .next-badge,
+  .next-title,
+  .view-all-btn,
+  .empty-badges,
+  .collapse-btn {
+    display: none !important;
+  }
+}

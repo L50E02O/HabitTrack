@@ -1,5 +1,7 @@
 import { supabase } from "../../config/supabase";
 import type { IRacha, CreateIRacha, UpdateIRacha } from "../../types/IRacha";
+import { verificarYDesbloquearLogros, type LogroDesbloqueadoResult } from "../logro/logroAutoService";
+import type { ILogro } from "../../types/ILogro";
 
 // Cuando el usuario completa un hábito, necesitamos decidir qué hacer con su racha
 export interface RachaUpdateResult {
@@ -8,6 +10,11 @@ export interface RachaUpdateResult {
   diasConsecutivos: number;
   message: string;
   isNewRacha: boolean;
+  logrosInfo?: {
+    logrosNuevos: ILogro[];
+    protectoresGanados: number;
+    mensaje: string;
+  };
 }
 
 /**
@@ -29,7 +36,7 @@ export async function updateRachaOnHabitCompletion(
     if (habitoCompletado === undefined || metaRepeticion === undefined) {
       const { data: habito, error: habitoError } = await supabase
         .from("habito")
-        .select("meta_repeticion, intervalo_meta")
+        .select("meta_repeticion, intervalo_meta, id_perfil")
         .eq("id_habito", idHabito)
         .single();
 
@@ -39,6 +46,16 @@ export async function updateRachaOnHabitCompletion(
       intervaloMeta = habito.intervalo_meta;
       habitoCompletado = true; // Si se llama esta función, es porque se completó
     }
+
+    // Obtener el id_perfil del hábito
+    const { data: habito, error: habitoError } = await supabase
+      .from("habito")
+      .select("id_perfil")
+      .eq("id_habito", idHabito)
+      .single();
+
+    if (habitoError) throw habitoError;
+    const idPerfil = habito.id_perfil;
 
     // Primero buscamos si ya tiene una racha activa para este hábito
     const rachaActual = await buscarRachaActiva(idHabito);
@@ -59,13 +76,13 @@ export async function updateRachaOnHabitCompletion(
 
     // Si no tiene racha, creamos una nueva
     if (!rachaActual) {
-      return await crearNuevaRacha(idRegistroIntervalo, null, periodosConsecutivos, intervaloMeta);
+      return await crearNuevaRacha(idRegistroIntervalo, null, periodosConsecutivos, intervaloMeta, idPerfil);
     } else if (seRompioLaRacha(rachaActual, hoy, intervaloMeta)) {
       // Si la racha se rompió por tiempo, creamos una nueva
-      return await crearNuevaRacha(idRegistroIntervalo, rachaActual, periodosConsecutivos, intervaloMeta);
+      return await crearNuevaRacha(idRegistroIntervalo, rachaActual, periodosConsecutivos, intervaloMeta, idPerfil);
     } else {
       // Si la racha sigue activa, la extendemos
-      return await extenderRacha(rachaActual, idRegistroIntervalo, hoy, periodosConsecutivos, intervaloMeta);
+      return await extenderRacha(rachaActual, idRegistroIntervalo, hoy, periodosConsecutivos, intervaloMeta, idPerfil);
     }
 
   } catch (error: any) {
@@ -221,7 +238,8 @@ async function crearNuevaRacha(
   idRegistroIntervalo: string,
   rachaAnterior: IRacha | null,
   periodosConsecutivos: number,
-  intervaloMeta: string
+  intervaloMeta: string,
+  idPerfil: string
 ): Promise<RachaUpdateResult> {
 
   const hoy = new Date();
@@ -251,9 +269,25 @@ async function crearNuevaRacha(
       .eq("id_racha", rachaAnterior.id_racha);
   }
 
+  // 🎖️ VERIFICAR Y DESBLOQUEAR LOGROS AUTOMÁTICAMENTE
+  let logrosInfo;
+  try {
+    const resultadoLogros = await verificarYDesbloquearLogros(idPerfil, periodosConsecutivos);
+    if (resultadoLogros.logrosNuevos.length > 0 || resultadoLogros.protectoresGanados > 0) {
+      logrosInfo = resultadoLogros;
+    }
+  } catch (error) {
+    console.error("Error al verificar logros:", error);
+    // No lanzamos el error para no bloquear la creación de la racha
+  }
+
   // Crear mensaje según el tipo de intervalo
   const unidad = obtenerUnidadTiempo(intervaloMeta);
-  const mensaje = `¡Empezaste una nueva racha! Llevas ${periodosConsecutivos} ${unidad}${periodosConsecutivos > 1 ? 's' : ''} 🔥`;
+  let mensaje = `¡Empezaste una nueva racha! Llevas ${periodosConsecutivos} ${unidad}${periodosConsecutivos > 1 ? 's' : ''} 🔥`;
+
+  if (logrosInfo?.mensaje) {
+    mensaje += ` ${logrosInfo.mensaje}`;
+  }
 
   return {
     success: true,
@@ -261,6 +295,7 @@ async function crearNuevaRacha(
     diasConsecutivos: periodosConsecutivos,
     message: mensaje,
     isNewRacha: true,
+    logrosInfo,
   };
 }
 
@@ -270,7 +305,8 @@ async function extenderRacha(
   idRegistroIntervalo: string,
   fechaHoy: Date,
   periodosConsecutivos: number,
-  intervaloMeta: string
+  intervaloMeta: string,
+  idPerfil: string
 ): Promise<RachaUpdateResult> {
 
   const datosActualizados: UpdateIRacha = {
@@ -295,9 +331,25 @@ async function extenderRacha(
 
   if (fetchError) throw fetchError;
 
+  // 🎖️ VERIFICAR Y DESBLOQUEAR LOGROS AUTOMÁTICAMENTE
+  let logrosInfo;
+  try {
+    const resultadoLogros = await verificarYDesbloquearLogros(idPerfil, periodosConsecutivos);
+    if (resultadoLogros.logrosNuevos.length > 0 || resultadoLogros.protectoresGanados > 0) {
+      logrosInfo = resultadoLogros;
+    }
+  } catch (error) {
+    console.error("Error al verificar logros:", error);
+    // No lanzamos el error para no bloquear la extensión de la racha
+  }
+
   // Crear mensaje según el tipo de intervalo
   const unidad = obtenerUnidadTiempo(intervaloMeta);
-  const mensaje = `¡Sigue así! Ya llevas ${periodosConsecutivos} ${unidad}${periodosConsecutivos > 1 ? 's' : ''} consecutivos 💪`;
+  let mensaje = `¡Sigue así! Ya llevas ${periodosConsecutivos} ${unidad}${periodosConsecutivos > 1 ? 's' : ''} consecutivos 💪`;
+
+  if (logrosInfo?.mensaje) {
+    mensaje += ` ${logrosInfo.mensaje}`;
+  }
 
   return {
     success: true,
@@ -305,6 +357,7 @@ async function extenderRacha(
     diasConsecutivos: periodosConsecutivos,
     message: mensaje,
     isNewRacha: false,
+    logrosInfo,
   };
 }
 
