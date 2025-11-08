@@ -1,66 +1,68 @@
+// @ts-ignore - Deno imports
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+// @ts-ignore - Deno imports
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
 interface Recordatorio {
-    id_recordatorio: string
-    id_perfil: string
-    id_habito: string
-    mensaje: string
-    activo: boolean
-    intervalo_recordar: string
-    perfil: {
-        id: string
-        nombre?: string
-    }
-    habito: {
-        nombre_habito: string
-        descripcion?: string
-    }
+  id_recordatorio: string
+  id_perfil: string
+  id_habito: string
+  mensaje: string
+  activo: boolean
+  intervalo_recordar: string
+  perfil: {
+    id: string
+    nombre?: string
+  }
+  habito: {
+    nombre_habito: string
+    descripcion?: string
+  }
 }
 
-serve(async (req) => {
-    // Manejar CORS preflight
-    if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: corsHeaders })
-    }
+serve(async (req: Request) => {
+  // Manejar CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
 
-    try {
-        // Log de variables de entorno para debug
-        console.log('🔧 Verificando configuración...')
-        console.log('SUPABASE_URL:', Deno.env.get('SUPABASE_URL') ? '✅ Configurada' : '❌ No configurada')
-        console.log('SUPABASE_SERVICE_ROLE_KEY:', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ? '✅ Configurada' : '❌ No configurada')
-        console.log('RESEND_API_KEY:', Deno.env.get('RESEND_API_KEY') ? '✅ Configurada' : '❌ No configurada')
+  try {
+    // Log de variables de entorno para debug
+    console.log('🔧 Verificando configuración...')
+    console.log('SUPABASE_URL:', Deno.env.get('SUPABASE_URL') ? '✅ Configurada' : '❌ No configurada')
+    console.log('SUPABASE_SERVICE_ROLE_KEY:', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ? '✅ Configurada' : '❌ No configurada')
+    console.log('RESEND_API_KEY:', Deno.env.get('RESEND_API_KEY') ? '✅ Configurada' : '❌ No configurada')
 
-        // Cliente de Supabase
-        const supabaseClient = createClient(
-            Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-            {
-                auth: {
-                    autoRefreshToken: false,
-                    persistSession: false
-                }
-            }
-        )
+    // Cliente de Supabase
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
 
-        // Obtener la hora actual en formato HH:MM
-        const now = new Date()
-        const currentHour = String(now.getHours()).padStart(2, '0')
-        const currentMinute = String(now.getMinutes()).padStart(2, '0')
-        const currentTime = `${currentHour}:${currentMinute}:00`
+    // Obtener la hora actual en formato HH:MM
+    const now = new Date()
+    const currentHour = String(now.getHours()).padStart(2, '0')
+    const currentMinute = String(now.getMinutes()).padStart(2, '0')
+    const currentTime = `${currentHour}:${currentMinute}:00`
 
-        console.log(`🕐 Buscando recordatorios para las ${currentTime}...`)
+    console.log(`🕐 Buscando recordatorios para las ${currentTime}...`)
 
-        // Consultar recordatorios activos que coincidan con la hora actual
-        // Usamos una función para convertir time a text y comparar solo HH:MM
-        const { data: recordatorios, error: fetchError } = await supabaseClient
-            .from('recordatorio')
-            .select(`
+    // Consultar recordatorios activos que coincidan con la hora actual
+    // Usamos una función para convertir time a text y comparar solo HH:MM
+    const { data: recordatorios, error: fetchError } = await supabaseClient
+      .from('recordatorio')
+      .select(`
         id_recordatorio,
         id_perfil,
         id_habito,
@@ -76,143 +78,143 @@ serve(async (req) => {
           descripcion
         )
       `)
-            .eq('activo', true)
-            .gte('intervalo_recordar', `${currentHour}:${currentMinute}:00`)
-            .lt('intervalo_recordar', `${currentHour}:${currentMinute}:59`)
+      .eq('activo', true)
+      .gte('intervalo_recordar', `${currentHour}:${currentMinute}:00`)
+      .lt('intervalo_recordar', `${currentHour}:${currentMinute}:59`)
 
-        if (fetchError) {
-            throw fetchError
-        }
-
-        if (!recordatorios || recordatorios.length === 0) {
-            console.log('📭 No hay recordatorios para enviar en esta hora')
-            return new Response(
-                JSON.stringify({
-                    message: 'No hay recordatorios para esta hora',
-                    time: currentTime,
-                    sent: 0
-                }),
-                {
-                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                    status: 200
-                }
-            )
-        }
-
-        console.log(`📬 Encontrados ${recordatorios.length} recordatorios para enviar`)
-
-        // API Key de Resend
-        const resendApiKey = Deno.env.get('RESEND_API_KEY')
-        if (!resendApiKey) {
-            throw new Error('RESEND_API_KEY no está configurada')
-        }
-
-        // Enviar emails
-        const results = []
-        for (const recordatorio of recordatorios as Recordatorio[]) {
-            try {
-                // Obtener el email usando la función SQL (con cast explícito a UUID)
-                const { data: userEmail, error: emailError } = await supabaseClient
-                    .rpc('get_user_email', { user_id: recordatorio.id_perfil })
-
-                if (emailError) {
-                    console.error(`❌ Error obteniendo email para ${recordatorio.id_perfil}:`, emailError)
-                }
-
-                if (!userEmail) {
-                    console.error(`❌ No se encontró email para perfil ${recordatorio.id_perfil}`)
-                    results.push({
-                        id: recordatorio.id_recordatorio,
-                        success: false,
-                        error: 'Email no encontrado'
-                    })
-                    continue
-                }
-
-                console.log(`📧 Email encontrado: ${userEmail}`)
-
-                const userName = recordatorio.perfil?.nombre || 'Usuario'
-                const habitName = recordatorio.habito?.nombre_habito || 'tu hábito'
-
-                // Enviar email usando Resend
-                const emailResponse = await fetch('https://api.resend.com/emails', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${resendApiKey}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        from: 'HabitTrack <onboarding@resend.dev>',
-                        to: [userEmail],
-                        subject: `🔔 Recordatorio: ${habitName}`,
-                        html: generateEmailHTML(userName, habitName, recordatorio.mensaje),
-                    }),
-                })
-
-                const resendData = await emailResponse.json()
-
-                if (!emailResponse.ok) {
-                    console.error(`❌ Error enviando email a ${userEmail}:`, resendData)
-                    results.push({
-                        id: recordatorio.id_recordatorio,
-                        success: false,
-                        error: resendData.message || 'Error desconocido'
-                    })
-                } else {
-                    console.log(`✅ Email enviado exitosamente a ${userEmail}`)
-                    results.push({
-                        id: recordatorio.id_recordatorio,
-                        success: true,
-                        emailId: resendData.id
-                    })
-                }
-
-            } catch (emailError: any) {
-                console.error(`❌ Error procesando recordatorio ${recordatorio.id_recordatorio}:`, emailError)
-                results.push({
-                    id: recordatorio.id_recordatorio,
-                    success: false,
-                    error: emailError.message
-                })
-            }
-        }
-
-        const successCount = results.filter(r => r.success).length
-        console.log(`✅ Enviados ${successCount} de ${recordatorios.length} recordatorios`)
-
-        return new Response(
-            JSON.stringify({
-                message: 'Proceso completado',
-                time: currentTime,
-                total: recordatorios.length,
-                sent: successCount,
-                failed: recordatorios.length - successCount,
-                results
-            }),
-            {
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                status: 200
-            }
-        )
-
-    } catch (error: any) {
-        console.error('❌ Error en send-daily-reminders:', error)
-        return new Response(
-            JSON.stringify({
-                error: error.message,
-                details: error.toString()
-            }),
-            {
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                status: 500
-            }
-        )
+    if (fetchError) {
+      throw fetchError
     }
+
+    if (!recordatorios || recordatorios.length === 0) {
+      console.log('📭 No hay recordatorios para enviar en esta hora')
+      return new Response(
+        JSON.stringify({
+          message: 'No hay recordatorios para esta hora',
+          time: currentTime,
+          sent: 0
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        }
+      )
+    }
+
+    console.log(`📬 Encontrados ${recordatorios.length} recordatorios para enviar`)
+
+    // API Key de Resend
+    const resendApiKey = Deno.env.get('RESEND_API_KEY')
+    if (!resendApiKey) {
+      throw new Error('RESEND_API_KEY no está configurada')
+    }
+
+    // Enviar emails
+    const results = []
+    for (const recordatorio of recordatorios as Recordatorio[]) {
+      try {
+        // Obtener el email usando la función SQL (con cast explícito a UUID)
+        const { data: userEmail, error: emailError } = await supabaseClient
+          .rpc('get_user_email', { user_id: recordatorio.id_perfil })
+
+        if (emailError) {
+          console.error(`❌ Error obteniendo email para ${recordatorio.id_perfil}:`, emailError)
+        }
+
+        if (!userEmail) {
+          console.error(`❌ No se encontró email para perfil ${recordatorio.id_perfil}`)
+          results.push({
+            id: recordatorio.id_recordatorio,
+            success: false,
+            error: 'Email no encontrado'
+          })
+          continue
+        }
+
+        console.log(`📧 Email encontrado: ${userEmail}`)
+
+        const userName = recordatorio.perfil?.nombre || 'Usuario'
+        const habitName = recordatorio.habito?.nombre_habito || 'tu hábito'
+
+        // Enviar email usando Resend
+        const emailResponse = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'HabitTrack <onboarding@resend.dev>',
+            to: [userEmail],
+            subject: `🔔 Recordatorio: ${habitName}`,
+            html: generateEmailHTML(userName, habitName, recordatorio.mensaje),
+          }),
+        })
+
+        const resendData = await emailResponse.json() as any
+
+        if (!emailResponse.ok) {
+          console.error(`❌ Error enviando email a ${userEmail}:`, resendData)
+          results.push({
+            id: recordatorio.id_recordatorio,
+            success: false,
+            error: resendData.message || 'Error desconocido'
+          })
+        } else {
+          console.log(`✅ Email enviado exitosamente a ${userEmail}`)
+          results.push({
+            id: recordatorio.id_recordatorio,
+            success: true,
+            emailId: resendData.id
+          })
+        }
+
+      } catch (emailError: any) {
+        console.error(`❌ Error procesando recordatorio ${recordatorio.id_recordatorio}:`, emailError)
+        results.push({
+          id: recordatorio.id_recordatorio,
+          success: false,
+          error: emailError.message
+        })
+      }
+    }
+
+    const successCount = results.filter(r => r.success).length
+    console.log(`✅ Enviados ${successCount} de ${recordatorios.length} recordatorios`)
+
+    return new Response(
+      JSON.stringify({
+        message: 'Proceso completado',
+        time: currentTime,
+        total: recordatorios.length,
+        sent: successCount,
+        failed: recordatorios.length - successCount,
+        results
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      }
+    )
+
+  } catch (error: any) {
+    console.error('❌ Error en send-daily-reminders:', error)
+    return new Response(
+      JSON.stringify({
+        error: error.message,
+        details: error.toString()
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      }
+    )
+  }
 })
 
 // Función para generar el HTML del email
 function generateEmailHTML(userName: string, habitName: string, mensaje: string): string {
-    return `
+  return `
 <!DOCTYPE html>
 <html lang="es">
 <head>

@@ -29,7 +29,7 @@ const convertirUTCALocal = (horaUTC: string): string => {
     const [horas, minutos] = horaUTC.split(':');
     const fecha = new Date();
     fecha.setUTCHours(parseInt(horas), parseInt(minutos), 0, 0);
-    
+
     const horaLocal = fecha.getHours().toString().padStart(2, '0');
     const minutoLocal = fecha.getMinutes().toString().padStart(2, '0');
     return `${horaLocal}:${minutoLocal}`;
@@ -40,7 +40,7 @@ const convertirLocalAUTC = (horaLocal: string): string => {
     const [horas, minutos] = horaLocal.split(':');
     const fecha = new Date();
     fecha.setHours(parseInt(horas), parseInt(minutos), 0, 0);
-    
+
     const horaUTC = fecha.getUTCHours().toString().padStart(2, '0');
     const minutoUTC = fecha.getUTCMinutes().toString().padStart(2, '0');
     return `${horaUTC}:${minutoUTC}:00`;
@@ -115,7 +115,7 @@ export default function RecordatorioList() {
         try {
             // Convertir hora local a UTC antes de guardar
             const horaUTC = convertirLocalAUTC(horaTemp);
-            
+
             await updateMensajeRecordatorio(id, mensajeTemp);
             await updateHoraRecordatorio(id, horaUTC);
 

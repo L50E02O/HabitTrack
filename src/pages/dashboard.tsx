@@ -175,16 +175,21 @@ export default function Dashboard() {
                 [habito.id_habito]: result.newProgress,
             }));
 
-            // Actualizar rachas SOLO si el hábito se completó y hay info de racha
-            if (result.isComplete && result.rachaInfo) {
+            // Actualizar rachas SIEMPRE que hay info de racha (no solo cuando se completa)
+            if (result.rachaInfo) {
                 setHabitosRachas(prev => ({
                     ...prev,
                     [habito.id_habito]: result.rachaInfo!.diasConsecutivos,
                 }));
-                console.log(`✅ Racha actualizada a ${result.rachaInfo.diasConsecutivos}`);
-            } else {
-                console.log(`⏳ Hábito no completado, racha no cambia`);
+                console.log(`🔥 Racha actualizada a ${result.rachaInfo.diasConsecutivos}`);
             }
+
+            // IMPORTANTE: Recargar rachas desde BD para verificar si alguna expiró
+            console.log("🔄 Recargando rachas desde la base de datos...");
+            const habitoIds = habitos.map(h => h.id_habito);
+            const rachasActualizadas = await getRachasMultiplesHabitos(habitoIds);
+            setHabitosRachas(rachasActualizadas);
+            console.log("✅ Rachas recargadas:", rachasActualizadas);
 
             // Limpiar notificación después de 3 segundos
             setTimeout(() => setNotification(null), 3000);

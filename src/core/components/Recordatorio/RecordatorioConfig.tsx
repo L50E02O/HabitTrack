@@ -32,7 +32,7 @@ export default function RecordatorioConfig({ habitoId, nombreHabito, onClose }: 
             const [horas, minutos] = hora.split(':');
             const fechaLocal = new Date();
             fechaLocal.setHours(parseInt(horas), parseInt(minutos), 0, 0);
-            
+
             // Obtener la hora en UTC
             const horaUTC = fechaLocal.toISOString().substring(11, 19); // HH:MM:SS en UTC
 

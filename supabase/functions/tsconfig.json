@@ -2,9 +2,15 @@
     "compilerOptions": {
         "target": "ESNext",
         "lib": [
-            "ESNext"
+            "ESNext",
+            "DOM"
         ],
         "module": "ESNext",
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "types": [
+            "./deno.d.ts"
+        ]
     }
 }

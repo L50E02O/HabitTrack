@@ -64,37 +64,35 @@ export async function recordHabitProgress(
     // Le damos puntos al usuario
     await actualizarPuntosUsuario(idPerfil, puntosADar);
 
-    // Actualizamos la racha SOLO cuando se completa el objetivo (para diarios)
-    // o cuando hay avances (para semanales/mensuales)
+    // Actualizamos la racha en CADA avance, no solo cuando se completa
     let infoRacha: ProgressResponse['rachaInfo'] | undefined;
 
-    // SOLO actualizar la racha cuando el hábito se completa
-    if (habitoCompletado) {
-      console.log("✅ Hábito completado. Actualizando racha para hábito:", idHabito);
-      const resultadoRacha = await updateRachaOnHabitCompletion(
-        registroId,
-        idHabito,
-        intervaloMeta,
-        habitoCompletado,
-        metaRepeticion
-      );
+    // PRIMERO: Revisamos si hay rachas que deben expirar (ANTES de actualizar)
+    console.log("🔍 Verificando rachas expiradas ANTES de actualizar...");
+    await checkAndDeactivateExpiredRachas(idHabito, intervaloMeta);
 
-      console.log("Resultado de actualización de racha:", resultadoRacha);
+    // DESPUÉS: Actualizar la racha en cada click
+    console.log("📈 Actualizando racha para hábito:", idHabito);
+    const resultadoRacha = await updateRachaOnHabitCompletion(
+      registroId,
+      idHabito,
+      intervaloMeta,
+      habitoCompletado,
+      metaRepeticion
+    );
 
-      if (resultadoRacha.success && resultadoRacha.racha) {
-        infoRacha = {
-          diasConsecutivos: resultadoRacha.diasConsecutivos,
-          isNewRacha: resultadoRacha.isNewRacha,
-          rachaMessage: resultadoRacha.message,
-        };
-        console.log("Info de racha creada:", infoRacha);
-      }
-    } else {
-      console.log("⏳ Hábito no completado aún. La racha no se actualiza hasta completar el objetivo.");
+    console.log("Resultado de actualización de racha:", resultadoRacha);
+
+    if (resultadoRacha.success && resultadoRacha.racha) {
+      infoRacha = {
+        diasConsecutivos: resultadoRacha.diasConsecutivos,
+        isNewRacha: resultadoRacha.isNewRacha,
+        rachaMessage: resultadoRacha.message,
+      };
+      console.log("Info de racha creada:", infoRacha);
     }
 
-    // Revisamos si hay rachas que deben expirar
-    await checkAndDeactivateExpiredRachas(idHabito, intervaloMeta);    // Creamos el mensaje para mostrar al usuario
+    // Creamos el mensaje para mostrar al usuario
     let mensaje = habitoCompletado
       ? `¡Felicidades! Completaste tu hábito y ganaste ${puntosADar} puntos 🎉`
       : `¡Buen progreso! Ganaste ${puntosADar} puntos`;
