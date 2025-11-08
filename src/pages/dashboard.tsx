@@ -219,8 +219,8 @@ export default function Dashboard() {
                 [habito.id_habito]: result.newProgress,
             }));
 
-            // Actualizar rachas SOLO si el hábito se completó y hay info de racha
-            if (result.isComplete && result.rachaInfo) {
+            // Actualizar rachas SIEMPRE que hay info de racha (no solo cuando se completa)
+            if (result.rachaInfo) {
                 setHabitosRachas(prev => ({
                     ...prev,
                     [habito.id_habito]: result.rachaInfo!.diasConsecutivos,

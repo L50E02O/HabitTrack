@@ -56,6 +56,16 @@ export default function HabitCard({
     const pctBucket = Math.min(100, Math.max(0, Math.round(pct / 10) * 10));
     const isComplete = progress >= goal;
 
+    // Determinar la unidad de tiempo según el intervalo
+    const getUnidadTiempo = () => {
+        if (intervalo_meta === 'diario') return streakDays === 1 ? 'día' : 'días';
+        if (intervalo_meta === 'semanal') return streakDays === 1 ? 'semana' : 'semanas';
+        if (intervalo_meta === 'mensual') return streakDays === 1 ? 'mes' : 'meses';
+        return streakDays === 1 ? 'vez' : 'veces';
+    };
+
+    const unidadTiempo = getUnidadTiempo();
+
     const handleDelete = () => {
         if (window.confirm(`¿Estás seguro de eliminar "${nombre_habito}"?`)) {
             onDelete?.();
@@ -172,7 +182,7 @@ export default function HabitCard({
 
             <div className={`habitStreak ${streakDays > 0 ? 'active' : ''}`}>
                 <Flame size={16} />
-                <span>{streakDays > 0 ? `Racha de ${streakDays} día${streakDays > 1 ? 's' : ''}` : 'Sin racha'}</span>
+                <span>{streakDays > 0 ? `Racha de ${streakDays} ${unidadTiempo}` : 'Sin racha'}</span>
             </div>
 
             {!isComplete && (

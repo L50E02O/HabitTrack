@@ -42,7 +42,7 @@ export async function updateRachaOnHabitCompletion(
         .single();
 
       if (habitoError) throw habitoError;
-      
+
       metaRepeticion = habito.meta_repeticion;
       intervaloMeta = habito.intervalo_meta;
       habitoCompletado = true; // Si se llama esta función, es porque se completó
@@ -69,9 +69,9 @@ export async function updateRachaOnHabitCompletion(
 
     // Calculamos cuántos períodos consecutivos lleva
     const periodosConsecutivos = await calcularPeriodosConsecutivos(
-      idHabito, 
-      intervaloMeta, 
-      hoy, 
+      idHabito,
+      intervaloMeta,
+      hoy,
       metaFinal
     );
 
@@ -118,44 +118,67 @@ export async function updateRachaOnHabitCompletion(
 
 // Esta función busca la racha que está activa actualmente
 async function buscarRachaActiva(idHabito: string): Promise<IRacha | null> {
-  const { data: rachas, error } = await supabase
-    .from("racha")
-    .select(`
-      *,
-      registro_intervalo!inner(id_habito)
-    `)
-    .eq("registro_intervalo.id_habito", idHabito)
-    .eq("racha_activa", true)
-    .order("fin_racha", { ascending: false })
-    .limit(1);
+  try {
+    // Primero obtenemos todos los registros_intervalo de este hábito
+    const { data: registros, error: errorRegistros } = await supabase
+      .from("registro_intervalo")
+      .select("id_registro")
+      .eq("id_habito", idHabito);
 
-  if (error || !rachas || rachas.length === 0) {
-    return null; // No hay racha activa
+    if (errorRegistros) {
+      console.error("❌ Error al buscar registros:", errorRegistros);
+      return null;
+    }
+
+    if (!registros || registros.length === 0) {
+      return null;
+    }
+
+    // Extraer los IDs de los registros
+    const idsRegistros = registros.map(r => r.id_registro);
+
+    // Buscar rachas activas para estos registros
+    const { data: rachas, error } = await supabase
+      .from("racha")
+      .select("*")
+      .in("id_registro_intervalo", idsRegistros)
+      .eq("racha_activa", true)
+      .order("fin_racha", { ascending: false })
+      .limit(1);
+
+    if (error) {
+      console.error("❌ Error al buscar racha activa:", error);
+      return null;
+    }
+
+    if (!rachas || rachas.length === 0) {
+      return null; // No hay racha activa
+    } return rachas[0];
+  } catch (error) {
+    console.error("💥 Error en buscarRachaActiva:", error);
+    return null;
   }
-
-  return rachas[0];
 }
 
 // Cuenta períodos consecutivos según el tipo de intervalo
-// IMPORTANTE: Esta función solo se llama cuando se COMPLETA un hábito
+// IMPORTANTE: Cuenta TODOS los registros del hábito
 async function calcularPeriodosConsecutivos(
-  idHabito: string, 
-  intervaloMeta: string, 
-  fechaHoy: Date,
-  metaRepeticion: number
+  idHabito: string,
+  _intervaloMeta: string,
+  _fechaHoy: Date,
+  _metaRepeticion: number
 ): Promise<number> {
-  // Obtener todos los registros ordenados por fecha
+  // Obtener TODOS los registros del hábito (sin filtrar por cumplido)
   const { data: registros, error } = await supabase
     .from("registro_intervalo")
     .select("fecha")
     .eq("id_habito", idHabito)
-    .order("fecha", { ascending: false })
-    .limit(365); // Un año de registros como máximo
+    .order("fecha", { ascending: false });
 
-  console.log(`Registros encontrados para hábito ${idHabito}:`, registros?.length || 0);
+  console.log(`📊 Total de registros para hábito ${idHabito}:`, registros?.length || 0);
 
   if (error) {
-    console.error("Error al contar registros:", error);
+    console.error("❌ Error al contar registros:", error);
     return 1;
   }
 
@@ -497,16 +520,37 @@ export async function getRachasMultiplesHabitos(idsHabitos: string[]): Promise<R
       rachasMap[id] = 0;
     });
 
-    // Obtener todas las rachas activas de estos hábitos desde la tabla racha
+    // Obtener todos los registros_intervalo de estos hábitos
+    const { data: registros, error: errorRegistros } = await supabase
+      .from("registro_intervalo")
+      .select("id_registro, id_habito")
+      .in("id_habito", idsHabitos);
+
+    if (errorRegistros) {
+      console.error("❌ Error al buscar registros:", errorRegistros);
+      return rachasMap;
+    }
+
+    if (!registros || registros.length === 0) {
+      console.log("⚠️ No hay registros para estos hábitos");
+      return rachasMap;
+    }
+
+    console.log(`📝 Registros encontrados para ${idsHabitos.length} hábitos:`, registros.length);
+
+    // Crear un mapa de id_registro -> id_habito
+    const registroToHabito: Record<string, string> = {};
+    registros.forEach(reg => {
+      registroToHabito[reg.id_registro] = reg.id_habito;
+    });
+
+    const idsRegistros = registros.map(r => r.id_registro);
+
+    // Obtener todas las rachas activas de estos registros
     const { data: rachas, error } = await supabase
       .from("racha")
-      .select(`
-        id_racha,
-        dias_consecutivos,
-        racha_activa,
-        registro_intervalo!inner(id_habito)
-      `)
-      .in("registro_intervalo.id_habito", idsHabitos)
+      .select("id_racha, dias_consecutivos, racha_activa, id_registro_intervalo")
+      .in("id_registro_intervalo", idsRegistros)
       .eq("racha_activa", true);
 
     if (error) {
@@ -517,8 +561,10 @@ export async function getRachasMultiplesHabitos(idsHabitos: string[]): Promise<R
     // Actualizar el mapa con las rachas activas encontradas
     if (rachas && rachas.length > 0) {
       rachas.forEach((racha: any) => {
-        const idHabito = racha.registro_intervalo.id_habito;
-        rachasMap[idHabito] = racha.dias_consecutivos;
+        const idHabito = registroToHabito[racha.id_registro_intervalo];
+        if (idHabito) {
+          rachasMap[idHabito] = racha.dias_consecutivos;
+        }
       });
     }
 
@@ -554,7 +600,9 @@ export async function checkAndDeactivateExpiredRachas(
 ): Promise<void> {
   try {
     const rachaActiva = await buscarRachaActiva(idHabito);
-    if (!rachaActiva) return; // No hay nada que desactivar
+    if (!rachaActiva) {
+      return; // No hay nada que desactivar
+    }
 
     const fechaHoy = new Date();
     fechaHoy.setUTCHours(0, 0, 0, 0);
@@ -595,6 +643,6 @@ export async function checkAndDeactivateExpiredRachas(
       console.log(`🛡️ Racha salvada con protector para hábito ${idHabito}`);
     }
   } catch (error: any) {
-    console.error("No pudimos verificar las rachas expiradas:", error);
+    console.error("Error al verificar rachas expiradas:", error);
   }
 }
