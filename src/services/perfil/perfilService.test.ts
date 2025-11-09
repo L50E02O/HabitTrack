@@ -26,6 +26,7 @@ describe("PerfilService", () => {
       nombre: "Juan Pérez",
       foto_perfil: "https://example.com/foto.jpg",
       puntos: 0,
+      protectores_racha:0 ,
     };
 
     (supabase.from as any).mockReturnValue({

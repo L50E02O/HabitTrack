@@ -20,7 +20,7 @@ export default function RegistroPage() {
 				throw new Error("No se obtuvo el usuario tras el registro");
 			}
 
-			const perfil = { id: user.id, nombre: payload.nombre, puntos: 0 };
+			const perfil = { id: user.id, nombre: payload.nombre, puntos: 0, protectores_racha: 0};
 
 			// Crear el perfil del usuario
 			await createPerfil(perfil);
