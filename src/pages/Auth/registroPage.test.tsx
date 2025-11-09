@@ -63,7 +63,7 @@ describe("RegistroPage", () => {
         expect(signUpMock).toHaveBeenCalledWith("test@example.com", "password123");
         });
 
-        expect(createPerfilMock).toHaveBeenCalledWith({ id: "uid_123", nombre: "Juan", puntos: 0 });
+        expect(createPerfilMock).toHaveBeenCalledWith({ id: "uid_123", nombre: "Juan", puntos: 0, protectores_racha: 0});
         expect(window.alert).toHaveBeenCalledWith(
         "Por favor, revisa tu correo electrónico para verificar tu cuenta."
         );
