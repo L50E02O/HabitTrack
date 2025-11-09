@@ -6,6 +6,17 @@ import * as protectorService from '../../../services/protector/protectorService'
 // Mock del servicio
 vi.mock('../../../services/protector/protectorService');
 
+vi.mock('../../../config/supabase', () => ({
+  supabase: {
+    from: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    delete: vi.fn().mockReturnThis(),
+  },
+}));
+
 describe('TiendaProtectores', () => {
   const mockUserId = 'user-123';
   const mockOnClose = vi.fn();
