@@ -26,7 +26,6 @@ export default function LoginPage() {
             setLoading(false);
         }
     };
-
     return (
         <div className={styles.authPage}>
             <div className={styles.iconContainer}>
