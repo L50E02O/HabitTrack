@@ -12,20 +12,37 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22.x]
 
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci
-      - run: npm test
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: package.json
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ] || [ -f yarn.lock ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Run tests
+        run: npm test
 
       - name: Deploy to Vercel
         id: vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          DEPLOY_URL=$(npx vercel --prod --yes --token=$VERCEL_TOKEN --scope=$VERCEL_ORG_ID --confirm | tail -n 1)
+          DEPLOY_URL=$(npx vercel --prod --yes --token=$VERCEL_TOKEN --confirm | grep -Eo 'https://[^ ]+\.vercel\.app' | tail -n 1)
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
       - name: Register deployment in GitHub
@@ -51,5 +68,5 @@ jobs:
               deployment_id: deployment.data.id,
               state: 'success',
               environment_url: url,
-              description: 'Deployed to Vercel SIUUUUUUUUUUUU'
+              description: 'Deployed to Vercel 🚀'
             });
