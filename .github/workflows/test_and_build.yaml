@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22.x, 23.x]
+        node-version: [22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -51,3 +51,10 @@ jobs:
             --token=$VERCEL_TOKEN \
             --scope=$VERCEL_ORG_ID \
             --confirm
+            
+    - name: Create deployment
+      uses: peter-evans/create-or-update-deployment-status@v3
+      with:
+          environment: production
+          state: success
+          environment-url: https://habit-track-hzebuvfxw-leos-projects-1ecb6927.vercel.app
