@@ -34,7 +34,7 @@ export default function LoginPage() {
                     
                 </span>
             </div>
-            <h1>Bienvenido de nuevo</h1>
+            <h1>Bienvenido</h1>
             <p className={styles.subtitle}>Inicia sesión para continuar tu progreso.</p>
             
             {error && <div className={styles.error} role="alert">{error}</div>}
