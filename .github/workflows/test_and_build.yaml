@@ -68,5 +68,5 @@ jobs:
               deployment_id: deployment.data.id,
               state: 'success',
               environment_url: url,
-              description: 'Deployed to Vercel 🚀'
+              description: 'Deployed to Vercel '
             });
