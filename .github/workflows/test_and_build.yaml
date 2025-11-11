@@ -1,60 +1,55 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Test and Build
+name: Test and Deploy to Vercel
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    branches:
+      - main
+
+permissions:
+  contents: read
+  deployments: write
 
 jobs:
-  build:
-
+  build-and-deploy:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: package.json
-    - name: Install dependencies
-      run: |
-        if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ] || [ -f yarn.lock ]; then
-          npm ci
-        else
-          npm install
-        fi
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm test
 
-    - name: Run tests
-      run: npm test
-
-    - name: Build
-      run: npm run build --if-present
-  
-    - name: Deploy to Vercel (only if tests pass)
-      env:
+      - name: Deploy to Vercel
+        id: vercel
+        env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      run: |
-          npx vercel --prod --yes \
-            --token=$VERCEL_TOKEN \
-            --scope=$VERCEL_ORG_ID \
-            --confirm
-            
-    - name: Create deployment
-      uses: peter-evans/create-or-update-deployment-status@v3
-      with:
-          environment: production
-          state: success
-          environment-url: https://habit-track-hzebuvfxw-leos-projects-1ecb6927.vercel.app
+        run: |
+          DEPLOY_URL=$(npx vercel --prod --yes --token=$VERCEL_TOKEN --scope=$VERCEL_ORG_ID --confirm | tail -n 1)
+          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+      - name: Register deployment in GitHub
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const url = '${{ steps.vercel.outputs.deploy_url }}';
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: 'production',
+              auto_merge: false,
+              required_contexts: [],
+              description: 'Vercel deployment',
+              transient_environment: false,
+              production_environment: true
+            });
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.data.id,
+              state: 'success',
+              environment_url: url,
+              description: 'Deployed to Vercel SIUUUUUUUUUUUU'
+            });
