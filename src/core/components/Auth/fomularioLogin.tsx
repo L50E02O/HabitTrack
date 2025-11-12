@@ -1,4 +1,5 @@
 import React, { useState, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { User, Lock } from "lucide-react";
 import styles from "./formularioLogin.module.css";
 
@@ -10,6 +11,11 @@ const FormularioLogin: React.FC<FormularioLoginProps> = ({ onSubmit }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
+  const navigate = useNavigate();
+
+  const handleForgot = () => {
+    navigate('/forgot-password');
+  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault(); // evita recargar la página
@@ -60,7 +66,7 @@ const FormularioLogin: React.FC<FormularioLoginProps> = ({ onSubmit }) => {
           />
           Recuérdame
         </label>
-        <a href="/forgot-password" className={styles.forgotLink}>
+        <a onClick={handleForgot} role="button" tabIndex={0} className={styles.forgotLink}>
           ¿Olvidaste tu contraseña?
         </a>
       </div>

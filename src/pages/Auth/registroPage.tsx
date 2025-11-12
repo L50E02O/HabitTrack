@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import FormularioRegistro from "../../core/components/Auth/formularioRegistro";
 import { signUp } from "../../services/auth/authService";
 import { createPerfil } from "../../services/perfil/perfilService";
 import styles from "./registroPage.module.css";
  
 export default function RegistroPage() {
+	const navigate = useNavigate();
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +58,7 @@ export default function RegistroPage() {
 			
 			<div className={styles.footer}>
 				<span className={styles.footerText}>¿Ya tienes una cuenta?</span>
-				<a href="/login" className={styles.footerLink}>Inicia sesión</a>
+				<a onClick={() => navigate('/login')} role="button" tabIndex={0} className={styles.footerLink}>Inicia sesión</a>
 			</div>
 		</div>
 	);

@@ -105,7 +105,7 @@ export default function ForgotPasswordPage() {
 
       <div className={styles.footer}>
         <p className={styles.footerText}>¿Recordaste tu contraseña?</p>
-        <a href="/login" className={styles.footerLink}>
+        <a onClick={() => navigate('/login')} role="button" tabIndex={0} className={styles.footerLink}>
           Vuelve al login
         </a>
       </div>

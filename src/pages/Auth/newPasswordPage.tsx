@@ -167,7 +167,7 @@ export default function NewPasswordPage() {
 
       <div className={styles.footer}>
         <p className={styles.footerText}>¿Necesitas ayuda?</p>
-        <a href="/login" className={styles.footerLink}>
+        <a onClick={() => navigate('/login')} role="button" tabIndex={0} className={styles.footerLink}>
           Vuelve al login
         </a>
       </div>

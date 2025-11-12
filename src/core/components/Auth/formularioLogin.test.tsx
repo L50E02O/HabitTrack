@@ -1,5 +1,10 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, type Mock } from "vitest";
+import { useNavigate } from 'react-router-dom';
+
+vi.mock('react-router-dom', () => ({
+    useNavigate: vi.fn(),
+}));
 import FormularioLogin from "./fomularioLogin";
 
 describe("FormularioLogin", () => {
@@ -25,11 +30,18 @@ describe("FormularioLogin", () => {
 
         it("debería renderizar el enlace de 'Olvidaste tu contraseña'", () => {
             const mockOnSubmit = vi.fn();
+            const mockNavigate = vi.fn();
+            const useNavigateMock = useNavigate as unknown as Mock;
+            useNavigateMock.mockReturnValue(mockNavigate);
+
             render(<FormularioLogin onSubmit={mockOnSubmit} />);
 
             const forgotLink = screen.getByText("¿Olvidaste tu contraseña?");
             expect(forgotLink).toBeInTheDocument();
-            expect(forgotLink).toHaveAttribute("href", "/forgot-password");
+
+            // Simular click y verificar que navega usando navigate
+            fireEvent.click(forgotLink);
+            expect(mockNavigate).toHaveBeenCalledWith('/forgot-password');
         });
 
         it("debería tener los campos vacíos inicialmente", () => {

@@ -1,5 +1,10 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
+import { useNavigate } from 'react-router-dom';
+
+vi.mock('react-router-dom', () => ({
+  useNavigate: vi.fn(),
+}));
 import RegistroPage from "./registroPage";
 import { signUp } from "../../services/auth/authService";
 import { createPerfil } from "../../services/perfil/perfilService";
@@ -41,14 +46,19 @@ describe("RegistroPage", () => {
     });
 
     it("renderiza título, subtítulo, formulario mock y enlace de footer", () => {
-        render(<RegistroPage />);
+    const mockNavigate = vi.fn();
+    const useNavigateMock = useNavigate as unknown as Mock;
+    useNavigateMock.mockReturnValue(mockNavigate);
 
-        expect(screen.getByRole("heading", { name: /crea tu cuenta/i })).toBeInTheDocument();
-        expect(screen.getByText(/únete para empezar a construir hábitos saludables\./i)).toBeInTheDocument();
-        expect(screen.getByTestId(mockOnSubmitTriggerTestId)).toBeInTheDocument();
+    render(<RegistroPage />);
 
-        const footerLink = screen.getByRole("link", { name: /inicia sesión/i });
-        expect(footerLink).toHaveAttribute("href", "/login");
+    expect(screen.getByRole("heading", { name: /crea tu cuenta/i })).toBeInTheDocument();
+    expect(screen.getByText(/únete para empezar a construir hábitos saludables\./i)).toBeInTheDocument();
+    expect(screen.getByTestId(mockOnSubmitTriggerTestId)).toBeInTheDocument();
+
+    const footerLink = screen.getByText(/inicia sesión/i);
+    fireEvent.click(footerLink);
+    expect(mockNavigate).toHaveBeenCalledWith('/login');
     });
 
     it("flujo exitoso: registra en auth, crea perfil y muestra alerta", async () => {
