@@ -45,8 +45,11 @@ describe("LoginPage", () => {
 		expect(screen.getByText(/inicia sesión para continuar tu progreso\./i)).toBeInTheDocument();
 		expect(screen.getByTestId(mockFormTestId)).toBeInTheDocument();
 
-		const footerLink = screen.getByRole("link", { name: /regístrate aquí/i });
-		expect(footerLink).toHaveAttribute("href", "/registro");
+	// El componente ahora usa un <a> sin href y navega por onClick
+	const footerLink = screen.getByText(/regístrate aquí/i);
+	// Simular click y verificar que se llamó a navigate
+	fireEvent.click(footerLink);
+	expect(mockNavigate).toHaveBeenCalledWith("/registro");
 	});
 
 	it("flujo exitoso: inicia sesión y navega a la página principal", async () => {
