@@ -41,7 +41,7 @@ describe("LoginPage", () => {
 	it("renderiza título, subtítulo, formulario mock y enlace de footer", () => {
 		render(<LoginPage />);
 
-		expect(screen.getByRole("heading", { name: /wellcome/i })).toBeInTheDocument();
+		expect(screen.getByRole("heading", { name: /bienvenido/i })).toBeInTheDocument();
 		expect(screen.getByText(/inicia sesión para continuar tu progreso\./i)).toBeInTheDocument();
 		expect(screen.getByTestId(mockFormTestId)).toBeInTheDocument();
 

@@ -26,6 +26,11 @@ export default function LoginPage() {
             setLoading(false);
         }
     };
+
+    const handleRegistro = async () => {
+        navigate("/registro");
+    };
+
     return (
         <div className={styles.authPage}>
             <div className={styles.iconContainer}>
@@ -34,7 +39,7 @@ export default function LoginPage() {
                     
                 </span>
             </div>
-            <h1>Wellcome</h1>
+            <h1>Bienvenido</h1>
             <p className={styles.subtitle}>Inicia sesión para continuar tu progreso.</p>
             
             {error && <div className={styles.error} role="alert">{error}</div>}
@@ -47,7 +52,7 @@ export default function LoginPage() {
             
             <div className={styles.footer}>
                 <p className={styles.footerText}>¿No tienes una cuenta?</p>
-                <a href="/registro" className={styles.footerLink}>Regístrate aquí</a>
+                <a onClick={handleRegistro} className={styles.footerLink}>Regístrate aquí</a>
             </div>
         </div>
     );
