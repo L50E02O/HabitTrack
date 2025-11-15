@@ -223,30 +223,99 @@ async function calcularPeriodosConsecutivos(
     return Math.max(1, consecutivos);
   }
 
-  // Para semanales y mensuales: contar períodos con al menos 1 registro
+  // Para semanales: contar SEMANAS CONSECUTIVAS desde hoy hacia atrás
   if (intervaloMeta === 'semanal') {
-    const semanas = new Set<string>();
+    // Agrupar registros por semana y contar cuántos hay en cada semana
+    const registrosPorSemana = new Map<string, number>();
+    
     registros.forEach(reg => {
       const fecha = new Date(reg.fecha);
-      const año = fecha.getFullYear();
-      const primerDia = new Date(año, 0, 1);
-      const dias = Math.floor((fecha.getTime() - primerDia.getTime()) / (24 * 60 * 60 * 1000));
-      const semana = Math.ceil((dias + primerDia.getDay() + 1) / 7);
-      semanas.add(`${año}-W${semana}`);
+      const semanaKey = obtenerClaveSemanaMejorada(fecha);
+      registrosPorSemana.set(semanaKey, (registrosPorSemana.get(semanaKey) || 0) + 1);
     });
-    return Math.max(1, semanas.size);
+
+    // Filtrar semanas donde se completó el objetivo
+    const semanasCompletadas = Array.from(registrosPorSemana.entries())
+      .filter(([_, count]) => count >= metaRepeticion)
+      .map(([semanaKey]) => semanaKey)
+      .sort((a, b) => b.localeCompare(a)); // Ordenar de más reciente a más antigua
+
+    if (semanasCompletadas.length === 0) return 1;
+
+    // Contar semanas consecutivas desde la semana actual
+    let consecutivos = 0;
+    let semanaActual = obtenerClaveSemanaMejorada(fechaHoy);
+    const semanasSet = new Set(semanasCompletadas);
+
+    while (semanasSet.has(semanaActual)) {
+      consecutivos++;
+      // Retroceder a la semana anterior
+      const [año, semana] = semanaActual.split('-W').map(Number);
+      let nuevaSemana = semana - 1;
+      let nuevoAño = año;
+      
+      if (nuevaSemana < 1) {
+        nuevoAño--;
+        nuevaSemana = 52; // Aproximación: última semana del año anterior
+      }
+      
+      semanaActual = `${nuevoAño}-W${nuevaSemana}`;
+    }
+
+    return Math.max(1, consecutivos);
   }
 
   if (intervaloMeta === 'mensual') {
-    const meses = new Set<string>();
+    // Agrupar registros por mes y contar cuántos hay en cada mes
+    const registrosPorMes = new Map<string, number>();
+    
     registros.forEach(reg => {
       const fecha = new Date(reg.fecha);
-      meses.add(`${fecha.getFullYear()}-${fecha.getMonth() + 1}`);
+      const mesKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+      registrosPorMes.set(mesKey, (registrosPorMes.get(mesKey) || 0) + 1);
     });
-    return Math.max(1, meses.size);
+
+    // Filtrar meses donde se completó el objetivo
+    const mesesCompletados = Array.from(registrosPorMes.entries())
+      .filter(([_, count]) => count >= metaRepeticion)
+      .map(([mesKey]) => mesKey)
+      .sort((a, b) => b.localeCompare(a)); // Ordenar de más reciente a más antiguo
+
+    if (mesesCompletados.length === 0) return 1;
+
+    // Contar meses consecutivos desde el mes actual
+    let consecutivos = 0;
+    let mesActual = `${fechaHoy.getFullYear()}-${String(fechaHoy.getMonth() + 1).padStart(2, '0')}`;
+    const mesesSet = new Set(mesesCompletados);
+
+    while (mesesSet.has(mesActual)) {
+      consecutivos++;
+      // Retroceder al mes anterior
+      const [año, mes] = mesActual.split('-').map(Number);
+      let nuevoMes = mes - 1;
+      let nuevoAño = año;
+      
+      if (nuevoMes < 1) {
+        nuevoAño--;
+        nuevoMes = 12;
+      }
+      
+      mesActual = `${nuevoAño}-${String(nuevoMes).padStart(2, '0')}`;
+    }
+
+    return Math.max(1, consecutivos);
   }
 
   return 1;
+}
+
+// Función auxiliar para obtener la clave de semana (formato: YYYY-Wnn)
+function obtenerClaveSemanaMejorada(fecha: Date): string {
+  const año = fecha.getFullYear();
+  const primerDia = new Date(año, 0, 1);
+  const dias = Math.floor((fecha.getTime() - primerDia.getTime()) / (24 * 60 * 60 * 1000));
+  const semana = Math.ceil((dias + primerDia.getDay() + 1) / 7);
+  return `${año}-W${semana}`;
 }
 
 // Revisa si la racha se rompió porque pasó mucho tiempo
@@ -272,11 +341,33 @@ async function seRompioLaRachaConProteccion(
     const unDiaEnMs = 24 * 60 * 60 * 1000;
     seRompioTiempo = diferenciaMs > unDiaEnMs;
   } else if (intervaloMeta === 'semanal') {
-    // 7 días
-    const sieteDiasEnMs = 7 * 24 * 60 * 60 * 1000;
-    seRompioTiempo = diferenciaMs > sieteDiasEnMs;
+    // Verificar si saltamos UNA semana completa (no solo 7 días)
+    const semanaAnterior = obtenerClaveSemanaMejorada(ultimaFecha);
+    const semanaActual = obtenerClaveSemanaMejorada(ahora);
+    
+    // Calcular diferencia de semanas
+    const [añoAnt, semAnt] = semanaAnterior.split('-W').map(Number);
+    const [añoAct, semAct] = semanaActual.split('-W').map(Number);
+    const diferenciaSemanas = (añoAct - añoAnt) * 52 + (semAct - semAnt);
+    
+    // Se rompe si saltamos MÁS de 1 semana (ej: de semana 1 a semana 3+)
+    seRompioTiempo = diferenciaSemanas > 1;
   } else if (intervaloMeta === 'mensual') {
-    // 31 días
+    // Verificar si saltamos UN mes completo
+    const [añoAnt, mesAnt] = [
+      new Date(ultimaFecha).getFullYear(),
+      new Date(ultimaFecha).getMonth() + 1
+    ];
+    const [añoAct, mesAct] = [
+      ahora.getFullYear(),
+      ahora.getMonth() + 1
+    ];
+    const diferenciaMeses = (añoAct - añoAnt) * 12 + (mesAct - mesAnt);
+    
+    // Se rompe si saltamos MÁS de 1 mes (ej: de enero a marzo+)
+    seRompioTiempo = diferenciaMeses > 1;
+  } else {
+    // Fallback para otros tipos
     const treintaYUnDiasEnMs = 31 * 24 * 60 * 60 * 1000;
     seRompioTiempo = diferenciaMs > treintaYUnDiasEnMs;
   }
@@ -501,16 +592,16 @@ export async function getRachasMultiplesHabitos(idsHabitos: string[]): Promise<R
       .in("id_habito", idsHabitos);
 
     if (errorRegistros) {
-      console.error("❌ Error al buscar registros:", errorRegistros);
+      console.error("Error al buscar registros:", errorRegistros);
       return rachasMap;
     }
 
     if (!registros || registros.length === 0) {
-      console.log("⚠️ No hay registros para estos hábitos");
+      console.log(" No hay registros para estos hábitos");
       return rachasMap;
     }
 
-    console.log(`📝 Registros encontrados para ${idsHabitos.length} hábitos:`, registros.length);
+    console.log(` Registros encontrados para ${idsHabitos.length} hábitos:`, registros.length);
 
     // Crear un mapa de id_registro -> id_habito
     const registroToHabito: Record<string, string> = {};
