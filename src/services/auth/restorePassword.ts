@@ -7,7 +7,7 @@ import { supabase } from "../../config/supabase";
  */
 export async function sendPasswordResetEmail(email: string) {
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/new-password`,
+    redirectTo: `/new-password`,
   });
   return { data, error };
 }
