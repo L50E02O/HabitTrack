@@ -219,15 +219,15 @@
 
 /* Variantes por categoría para el fondo del icono */
 .habitIcon.cat-ejercicio {
-    background: #67f89a;
+    background: #19ff2c;
 }
 
 .habitIcon.cat-alimentacion {
-    background: #fa7070;
+    background: #f40202;
 }
 
 .habitIcon.cat-estudio {
-    background: #f6e95f;
+    background: #f14000f1;
 }
 
 .habitIcon.cat-salud {
