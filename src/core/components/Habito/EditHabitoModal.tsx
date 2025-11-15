@@ -130,14 +130,18 @@ export default function EditHabitoModal({ habito, open, onClose, onUpdated }: Pr
                         </div>
 
                         <div className="field">
-                            <label htmlFor="meta">Meta</label>
+                            <label htmlFor="meta">Meta (máx. 365)</label>
                             <input
                                 id="meta"
                                 title="Meta"
                                 type="number"
                                 min={1}
+                                max={365}
                                 value={meta_repeticion}
-                                onChange={(e) => setMeta(parseInt(e.target.value || '1', 10))}
+                                onChange={(e) => {
+                                    const value = parseInt(e.target.value || '1', 10);
+                                    setMeta(Math.min(365, Math.max(1, value)));
+                                }}
                                 required
                             />
                         </div>

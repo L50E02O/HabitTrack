@@ -2,6 +2,11 @@ import { supabase } from "../../config/supabase";
 import type { IHabito, CreateIHabito, UpdateIHabito } from "../../types/IHabito";
 
 export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito> {
+    // Validar meta_repeticion
+    if (nuevoHabito.meta_repeticion < 1 || nuevoHabito.meta_repeticion > 365) {
+        throw new Error("La meta de repetición debe estar entre 1 y 365");
+    }
+
     const { data, error } = await supabase
         .from("habito")
         .insert(nuevoHabito)
@@ -41,6 +46,13 @@ export async function getHabitoById(id: string): Promise<IHabito> {
 }
 
 export async function updateHabito(id: string, habito: UpdateIHabito): Promise<void> {
+    // Validar meta_repeticion si está presente
+    if (habito.meta_repeticion !== undefined) {
+        if (habito.meta_repeticion < 1 || habito.meta_repeticion > 365) {
+            throw new Error("La meta de repetición debe estar entre 1 y 365");
+        }
+    }
+
     const { error } = await supabase
         .from("habito")
         .update(habito)

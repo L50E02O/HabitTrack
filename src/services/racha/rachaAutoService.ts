@@ -430,11 +430,14 @@ async function crearNuevaRacha(
   const hoy = new Date();
   hoy.setUTCHours(0, 0, 0, 0);
 
+  // Limitar períodos consecutivos a un máximo de 365
+  const periodosLimitados = Math.min(periodosConsecutivos, 365);
+
   const nuevaRacha: CreateIRacha = {
     id_registro_intervalo: idRegistroIntervalo,
     inicio_racha: hoy,
     fin_racha: hoy,
-    dias_consecutivos: periodosConsecutivos,
+    dias_consecutivos: periodosLimitados,
     racha_activa: true,
   };
 
@@ -494,9 +497,12 @@ async function extenderRacha(
   idPerfil: string
 ): Promise<RachaUpdateResult> {
 
+  // Limitar períodos consecutivos a un máximo de 365
+  const periodosLimitados = Math.min(periodosConsecutivos, 365);
+
   const datosActualizados: UpdateIRacha = {
     fin_racha: fechaHoy,
-    dias_consecutivos: periodosConsecutivos,
+    dias_consecutivos: periodosLimitados,
     id_registro_intervalo: idRegistroIntervalo,
   };
 
