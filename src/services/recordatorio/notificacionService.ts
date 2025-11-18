@@ -1,5 +1,6 @@
 import { supabase } from "../../config/supabase";
 import type { IRecordatorio } from "../../types/IRecordatorio";
+import { enviarNotificacionViaSW, tieneServiceWorkerActivo } from "../../utils/pwaService";
 
 /**
  * Solicita permiso al usuario para mostrar notificaciones
@@ -32,15 +33,16 @@ export function verificarPermisoNotificaciones(): boolean {
 
 /**
  * Envía una notificación del navegador
+ * Usa Service Worker si está disponible (PWA), sino usa la API de Notification directamente
  * @param titulo Título de la notificación
  * @param cuerpo Cuerpo del mensaje
  * @param opciones Opciones adicionales de la notificación
  */
-export function enviarNotificacion(
+export async function enviarNotificacion(
     titulo: string,
     cuerpo: string,
     opciones?: NotificationOptions
-): Notification | null {
+): Promise<Notification | null> {
     if (!verificarPermisoNotificaciones()) {
         console.warn("No se puede enviar notificación: sin permiso");
         return null;
@@ -48,13 +50,31 @@ export function enviarNotificacion(
 
     const opcionesCompletas: NotificationOptions = {
         body: cuerpo,
-        icon: "/icon.png",
-        badge: "/badge.png",
+        icon: "/icon-192.png",
+        badge: "/icon-192.png",
         ...opciones,
     };
 
-    const notificacion = new Notification(titulo, opcionesCompletas);
-    return notificacion;
+    // Intentar usar Service Worker si está disponible (mejor para PWA)
+    if (tieneServiceWorkerActivo()) {
+        try {
+            await enviarNotificacionViaSW(titulo, cuerpo, opcionesCompletas);
+            // Retornar null porque el SW maneja la notificación
+            return null;
+        } catch (error) {
+            console.warn("Error enviando notificación via SW, usando API directa:", error);
+            // Fallback a API directa si el SW falla
+        }
+    }
+
+    // Fallback: usar API de Notification directamente
+    try {
+        const notificacion = new Notification(titulo, opcionesCompletas);
+        return notificacion;
+    } catch (error) {
+        console.error("Error creando notificación:", error);
+        return null;
+    }
 }
 
 /**
@@ -118,14 +138,22 @@ export function programarNotificacionesDiarias(idPerfil: string): ReturnType<typ
 
             for (const recordatorio of recordatorios) {
                 if (debeActivarseRecordatorio(recordatorio, horaActual)) {
+                    // enviarNotificacion ahora es async, pero no necesitamos await aquí
+                    // ya que las notificaciones se envían de forma independiente
                     enviarNotificacion(
                         "Recordatorio de Hábito",
                         recordatorio.mensaje || "Es hora de trabajar en tu hábito",
                         {
                             tag: `recordatorio-${recordatorio.id_recordatorio}`,
                             requireInteraction: false,
+                            data: {
+                                url: "/dashboard",
+                                recordatorioId: recordatorio.id_recordatorio
+                            }
                         }
-                    );
+                    ).catch((error) => {
+                        console.error("Error enviando notificación de recordatorio:", error);
+                    });
                 }
             }
         } catch (error) {

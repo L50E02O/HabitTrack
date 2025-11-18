@@ -8,12 +8,19 @@ import {
     programarNotificacionesDiarias
 } from "./notificacionService.js"; // Extensión explícita para TypeScript
 import { supabase } from "../../config/supabase";
+import * as pwaService from "../../utils/pwaService";
 
 // Mock de Supabase
 vi.mock("../../config/supabase", () => ({
     supabase: {
         from: vi.fn(),
     },
+}));
+
+// Mock de pwaService
+vi.mock("../../utils/pwaService", () => ({
+    enviarNotificacionViaSW: vi.fn(),
+    tieneServiceWorkerActivo: vi.fn(),
 }));
 
 describe("NotificacionService - TDD", () => {
@@ -60,47 +67,103 @@ describe("NotificacionService - TDD", () => {
     });
 
     describe("Envío de notificaciones", () => {
-        it("debería enviar una notificación con título y cuerpo", () => {
+        it("debería usar Service Worker si está disponible (PWA)", async () => {
+            vi.mocked(pwaService.tieneServiceWorkerActivo).mockReturnValue(true);
+            vi.mocked(pwaService.enviarNotificacionViaSW).mockResolvedValue();
+
+            (globalThis as any).Notification = {
+                permission: "granted",
+            };
+
+            const resultado = await enviarNotificacion("Recordatorio", "Es hora de hacer ejercicio");
+
+            expect(pwaService.tieneServiceWorkerActivo).toHaveBeenCalled();
+            expect(pwaService.enviarNotificacionViaSW).toHaveBeenCalledWith(
+                "Recordatorio",
+                "Es hora de hacer ejercicio",
+                expect.objectContaining({
+                    body: "Es hora de hacer ejercicio",
+                    icon: "/icon-192.png",
+                    badge: "/icon-192.png",
+                })
+            );
+            expect(resultado).toBeNull(); // SW maneja la notificación
+        });
+
+        it("debería usar API de Notification como fallback si SW no está disponible", async () => {
+            vi.mocked(pwaService.tieneServiceWorkerActivo).mockReturnValue(false);
+
             const mockNotification = vi.fn();
             (globalThis as any).Notification = mockNotification as any;
             (globalThis as any).Notification.permission = "granted";
 
-            enviarNotificacion("Recordatorio", "Es hora de hacer ejercicio");
+            const resultado = await enviarNotificacion("Recordatorio", "Es hora de hacer ejercicio");
 
+            expect(pwaService.enviarNotificacionViaSW).not.toHaveBeenCalled();
             expect(mockNotification).toHaveBeenCalledWith("Recordatorio", {
                 body: "Es hora de hacer ejercicio",
-                icon: "/icon.png",
-                badge: "/badge.png",
+                icon: "/icon-192.png",
+                badge: "/icon-192.png",
             });
+            expect(resultado).toBeInstanceOf(Object);
         });
 
-        it("no debería enviar notificación si no tiene permiso", () => {
-            const mockNotification = vi.fn();
-            (globalThis as any).Notification = mockNotification as any;
-            (globalThis as any).Notification.permission = "denied";
+        it("debería usar API de Notification si SW falla", async () => {
+            vi.mocked(pwaService.tieneServiceWorkerActivo).mockReturnValue(true);
+            vi.mocked(pwaService.enviarNotificacionViaSW).mockRejectedValue(new Error("SW error"));
 
-            enviarNotificacion("Recordatorio", "Mensaje");
-
-            expect(mockNotification).not.toHaveBeenCalled();
-        });
-
-        it("debería incluir datos personalizados en la notificación", () => {
             const mockNotification = vi.fn();
             (globalThis as any).Notification = mockNotification as any;
             (globalThis as any).Notification.permission = "granted";
 
-            enviarNotificacion("Hábito", "Completar tarea", {
+            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+            const resultado = await enviarNotificacion("Recordatorio", "Mensaje");
+
+            expect(mockNotification).toHaveBeenCalled();
+            expect(resultado).toBeInstanceOf(Object);
+
+            consoleSpy.mockRestore();
+        });
+
+        it("no debería enviar notificación si no tiene permiso", async () => {
+            vi.mocked(pwaService.tieneServiceWorkerActivo).mockReturnValue(false);
+
+            (globalThis as any).Notification = {
+                permission: "denied",
+            };
+
+            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+            const resultado = await enviarNotificacion("Recordatorio", "Mensaje");
+
+            expect(pwaService.enviarNotificacionViaSW).not.toHaveBeenCalled();
+            expect(resultado).toBeNull();
+
+            consoleSpy.mockRestore();
+        });
+
+        it("debería incluir datos personalizados en la notificación", async () => {
+            vi.mocked(pwaService.tieneServiceWorkerActivo).mockReturnValue(true);
+            vi.mocked(pwaService.enviarNotificacionViaSW).mockResolvedValue();
+
+            (globalThis as any).Notification = {
+                permission: "granted",
+            };
+
+            await enviarNotificacion("Hábito", "Completar tarea", {
                 tag: "habito-123",
                 requireInteraction: true,
             });
 
-            expect(mockNotification).toHaveBeenCalledWith("Hábito", {
-                body: "Completar tarea",
-                icon: "/icon.png",
-                badge: "/badge.png",
-                tag: "habito-123",
-                requireInteraction: true,
-            });
+            expect(pwaService.enviarNotificacionViaSW).toHaveBeenCalledWith(
+                "Hábito",
+                "Completar tarea",
+                expect.objectContaining({
+                    tag: "habito-123",
+                    requireInteraction: true,
+                })
+            );
         });
     });
 
