@@ -101,12 +101,14 @@ describe('LogrosModal', () => {
   });
 
   it('debe mostrar la racha máxima del usuario', async () => {
-    // Mock para la consulta de rachas (primera llamada a from('racha'))
-    const mockRachaQuery = {
+    // Mock para la consulta de perfil (primera llamada a from('perfil'))
+    const mockPerfilQuery = {
       select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          data: [{ racha_maxima: 15 }],
-          error: null,
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { racha_maxima: 15 },
+            error: null,
+          }),
         }),
       }),
     };
@@ -132,7 +134,7 @@ describe('LogrosModal', () => {
     };
 
     const mockFrom = vi.fn()
-      .mockReturnValueOnce(mockRachaQuery)
+      .mockReturnValueOnce(mockPerfilQuery)
       .mockReturnValueOnce(mockLogrosQuery)
       .mockReturnValueOnce(mockLogroUsuarioQuery);
 

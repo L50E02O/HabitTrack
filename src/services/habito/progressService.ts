@@ -225,12 +225,19 @@ async function guardarRegistroProgreso(
   const hoy = new Date();
   hoy.setUTCHours(0, 0, 0, 0);
 
+  console.log("🔍 Intentando crear registro:", { 
+    idHabito, 
+    fecha: hoy.toISOString(), 
+    cumplido: habitoCompletado, 
+    puntos: newProgress 
+  });
+
   // SIEMPRE creamos un nuevo registro por cada avance (cada clic cuenta)
   const { data: nuevoRegistro, error } = await supabase
     .from("registro_intervalo")
     .insert({
       id_habito: idHabito,
-      fecha: hoy,
+      fecha: hoy.toISOString(),
       cumplido: habitoCompletado,
       puntos: newProgress,
       notas: "",
@@ -239,11 +246,22 @@ async function guardarRegistroProgreso(
     .single();
 
   if (error) {
-    console.error("Error al guardar registro:", error);
-    throw error;
+    console.error("❌ Error al guardar registro:", error);
+    console.error("Detalles:", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    });
+    throw new Error(`Error al crear registro: ${error.message}`);
   }
 
-  console.log("Nuevo registro creado:", nuevoRegistro.id_registro);
+  if (!nuevoRegistro) {
+    console.error("❌ No se retornó ningún registro");
+    throw new Error("No se pudo crear el registro");
+  }
+
+  console.log("✅ Nuevo registro creado:", nuevoRegistro.id_registro);
   return nuevoRegistro.id_registro;
 }
 
