@@ -40,45 +40,15 @@ export const LogrosPage: React.FC = () => {
       // Obtener perfil del usuario
       const { data: perfil } = await supabase
         .from('perfil')
-        .select('id')
+        .select('id, racha_maxima')
         .eq('user_id', user.id)
         .single();
 
       if (!perfil) return;
 
-      // Obtener racha máxima actual del usuario
-      const { data: rachas } = await supabase
-        .from('racha')
-        .select('dias_consecutivos, id_registro_intervalo')
-        .eq('racha_activa', true);
-
-      if (rachas && rachas.length > 0) {
-        // Filtrar rachas del usuario
-        const { data: registros } = await supabase
-          .from('registro_intervalo')
-          .select('id_registro_intervalo, id_habito')
-          .in('id_registro_intervalo', rachas.map(r => r.id_registro_intervalo));
-
-        if (registros) {
-          const { data: habitos } = await supabase
-            .from('habito')
-            .select('id_habito')
-            .eq('id_perfil', perfil.id)
-            .in('id_habito', registros.map(r => r.id_habito));
-
-          if (habitos) {
-            const rachasDelUsuario = rachas.filter(racha => 
-              registros.some(reg => 
-                reg.id_registro_intervalo === racha.id_registro_intervalo &&
-                habitos.some(h => h.id_habito === reg.id_habito)
-              )
-            );
-
-            const maxDias = Math.max(...rachasDelUsuario.map(r => r.dias_consecutivos), 0);
-            setMaxStreak(maxDias);
-          }
-        }
-      }
+      // Obtener racha máxima directamente del perfil del usuario
+      const maxDias = perfil.racha_maxima || 0;
+      setMaxStreak(maxDias);
 
       // Obtener todos los logros
       const { data: todosLosLogros } = await supabase

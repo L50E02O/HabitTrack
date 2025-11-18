@@ -211,17 +211,16 @@ export async function usarProtector(
  */
 export async function sincronizarProtectoresPorRacha(userId: string): Promise<void> {
   try {
-    // Obtener racha máxima del usuario
-    const { data: rachas, error: rachaError } = await supabase
-      .from('racha')
+    // Obtener racha máxima directamente del perfil del usuario
+    const { data: perfilData, error: perfilError } = await supabase
+      .from('perfil')
       .select('racha_maxima')
-      .eq('id_perfil', userId)
-      .order('racha_maxima', { ascending: false })
-      .limit(1);
+      .eq('id', userId)
+      .single();
 
-    if (rachaError) throw rachaError;
+    if (perfilError) throw perfilError;
 
-    const rachaMaxima = rachas?.[0]?.racha_maxima || 0;
+    const rachaMaxima = perfilData?.racha_maxima || 0;
     const protectoresEsperados = calcularProtectoresPorRacha(rachaMaxima);
 
     // Obtener protectores actuales

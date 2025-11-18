@@ -4,6 +4,7 @@ export interface IPerfil {
     foto_perfil?: string;
     puntos: number;
     protectores_racha: number;
+    racha_maxima?: number;
 }
 
 export interface UpdateIPerfil {
@@ -11,6 +12,7 @@ export interface UpdateIPerfil {
     foto_perfil?: string;
     puntos?: number;
     protectores_racha?: number;
+    racha_maxima?: number;
 }
 
 // NO es necesrario un CreateIPerfil porque el id se genera automáticamente al crear un nuevo perfil

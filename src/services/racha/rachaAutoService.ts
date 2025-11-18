@@ -4,6 +4,112 @@ import { verificarYDesbloquearLogros } from "../logro/logroAutoService";
 import { usarProtector } from "../protector/protectorService";
 import type { ILogro } from "../../types/ILogro";
 
+/**
+ * Actualiza la racha máxima en el perfil del usuario
+ * Calcula la racha más alta entre TODOS los hábitos del usuario
+ * y la compara con la racha actual para determinar si debe actualizar
+ */
+export async function actualizarRachaMaximaEnPerfil(
+  idPerfil: string,
+  rachaActual: number
+): Promise<void> {
+  try {
+    // 1. Obtener TODAS las rachas activas de TODOS los hábitos del usuario
+    const { data: habitos, error: habitosError } = await supabase
+      .from('habito')
+      .select('id_habito')
+      .eq('id_perfil', idPerfil);
+
+    if (habitosError) {
+      console.error('Error obteniendo hábitos del usuario:', habitosError);
+      return;
+    }
+
+    if (!habitos || habitos.length === 0) {
+      // Si no tiene hábitos, usar la racha actual
+      await actualizarRachaEnPerfil(idPerfil, rachaActual);
+      return;
+    }
+
+    // 2. Obtener todas las rachas de los hábitos del usuario
+    const habitoIds = habitos.map(h => h.id_habito);
+    
+    const { data: registros, error: registrosError } = await supabase
+      .from('registro_intervalo')
+      .select('id_registro, id_habito')
+      .in('id_habito', habitoIds);
+
+    if (registrosError || !registros || registros.length === 0) {
+      // Si no hay registros, usar la racha actual
+      await actualizarRachaEnPerfil(idPerfil, rachaActual);
+      return;
+    }
+
+    const registroIds = registros.map(r => r.id_registro);
+
+    const { data: rachas, error: rachasError } = await supabase
+      .from('racha')
+      .select('dias_consecutivos')
+      .in('id_registro_intervalo', registroIds);
+
+    if (rachasError) {
+      console.error('Error obteniendo rachas:', rachasError);
+      return;
+    }
+
+    // 3. Calcular la racha máxima entre todas las rachas existentes y la actual
+    const todasLasRachas = [...(rachas || []).map(r => r.dias_consecutivos || 0), rachaActual];
+    const rachaMaximaCalculada = Math.max(...todasLasRachas);
+
+    // 4. Actualizar el perfil con la racha máxima calculada
+    await actualizarRachaEnPerfil(idPerfil, rachaMaximaCalculada);
+
+  } catch (error) {
+    console.error('Error en actualizarRachaMaximaEnPerfil:', error);
+  }
+}
+
+/**
+ * Función auxiliar para actualizar racha_maxima en el perfil
+ * Solo actualiza si el nuevo valor es mayor al actual
+ */
+async function actualizarRachaEnPerfil(
+  idPerfil: string,
+  nuevaRachaMaxima: number
+): Promise<void> {
+  try {
+    // Obtener racha_maxima actual
+    const { data: perfilData, error: selectError } = await supabase
+      .from('perfil')
+      .select('racha_maxima')
+      .eq('id', idPerfil)
+      .single();
+
+    if (selectError) {
+      console.error('Error obteniendo perfil:', selectError);
+      return;
+    }
+
+    const rachaMaximaPerfil = perfilData?.racha_maxima || 0;
+
+    // Solo actualizar si la nueva racha supera la registrada
+    if (nuevaRachaMaxima > rachaMaximaPerfil) {
+      const { error: updateError } = await supabase
+        .from('perfil')
+        .update({ racha_maxima: nuevaRachaMaxima })
+        .eq('id', idPerfil);
+
+      if (updateError) {
+        console.error('Error actualizando racha_maxima:', updateError);
+      } else {
+        console.log(`🏆 ¡Nuevo récord! Racha máxima actualizada: ${rachaMaximaPerfil} → ${nuevaRachaMaxima} días`);
+      }
+    }
+  } catch (error) {
+    console.error('Error en actualizarRachaEnPerfil:', error);
+  }
+}
+
 // Cuando el usuario completa un hábito, necesitamos decidir qué hacer con su racha
 export interface RachaUpdateResult {
   success: boolean;
@@ -433,6 +539,9 @@ async function crearNuevaRacha(
   // Limitar períodos consecutivos a un máximo de 365
   const periodosLimitados = Math.min(periodosConsecutivos, 365);
 
+  // 🏆 Actualizar racha máxima en el perfil del usuario
+  await actualizarRachaMaximaEnPerfil(idPerfil, periodosLimitados);
+
   const nuevaRacha: CreateIRacha = {
     id_registro_intervalo: idRegistroIntervalo,
     inicio_racha: hoy,
@@ -499,6 +608,9 @@ async function extenderRacha(
 
   // Limitar períodos consecutivos a un máximo de 365
   const periodosLimitados = Math.min(periodosConsecutivos, 365);
+
+  // 🏆 Actualizar racha máxima en el perfil del usuario
+  await actualizarRachaMaximaEnPerfil(idPerfil, periodosLimitados);
 
   const datosActualizados: UpdateIRacha = {
     fin_racha: fechaHoy,

@@ -325,25 +325,12 @@ describe('protectorService', () => {
   describe('sincronizarProtectoresPorRacha', () => {
     it('debe actualizar protectores si la racha aumentó', async () => {
       const mockFrom = vi.fn().mockImplementation((table) => {
-        if (table === 'racha') {
-          return {
-            select: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                order: vi.fn().mockReturnValue({
-                  limit: vi.fn().mockResolvedValue({
-                    data: [{ racha_maxima: 30 }], // 30 días = 4 protectores
-                    error: null,
-                  }),
-                }),
-              }),
-            }),
-          };
-        } else if (table === 'perfil') {
+        if (table === 'perfil') {
           return {
             select: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
                 single: vi.fn().mockResolvedValue({
-                  data: { protectores_racha: 2 }, // Tiene menos de los esperados
+                  data: { racha_maxima: 30, protectores_racha: 2 }, // 30 días = 4 protectores, tiene 2
                   error: null,
                 }),
               }),
@@ -365,25 +352,12 @@ describe('protectorService', () => {
 
     it('no debe actualizar si ya tiene suficientes protectores', async () => {
       const mockFrom = vi.fn().mockImplementation((table) => {
-        if (table === 'racha') {
-          return {
-            select: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                order: vi.fn().mockReturnValue({
-                  limit: vi.fn().mockResolvedValue({
-                    data: [{ racha_maxima: 14 }], // 14 días = 2 protectores
-                    error: null,
-                  }),
-                }),
-              }),
-            }),
-          };
-        } else if (table === 'perfil') {
+        if (table === 'perfil') {
           return {
             select: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
                 single: vi.fn().mockResolvedValue({
-                  data: { protectores_racha: 5 }, // Ya tiene más
+                  data: { racha_maxima: 14, protectores_racha: 5 }, // 14 días = 2 protectores, ya tiene 5
                   error: null,
                 }),
               }),

@@ -6,6 +6,7 @@ import HabitCard from '../core/components/Auth/HabitCard';
 import type { IHabito } from '../types/IHabito';
 import { getAllHabitos, deleteHabito } from '../services/habito/habitoService';
 import { recordHabitProgress, getHabitCurrentProgress } from '../services/habito/progressService';
+import { checkAndUpdateAutoProgress } from '../services/habito/autoProgressService';
 import { getRachasMultiplesHabitos } from '../services/racha/rachaAutoService';
 import { 
     asignarProtectorAHabito, 
@@ -101,6 +102,23 @@ export default function Dashboard() {
                 const puntosActuales = await getPuntosActuales(session.user.id);
                 setPuntosUsuario(puntosActuales);
 
+                // NUEVO: Verificar automáticamente el progreso y actualizar rachas
+                console.log('🤖 Verificando progreso automático al cargar dashboard...');
+                const resultadoAuto = await checkAndUpdateAutoProgress(session.user.id);
+                console.log(`🤖 Resultado auto-progreso: ${resultadoAuto.mensaje}`);
+
+                // Si se actualizaron rachas, recargar
+                if (resultadoAuto.rachasActualizadas.length > 0) {
+                    const rachasMapActualizado = await getRachasMultiplesHabitos(habitoIds);
+                    setHabitosRachas(rachasMapActualizado);
+                    
+                    setNotification({
+                        message: `🔥 ${resultadoAuto.rachasActualizadas.length} racha${resultadoAuto.rachasActualizadas.length > 1 ? 's actualizadas' : ' actualizada'} automáticamente`,
+                        type: 'success',
+                    });
+                    setTimeout(() => setNotification(null), 4000);
+                }
+
                 // Detectar si alguna racha se rompió (comparar con el estado anterior)
                 Object.keys(rachasMapNuevo).forEach(habitoId => {
                     const rachaAnterior = habitosRachas[habitoId] || 0;
@@ -126,16 +144,31 @@ export default function Dashboard() {
         run();
     }, [navigate]);
 
-    // Verificar rachas automáticamente cada 30 segundos
+    // Verificar progreso y rachas automáticamente cada 30 segundos
     useEffect(() => {
         if (!user || habitos.length === 0) return;
 
         const intervalId = setInterval(async () => {
-            console.log('🔍 Verificando rachas automáticamente...');
+            console.log('🔍 Verificación automática periódica...');
+            
+            // 1. Verificar y actualizar progreso automáticamente
+            const resultadoAuto = await checkAndUpdateAutoProgress(user.id);
+            
+            // 2. Recargar rachas
             const habitoIds = habitos.map(h => h.id_habito);
             const rachasMapNuevo = await getRachasMultiplesHabitos(habitoIds);
 
-            // Detectar rachas rotas
+            // 3. Si se actualizaron rachas, notificar
+            if (resultadoAuto.rachasActualizadas.length > 0) {
+                setHabitosRachas(rachasMapNuevo);
+                setNotification({
+                    message: `🔥 ${resultadoAuto.rachasActualizadas.length} racha${resultadoAuto.rachasActualizadas.length > 1 ? 's actualizadas' : ' actualizada'} automáticamente`,
+                    type: 'success',
+                });
+                setTimeout(() => setNotification(null), 4000);
+            }
+
+            // 4. Detectar rachas rotas
             Object.keys(rachasMapNuevo).forEach(habitoId => {
                 const rachaAnterior = habitosRachas[habitoId] || 0;
                 const rachaNueva = rachasMapNuevo[habitoId] || 0;
@@ -219,15 +252,14 @@ export default function Dashboard() {
                 [habito.id_habito]: result.newProgress,
             }));
 
-            // Actualizar rachas SIEMPRE que hay info de racha (no solo cuando se completa)
-            if (result.rachaInfo) {
-                setHabitosRachas(prev => ({
-                    ...prev,
-                    [habito.id_habito]: result.rachaInfo!.diasConsecutivos,
-                }));
-                console.log(`✅ Racha actualizada a ${result.rachaInfo.diasConsecutivos}`);
-            } else {
-                console.log(`⏳ Hábito no completado, racha no cambia`);
+            // NUEVO: Verificar progreso automático después del clic
+            // Esto actualizará la racha si alcanzó meta_repeticion
+            const resultadoAuto = await checkAndUpdateAutoProgress(user.id);
+            if (resultadoAuto.rachasActualizadas.length > 0) {
+                const habitoIds = habitos.map(h => h.id_habito);
+                const rachasActualizadas = await getRachasMultiplesHabitos(habitoIds);
+                setHabitosRachas(rachasActualizadas);
+                console.log(`🔥 Racha actualizada automáticamente`);
             }
 
             // Actualizar puntos del usuario para detectar cambios de rango
