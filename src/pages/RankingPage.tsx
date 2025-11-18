@@ -41,8 +41,8 @@ export default function RankingPage() {
             const stats = await obtenerEstadisticasUsuario(user.id);
             setEstadisticas(stats);
 
-            // Cargar ranking completo - máximo 100 usuarios
-            const ranking = await obtenerRankingCompleto(100);
+            // Cargar ranking completo - top 50 usuarios
+            const ranking = await obtenerRankingCompleto(50);
             setUsuarios(ranking);
         } catch (error) {
             console.error('Error cargando ranking:', error);

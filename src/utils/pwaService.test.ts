@@ -160,9 +160,7 @@ describe('pwaService', () => {
             };
 
             const mockRegistration = {
-                ready: Promise.resolve({
-                    active: mockActive,
-                }),
+                active: mockActive,
             };
 
             (globalThis as any).navigator = {
@@ -193,9 +191,7 @@ describe('pwaService', () => {
             };
 
             const mockRegistration = {
-                ready: Promise.resolve({
-                    active: mockActive,
-                }),
+                active: mockActive,
             };
 
             (globalThis as any).navigator = {
@@ -236,17 +232,19 @@ describe('pwaService', () => {
 
         it('debería manejar errores al enviar mensaje al SW', async () => {
             const mockActive = {
-                postMessage: vi.fn(),
+                postMessage: vi.fn(() => {
+                    throw new Error('PostMessage error');
+                }),
             };
 
             const mockRegistration = {
-                ready: Promise.reject(new Error('SW error')),
+                active: mockActive,
             };
 
             (globalThis as any).navigator = {
                 serviceWorker: {
                     controller: mockActive,
-                    ready: mockRegistration,
+                    ready: Promise.resolve(mockRegistration),
                 },
             };
 
@@ -254,7 +252,10 @@ describe('pwaService', () => {
 
             await enviarNotificacionViaSW('Título', 'Cuerpo');
 
-            expect(consoleSpy).toHaveBeenCalled();
+            expect(consoleSpy).toHaveBeenCalledWith(
+                expect.stringContaining('[PWA] Error enviando notificación via SW:'),
+                expect.any(Error)
+            );
 
             consoleSpy.mockRestore();
         });

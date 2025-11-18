@@ -21,7 +21,43 @@ vi.mock('../../core/constants/rangos', () => ({
         nombre: puntos >= 1000 ? 'Maestro' : puntos >= 500 ? 'Experto' : 'Principiante',
         color: '#4a90e2',
         nivel: puntos >= 1000 ? 3 : puntos >= 500 ? 2 : 1,
+        puntosMinimos: puntos >= 1000 ? 1000 : puntos >= 500 ? 500 : 0,
+        puntosMaximos: puntos >= 1000 ? 1999 : puntos >= 500 ? 999 : 499,
+        icono: 'Star',
     })),
+    obtenerSiguienteRango: vi.fn((rangoActual: any) => {
+        if (rangoActual.nivel === 1) {
+            return {
+                nombre: 'Aprendiz',
+                color: '#6B8E23',
+                nivel: 2,
+                puntosMinimos: 100,
+                puntosMaximos: 249,
+                icono: 'Sprout',
+            };
+        }
+        if (rangoActual.nivel === 2) {
+            return {
+                nombre: 'Comprometido',
+                color: '#FF6B35',
+                nivel: 3,
+                puntosMinimos: 250,
+                puntosMaximos: 499,
+                icono: 'Flame',
+            };
+        }
+        return null; // Ya está en el rango máximo
+    }),
+    calcularProgresoRango: vi.fn((puntos: number, rango: any) => {
+        if (rango.puntosMaximos === Infinity) return 100;
+        const puntosEnRango = puntos - rango.puntosMinimos;
+        const rangoTotal = rango.puntosMaximos - rango.puntosMinimos + 1;
+        return Math.min(100, Math.round((puntosEnRango / rangoTotal) * 100));
+    }),
+    puntosFaltantesParaSiguienteRango: vi.fn((puntos: number, siguienteRango: any) => {
+        if (!siguienteRango) return 0;
+        return Math.max(0, siguienteRango.puntosMinimos - puntos);
+    }),
 }));
 
 describe('RankingService', () => {
@@ -30,7 +66,7 @@ describe('RankingService', () => {
     });
 
     describe('obtenerRankingCompleto', () => {
-        it('debería obtener ranking completo con límite por defecto de 100', async () => {
+        it('debería obtener ranking completo con límite por defecto de 50', async () => {
             const mockUsuarios = [
                 { id: '1', nombre: 'Usuario 1', puntos: 1000, foto_perfil: null },
                 { id: '2', nombre: 'Usuario 2', puntos: 800, foto_perfil: null },
@@ -53,7 +89,7 @@ describe('RankingService', () => {
             expect(supabase.from).toHaveBeenCalledWith('perfil');
             expect(mockQuery.select).toHaveBeenCalledWith('id, nombre, puntos, foto_perfil');
             expect(mockQuery.order).toHaveBeenCalledWith('puntos', { ascending: false });
-            expect(mockQuery.limit).toHaveBeenCalledWith(100);
+            expect(mockQuery.limit).toHaveBeenCalledWith(50);
             expect(resultado).toHaveLength(3);
             expect(resultado[0].posicion).toBe(1);
             expect(resultado[0].puntos).toBe(1000);
@@ -210,33 +246,51 @@ describe('RankingService', () => {
                 }),
             };
 
+            // Mock para la query de conteo con gt (usuarios con más puntos)
+            // Esta query se llama así: select('id', { count: 'exact', head: true }).gt('puntos', puntos)
             const mockCountAbove = {
-                select: vi.fn().mockReturnThis(),
                 gt: vi.fn().mockResolvedValue({
                     count: 5,
                     error: null,
                 }),
             };
 
-            const mockCountTotal = {
-                select: vi.fn().mockReturnThis(),
-                maybeSingle: vi.fn().mockResolvedValue({
-                    count: 20,
-                    error: null,
-                }),
-            };
+            // Mock para la query de conteo total (sin gt)
+            // Esta query se llama así: select('id', { count: 'exact', head: true })
+            // NOTA: En Supabase, cuando usas count: 'exact' con head: true, retorna directamente { count, error }
+            // No necesita .maybeSingle() ni ningún otro método, retorna la promesa directamente
+            const mockCountTotalPromise = Promise.resolve({
+                count: 20,
+                error: null,
+            });
+
+            // Contador para distinguir entre las dos llamadas a select con count
+            // Primera: select('id', { count: 'exact', head: true }).gt() - usuarios con más puntos
+            // Segunda: select('id', { count: 'exact', head: true }) - total usuarios
+            let countQueryCallCount = 0;
 
             (supabase.from as any) = vi.fn((table: string) => {
                 if (table === 'perfil') {
                     const query = {
-                        select: vi.fn((fields: string) => {
-                            if (fields === 'puntos') {
+                        select: vi.fn((fields: string, options?: any) => {
+                            // Query normal para obtener puntos del usuario
+                            if (fields === 'puntos' && !options) {
                                 return mockCountQuery;
                             }
-                            if (fields === 'id') {
-                                return mockCountTotal;
+                            
+                            // Queries de conteo con count: 'exact' y head: true
+                            if (options && options.count === 'exact' && options.head === true && fields === 'id') {
+                                countQueryCallCount++;
+                                // Primera llamada: retorna objeto con .gt() para filtrar por puntos
+                                if (countQueryCallCount === 1) {
+                                    return mockCountAbove;
+                                }
+                                // Segunda llamada: retorna directamente la promesa con { count, error }
+                                // No necesita .maybeSingle() porque head: true retorna directamente
+                                return mockCountTotalPromise;
                             }
-                            return mockCountAbove;
+                            
+                            return mockCountQuery;
                         }),
                     };
                     return query;
@@ -266,33 +320,50 @@ describe('RankingService', () => {
                 }),
             };
 
+            // Mock para la query de conteo con gt (usuarios con más puntos)
+            // Esta query se llama así: select('id', { count: 'exact', head: true }).gt('puntos', puntos)
             const mockCountAbove = {
-                select: vi.fn().mockReturnThis(),
                 gt: vi.fn().mockResolvedValue({
                     count: 0,
                     error: null,
                 }),
             };
 
+            // Mock para la query de conteo total (sin gt)
+            // Esta query se llama así: select('id', { count: 'exact', head: true })
             const mockCountTotal = {
-                select: vi.fn().mockReturnThis(),
                 maybeSingle: vi.fn().mockResolvedValue({
                     count: 10,
                     error: null,
                 }),
             };
 
+            // Contador para distinguir entre las dos llamadas a select con count
+            // Primera: select('id', { count: 'exact', head: true }).gt() - usuarios con más puntos
+            // Segunda: select('id', { count: 'exact', head: true }) - total usuarios
+            let countQueryCallCount = 0;
+
             (supabase.from as any) = vi.fn((table: string) => {
                 if (table === 'perfil') {
                     const query = {
-                        select: vi.fn((fields: string) => {
-                            if (fields === 'puntos') {
+                        select: vi.fn((fields: string, options?: any) => {
+                            // Query normal para obtener puntos del usuario
+                            if (fields === 'puntos' && !options) {
                                 return mockCountQuery;
                             }
-                            if (fields === 'id') {
+                            
+                            // Queries de conteo con count: 'exact' y head: true
+                            if (options && options.count === 'exact' && options.head === true && fields === 'id') {
+                                countQueryCallCount++;
+                                // Primera llamada: retorna objeto con .gt() para filtrar por puntos
+                                if (countQueryCallCount === 1) {
+                                    return mockCountAbove;
+                                }
+                                // Segunda llamada: retorna objeto con .maybeSingle() para total
                                 return mockCountTotal;
                             }
-                            return mockCountAbove;
+                            
+                            return mockCountQuery;
                         }),
                     };
                     return query;

@@ -1,6 +1,7 @@
 import { supabase } from "../../config/supabase";
 import type { IRecordatorio } from "../../types/IRecordatorio";
 import { enviarNotificacionViaSW, tieneServiceWorkerActivo } from "../../utils/pwaService";
+import { enviarEmailRecordatorio } from "./emailNotificationService";
 
 /**
  * Solicita permiso al usuario para mostrar notificaciones
@@ -138,8 +139,7 @@ export function programarNotificacionesDiarias(idPerfil: string): ReturnType<typ
 
             for (const recordatorio of recordatorios) {
                 if (debeActivarseRecordatorio(recordatorio, horaActual)) {
-                    // enviarNotificacion ahora es async, pero no necesitamos await aquí
-                    // ya que las notificaciones se envían de forma independiente
+                    // Enviar notificación push (PWA)
                     enviarNotificacion(
                         "Recordatorio de Hábito",
                         recordatorio.mensaje || "Es hora de trabajar en tu hábito",
@@ -152,8 +152,38 @@ export function programarNotificacionesDiarias(idPerfil: string): ReturnType<typ
                             }
                         }
                     ).catch((error) => {
-                        console.error("Error enviando notificación de recordatorio:", error);
+                        console.error("Error enviando notificación push:", error);
                     });
+
+                    // Enviar email usando Supabase (si está configurado)
+                    try {
+                        // Obtener email del usuario desde auth.users
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (user?.email) {
+                            // Obtener nombre del hábito si existe
+                            let nombreHabito = "tu hábito";
+                            if (recordatorio.id_habito) {
+                                const { data: habito } = await supabase
+                                    .from('habito')
+                                    .select('nombre_habito')
+                                    .eq('id_habito', recordatorio.id_habito)
+                                    .single();
+                                if (habito) {
+                                    nombreHabito = habito.nombre_habito;
+                                }
+                            }
+
+                            await enviarEmailRecordatorio(
+                                user.email,
+                                "Recordatorio de Hábito",
+                                recordatorio.mensaje || "Es hora de trabajar en tu hábito",
+                                nombreHabito
+                            );
+                        }
+                    } catch (emailError) {
+                        console.warn("Error enviando email de recordatorio:", emailError);
+                        // No bloqueamos la notificación push si falla el email
+                    }
                 }
             }
         } catch (error) {

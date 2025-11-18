@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { actualizarRachaMaximaEnPerfil } from './rachaAutoService';
 import { supabase } from '../../config/supabase';
+import { verificarYDesbloquearLogros } from '../logro/logroAutoService';
 
 vi.mock('../../config/supabase', () => ({
   supabase: {
@@ -8,9 +9,19 @@ vi.mock('../../config/supabase', () => ({
   },
 }));
 
+vi.mock('../logro/logroAutoService', () => ({
+  verificarYDesbloquearLogros: vi.fn(),
+}));
+
 describe('actualizarRachaMaximaEnPerfil', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock por defecto para verificarYDesbloquearLogros
+    (verificarYDesbloquearLogros as any).mockResolvedValue({
+      logrosNuevos: [],
+      protectoresGanados: 0,
+      mensaje: '',
+    });
   });
 
   it('debe calcular la racha máxima entre TODOS los hábitos del usuario', async () => {
@@ -85,6 +96,9 @@ describe('actualizarRachaMaximaEnPerfil', () => {
     expect(mockFrom).toHaveBeenCalledWith('registro_intervalo');
     expect(mockFrom).toHaveBeenCalledWith('racha');
     expect(mockFrom).toHaveBeenCalledWith('perfil');
+    
+    // Verificar que se llamó a verificarYDesbloquearLogros después de actualizar
+    expect(verificarYDesbloquearLogros).toHaveBeenCalledWith('user-123', 25);
   });
 
   it('debe actualizar con la racha actual si es mayor que todas las demás', async () => {

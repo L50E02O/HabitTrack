@@ -10,12 +10,12 @@ import {
 /**
  * Obtiene el ranking completo de usuarios ordenados por puntos
  * Usa Supabase directamente como backend
- * @param limite Número máximo de usuarios a retornar (por defecto 100, máximo 100)
+ * @param limite Número máximo de usuarios a retornar (por defecto 50, máximo 100)
  */
 export async function obtenerRankingCompleto(limite?: number): Promise<IUsuarioRanking[]> {
     try {
-        // Limitar a máximo 100 usuarios
-        const limiteFinal = limite ? Math.min(limite, 100) : 100;
+        // Limitar a máximo 100 usuarios, por defecto 50
+        const limiteFinal = limite ? Math.min(limite, 100) : 50;
 
         // Consultar directamente desde Supabase
         const { data, error } = await supabase
