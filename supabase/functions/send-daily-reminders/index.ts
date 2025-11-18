@@ -55,13 +55,14 @@ serve(async (req) => {
             return await enviarEmailDirecto(supabaseClient, body.toEmail, body.subject || 'Recordatorio de Hábito', body.message || '', body.habitName || 'tu hábito')
         }
 
-        // Obtener la hora actual en formato HH:MM
+        // Obtener la hora actual en UTC (formato HH:MM)
+        // IMPORTANTE: Los recordatorios se guardan en UTC, así que debemos comparar con hora UTC
         const now = new Date()
-        const currentHour = String(now.getHours()).padStart(2, '0')
-        const currentMinute = String(now.getMinutes()).padStart(2, '0')
+        const currentHour = String(now.getUTCHours()).padStart(2, '0')
+        const currentMinute = String(now.getUTCMinutes()).padStart(2, '0')
         const currentTime = `${currentHour}:${currentMinute}:00`
 
-        console.log(`🕐 Buscando recordatorios para las ${currentTime}...`)
+        console.log(`🕐 Buscando recordatorios para las ${currentTime} UTC...`)
 
         // Consultar recordatorios activos que coincidan con la hora actual
         // Usamos una función para convertir time a text y comparar solo HH:MM
