@@ -15,11 +15,29 @@ export async function obtenerRankingCompleto(limite?: number): Promise<IUsuarioR
         // Intentar obtener el ranking a través del endpoint serverless
         // que ejecuta la consulta con la service_role key (evita RLS en frontend)
         try {
-            const url = `/api/getRanking${limite ? `?limit=${limite}` : ''}`;
+            // Allow configuring API base URL (useful in prod vs local).
+            // If VITE_API_BASE_URL is set (e.g. https://mi-app.vercel.app), use it.
+            // Otherwise use relative path (useful when your dev environment exposes /api).
+            const apiBase = (import.meta.env?.VITE_API_BASE_URL as string) || '';
+            const url = apiBase
+                ? `${apiBase.replace(/\/$/, '')}/api/getRanking${limite ? `?limit=${limite}` : ''}`
+                : `/api/getRanking${limite ? `?limit=${limite}` : ''}`;
+
             const resp = await fetch(url, { method: 'GET' });
 
+            // If the endpoint is unreachable or returns HTML (e.g. SPA index.html or Vite dev page),
+            // do NOT attempt to parse it as JSON; instead fall back to direct supabase query.
             if (!resp.ok) {
-                throw new Error(`API /api/getRanking returned ${resp.status}`);
+                const txt = await resp.text().catch(() => null);
+                console.info(`/api/getRanking returned ${resp.status}. Falling back. Body preview:`, String(txt).slice(0,200));
+                throw new Error('bad_response');
+            }
+
+            const contentType = resp.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                const txt = await resp.text().catch(() => null);
+                console.info('/api/getRanking did not return JSON (content-type:', contentType, '). Falling back. Body preview:', String(txt).slice(0,200));
+                throw new Error('not_json');
             }
 
             const data = await resp.json();
@@ -37,7 +55,8 @@ export async function obtenerRankingCompleto(limite?: number): Promise<IUsuarioR
         } catch (err) {
             // Si falla el endpoint (ej. en entorno local sin vercel dev), caer de vuelta
             // a la consulta directa con supabase (útil para desarrollo).
-            console.warn('/api/getRanking failed, falling back to direct supabase query:', err);
+            // Mostramos un mensaje informativo en lugar de la traza completa para evitar ruido en consola.
+            console.warn('/api/getRanking failed or returned non-JSON — using direct supabase query as fallback. Reason:', (err as any)?.message || err);
 
             let query = supabase
                 .from('perfil')
