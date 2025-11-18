@@ -148,12 +148,14 @@ describe('LogrosModal', () => {
   });
 
   it('debe mostrar logros desbloqueados', async () => {
-    // Mock para la consulta de rachas (primera llamada a from('racha'))
-    const mockRachaQuery = {
+    // Mock para la consulta de perfil (primera llamada a from('perfil'))
+    const mockPerfilQuery = {
       select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          data: [{ racha_maxima: 5 }],
-          error: null,
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { racha_maxima: 5 },
+            error: null,
+          }),
         }),
       }),
     };
@@ -179,7 +181,7 @@ describe('LogrosModal', () => {
     };
 
     const mockFrom = vi.fn()
-      .mockReturnValueOnce(mockRachaQuery)
+      .mockReturnValueOnce(mockPerfilQuery)
       .mockReturnValueOnce(mockLogrosQuery)
       .mockReturnValueOnce(mockLogroUsuarioQuery);
 
@@ -195,17 +197,13 @@ describe('LogrosModal', () => {
 
   it('debe mostrar logros bloqueados', async () => {
     const mockFrom = vi.fn().mockImplementation((table) => {
-      if (table === 'racha') {
+      if (table === 'perfil') {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              order: vi.fn().mockReturnValue({
-                limit: vi.fn().mockReturnValue({
-                  single: vi.fn().mockResolvedValue({
-                    data: { racha_maxima: 1 },
-                    error: null,
-                  }),
-                }),
+              single: vi.fn().mockResolvedValue({
+                data: { racha_maxima: 1 },
+                error: null,
               }),
             }),
           }),
@@ -238,17 +236,13 @@ describe('LogrosModal', () => {
 
   it('debe calcular correctamente el porcentaje de progreso', async () => {
     const mockFrom = vi.fn().mockImplementation((table) => {
-      if (table === 'racha') {
+      if (table === 'perfil') {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              order: vi.fn().mockReturnValue({
-                limit: vi.fn().mockReturnValue({
-                  single: vi.fn().mockResolvedValue({
-                    data: { racha_maxima: 5 },
-                    error: null,
-                  }),
-                }),
+              single: vi.fn().mockResolvedValue({
+                data: { racha_maxima: 5 },
+                error: null,
               }),
             }),
           }),
@@ -352,30 +346,34 @@ describe('LogrosModal', () => {
   });
 
   it('debe mostrar spinner mientras carga', () => {
-    // Mock para la consulta de rachas que nunca se resuelve (para mostrar spinner)
-    const mockRachaQuery = {
+    // Mock para la consulta de perfil que nunca se resuelve (para mostrar spinner)
+    const mockPerfilQuery = {
       select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockImplementation(
-          () => new Promise(() => {}) // Never resolves
-        ),
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockImplementation(
+            () => new Promise(() => {}) // Never resolves
+          ),
+        }),
       }),
     };
 
-    const mockFrom = vi.fn().mockReturnValueOnce(mockRachaQuery);
+    const mockFrom = vi.fn().mockReturnValueOnce(mockPerfilQuery);
     (supabase.from as any) = mockFrom;
 
     render(<LogrosModal isOpen={true} onClose={mockOnClose} userId={mockUserId} />);
 
-    expect(screen.getByText(/Cargando logros\.\.\./i)).toBeInTheDocument();
+    expect(screen.getByText(/Cargando logros\.\.\.$/i)).toBeInTheDocument();
   });
 
   it('debe mostrar días faltantes para logros bloqueados', async () => {
-    // Mock para la consulta de rachas (primera llamada a from('racha'))
-    const mockRachaQuery = {
+    // Mock para la consulta de perfil (primera llamada a from('perfil'))
+    const mockPerfilQuery = {
       select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          data: [{ racha_maxima: 2 }], // Usuario tiene 2 días
-          error: null,
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { racha_maxima: 2 }, // Usuario tiene 2 días
+            error: null,
+          }),
         }),
       }),
     };
@@ -401,7 +399,7 @@ describe('LogrosModal', () => {
     };
 
     const mockFrom = vi.fn()
-      .mockReturnValueOnce(mockRachaQuery)
+      .mockReturnValueOnce(mockPerfilQuery)
       .mockReturnValueOnce(mockLogrosQuery)
       .mockReturnValueOnce(mockLogroUsuarioQuery);
 
