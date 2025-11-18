@@ -97,7 +97,7 @@ export async function obtenerEstadisticasUsuario(userId: string): Promise<IEstad
             .from('perfil')
             .select('puntos')
             .eq('id', userId)
-            .single();
+            .maybeSingle();
 
         if (userError) throw userError;
 
@@ -160,7 +160,7 @@ export async function obtenerUsuariosCercanos(
             .from('perfil')
             .select('puntos')
             .eq('id', userId)
-            .single();
+            .maybeSingle();
 
         if (userError) throw userError;
 
@@ -189,6 +189,9 @@ export async function obtenerUsuariosCercanos(
         // Combinar y ordenar
         const todos = [...(arriba || []), ...(abajo || [])]
             .sort((a, b) => (b.puntos || 0) - (a.puntos || 0));
+
+        // Si no hay resultados, devolver vacío
+        if (todos.length === 0) return [];
 
         // Calcular posiciones
         const ranking: IUsuarioRanking[] = [];
