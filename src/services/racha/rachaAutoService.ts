@@ -92,8 +92,8 @@ async function actualizarRachaEnPerfil(
 
     const rachaMaximaPerfil = perfilData?.racha_maxima || 0;
 
-    // Solo actualizar si la nueva racha supera la registrada
-    if (nuevaRachaMaxima > rachaMaximaPerfil) {
+    // Solo actualizar si la nueva racha supera la registrada o es igual (para inicializar)
+    if (nuevaRachaMaxima >= rachaMaximaPerfil) {
       const { error: updateError } = await supabase
         .from('perfil')
         .update({ racha_maxima: nuevaRachaMaxima })
