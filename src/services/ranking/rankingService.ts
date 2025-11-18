@@ -12,31 +12,56 @@ import {
  */
 export async function obtenerRankingCompleto(limite?: number): Promise<IUsuarioRanking[]> {
     try {
-        let query = supabase
-            .from('perfil')
-            .select('id, nombre, puntos, foto_perfil')
-            .order('puntos', { ascending: false });
+        // Intentar obtener el ranking a través del endpoint serverless
+        // que ejecuta la consulta con la service_role key (evita RLS en frontend)
+        try {
+            const url = `/api/getRanking${limite ? `?limit=${limite}` : ''}`;
+            const resp = await fetch(url, { method: 'GET' });
 
-        // Solo aplicar límite si se proporciona
-        if (limite) {
-            query = query.limit(limite);
+            if (!resp.ok) {
+                throw new Error(`API /api/getRanking returned ${resp.status}`);
+            }
+
+            const data = await resp.json();
+
+            const ranking: IUsuarioRanking[] = (data || []).map((usuario: any, index: number) => ({
+                id: usuario.id,
+                nombre: usuario.nombre,
+                puntos: usuario.puntos || 0,
+                posicion: index + 1,
+                rango: obtenerRangoPorPuntos(usuario.puntos || 0),
+                foto_perfil: usuario.foto_perfil
+            }));
+
+            return ranking;
+        } catch (err) {
+            // Si falla el endpoint (ej. en entorno local sin vercel dev), caer de vuelta
+            // a la consulta directa con supabase (útil para desarrollo).
+            console.warn('/api/getRanking failed, falling back to direct supabase query:', err);
+
+            let query = supabase
+                .from('perfil')
+                .select('id, nombre, puntos, foto_perfil')
+                .order('puntos', { ascending: false });
+
+            if (limite) {
+                query = query.limit(limite);
+            }
+
+            const { data, error } = await query;
+            if (error) throw error;
+
+            const ranking: IUsuarioRanking[] = (data || []).map((usuario, index) => ({
+                id: usuario.id,
+                nombre: usuario.nombre,
+                puntos: usuario.puntos || 0,
+                posicion: index + 1,
+                rango: obtenerRangoPorPuntos(usuario.puntos || 0),
+                foto_perfil: usuario.foto_perfil
+            }));
+
+            return ranking;
         }
-
-        const { data, error } = await query;
-
-        if (error) throw error;
-
-        // Mapear los datos y agregar posición y rango
-        const ranking: IUsuarioRanking[] = (data || []).map((usuario, index) => ({
-            id: usuario.id,
-            nombre: usuario.nombre,
-            puntos: usuario.puntos || 0,
-            posicion: index + 1,
-            rango: obtenerRangoPorPuntos(usuario.puntos || 0),
-            foto_perfil: usuario.foto_perfil
-        }));
-
-        return ranking;
     } catch (error: any) {
         console.error("Error al obtener ranking:", error);
         throw error;
