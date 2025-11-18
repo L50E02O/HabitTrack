@@ -60,28 +60,64 @@ export async function enviarNotificacionViaSW(
   cuerpo: string,
   opciones?: NotificationOptions
 ): Promise<void> {
-  if (!tieneServiceWorkerActivo()) {
-    console.warn('[PWA] Service Worker no está activo, usando Notification API directamente');
-    return;
-  }
-
   try {
-    const registration = await navigator.serviceWorker.ready;
-    
-    registration.active?.postMessage({
-      type: 'SHOW_NOTIFICATION',
-      title: titulo,
-      body: cuerpo,
-      options: {
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
-        tag: `habittrack-${Date.now()}`,
-        requireInteraction: false,
-        ...opciones
+    // Verificar permisos primero
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+      console.warn('[PWA] No hay permisos para notificaciones');
+      return;
+    }
+
+    // Intentar usar Service Worker si está disponible
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        
+        if (registration.active) {
+          console.log('[PWA] Enviando notificación via Service Worker');
+          registration.active.postMessage({
+            type: 'SHOW_NOTIFICATION',
+            title: titulo,
+            body: cuerpo,
+            options: {
+              icon: '/icon-192.png',
+              badge: '/icon-192.png',
+              tag: opciones?.tag || `habittrack-${Date.now()}`,
+              requireInteraction: opciones?.requireInteraction || false,
+              data: opciones?.data || {},
+              ...opciones
+            }
+          });
+          return; // Salir si se envió correctamente
+        }
+      } catch (swError) {
+        console.warn('[PWA] Error con Service Worker, usando Notification API:', swError);
       }
+    }
+
+    // Fallback: usar Notification API directamente
+    console.log('[PWA] Usando Notification API directamente');
+    const notification = new Notification(titulo, {
+      body: cuerpo,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: opciones?.tag || `habittrack-${Date.now()}`,
+      requireInteraction: opciones?.requireInteraction || false,
+      data: opciones?.data || {},
+      ...opciones
     });
+
+    // Manejar clic en la notificación
+    notification.onclick = (event) => {
+      event.preventDefault();
+      if (opciones?.data?.url) {
+        window.focus();
+        window.location.href = opciones.data.url;
+      }
+      notification.close();
+    };
   } catch (error) {
-    console.error('[PWA] Error enviando notificación via SW:', error);
+    console.error('[PWA] Error enviando notificación:', error);
+    throw error;
   }
 }
 

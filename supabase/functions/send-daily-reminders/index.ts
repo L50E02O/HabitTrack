@@ -48,6 +48,13 @@ serve(async (req) => {
             }
         )
 
+        // Verificar si es un envío directo (desde el frontend)
+        const body = await req.json().catch(() => ({}))
+        if (body.directSend && body.toEmail) {
+            console.log('📧 Envío directo de email solicitado')
+            return await enviarEmailDirecto(supabaseClient, body.toEmail, body.subject || 'Recordatorio de Hábito', body.message || '', body.habitName || 'tu hábito')
+        }
+
         // Obtener la hora actual en formato HH:MM
         const now = new Date()
         const currentHour = String(now.getHours()).padStart(2, '0')
@@ -220,6 +227,104 @@ serve(async (req) => {
         )
     }
 })
+
+// Función para enviar email directo (desde el frontend)
+async function enviarEmailDirecto(
+    supabaseClient: any,
+    toEmail: string,
+    subject: string,
+    message: string,
+    habitName: string
+): Promise<Response> {
+    try {
+        const sendgridApiKey = Deno.env.get('SENDGRID_API_KEY')
+        if (!sendgridApiKey) {
+            throw new Error('SENDGRID_API_KEY no está configurada')
+        }
+
+        const fromEmail = Deno.env.get('SENDGRID_FROM_EMAIL') || 'jvicenteontaneda110@gmail.com'
+
+        // Obtener nombre del usuario desde el perfil usando el email
+        // Primero obtener el id del usuario desde auth.users
+        const { data: authUser } = await supabaseClient.auth.admin.getUserByEmail(toEmail).catch(() => ({ data: null }))
+        
+        let userName = 'Usuario'
+        if (authUser?.user?.id) {
+            const { data: perfil } = await supabaseClient
+                .from('perfil')
+                .select('nombre')
+                .eq('id', authUser.user.id)
+                .single()
+                .catch(() => ({ data: null }))
+            
+            if (perfil?.nombre) {
+                userName = perfil.nombre
+            }
+        }
+
+        // Enviar email usando SendGrid
+        const emailResponse = await fetch('https://api.sendgrid.com/v3/mail/send', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${sendgridApiKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                personalizations: [{
+                    to: [{ email: toEmail }],
+                    subject: subject
+                }],
+                from: {
+                    email: fromEmail,
+                    name: 'HabitTrack'
+                },
+                content: [{
+                    type: 'text/html',
+                    value: generateEmailHTML(userName, habitName, message)
+                }]
+            }),
+        })
+
+        if (!emailResponse.ok) {
+            const errorData = await emailResponse.json().catch(() => ({ error: 'Error desconocido' }))
+            console.error(`❌ Error enviando email a ${toEmail}:`, errorData)
+            return new Response(
+                JSON.stringify({
+                    success: false,
+                    error: errorData.errors?.[0]?.message || 'Error enviando email'
+                }),
+                {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    status: 500
+                }
+            )
+        }
+
+        console.log(`✅ Email enviado exitosamente a ${toEmail}`)
+        return new Response(
+            JSON.stringify({
+                success: true,
+                email: toEmail
+            }),
+            {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 200
+            }
+        )
+    } catch (error: any) {
+        console.error('❌ Error en envío directo:', error)
+        return new Response(
+            JSON.stringify({
+                success: false,
+                error: error.message || 'Error enviando email'
+            }),
+            {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 500
+            }
+        )
+    }
+}
 
 // Función para generar el HTML del email
 function generateEmailHTML(userName: string, habitName: string, mensaje: string): string {

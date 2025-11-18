@@ -1,8 +1,8 @@
-import { supabase } from "../../config/supabase";
+// No se necesita importar supabase aquí, se usa directamente en la Edge Function
 
 /**
- * Envía un email de recordatorio usando Supabase Auth
- * Similar a resetPasswordForEmail, pero para recordatorios personalizados
+ * Envía un email de recordatorio usando la Edge Function de Supabase
+ * La Edge Function usa SendGrid para enviar el email
  * @param email Email del destinatario
  * @param titulo Título del recordatorio
  * @param mensaje Mensaje del recordatorio
@@ -15,10 +15,6 @@ export async function enviarEmailRecordatorio(
     nombreHabito: string
 ): Promise<{ success: boolean; error?: string }> {
     try {
-        // Usar Supabase Auth para enviar email personalizado
-        // Nota: Supabase Auth tiene limitaciones para emails personalizados
-        // Por eso usamos la Edge Function que ya existe
-        
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
         
@@ -26,7 +22,8 @@ export async function enviarEmailRecordatorio(
             throw new Error('Configuración de Supabase no encontrada');
         }
 
-        // Llamar a la Edge Function de Supabase para enviar el email
+        // Llamar a la Edge Function con el formato correcto
+        // La Edge Function debe aceptar parámetros directos para envío individual
         const response = await fetch(`${supabaseUrl}/functions/v1/send-daily-reminders`, {
             method: 'POST',
             headers: {
@@ -34,21 +31,26 @@ export async function enviarEmailRecordatorio(
                 'Authorization': `Bearer ${supabaseAnonKey}`,
             },
             body: JSON.stringify({
-                email,
-                titulo,
-                mensaje,
-                nombreHabito,
+                toEmail: email,
+                subject: titulo,
+                message: mensaje,
+                habitName: nombreHabito,
+                // Indicar que es un envío directo, no un cron job
+                directSend: true
             }),
         });
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
-            throw new Error(errorData.error || 'Error enviando email');
+            console.error('Error en respuesta de Edge Function:', errorData);
+            throw new Error(errorData.error || `Error enviando email: ${response.status}`);
         }
 
+        const result = await response.json().catch(() => ({ success: true }));
+        console.log('✅ Email enviado exitosamente:', result);
         return { success: true };
     } catch (error: any) {
-        console.error('Error enviando email de recordatorio:', error);
+        console.error('❌ Error enviando email de recordatorio:', error);
         return {
             success: false,
             error: error.message || 'Error enviando email',
@@ -56,31 +58,4 @@ export async function enviarEmailRecordatorio(
     }
 }
 
-/**
- * Envía notificación por email usando Supabase Auth (método alternativo)
- * Usa el sistema de emails de Supabase Auth
- */
-export async function enviarEmailViaSupabaseAuth(
-    email: string,
-    subject: string,
-    body: string
-): Promise<{ success: boolean; error?: string }> {
-    try {
-        // Nota: Supabase Auth no tiene un método directo para enviar emails personalizados
-        // excepto resetPasswordForEmail, confirmSignUp, etc.
-        // Para emails personalizados, debemos usar Edge Functions o servicios externos
-        
-        // Por ahora, retornamos un error indicando que se debe usar la Edge Function
-        console.warn('Para emails personalizados, usar la Edge Function send-daily-reminders');
-        return {
-            success: false,
-            error: 'Use la Edge Function send-daily-reminders para emails personalizados',
-        };
-    } catch (error: any) {
-        return {
-            success: false,
-            error: error.message,
-        };
-    }
-}
 
