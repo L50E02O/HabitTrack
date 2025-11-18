@@ -1,6 +1,5 @@
 import { supabase } from "../../config/supabase";
 // import { shouldResetProgress } from "../../utils/progressResetUtils"; // No usado actualmente
-import { updateRachaOnHabitCompletion, checkAndDeactivateExpiredRachas } from "../racha/rachaAutoService";
 import type { IRegistroIntervalo } from "../../types/IRegistroIntervalo";
 
 // Esto es lo que devolvemos cuando alguien avanza en un hábito
@@ -10,11 +9,6 @@ export interface ProgressResponse {
   pointsAdded: number;
   message: string;
   isComplete: boolean;
-  rachaInfo?: {
-    diasConsecutivos: number;
-    isNewRacha: boolean;
-    rachaMessage: string;
-  };
 }
 
 /**
@@ -64,42 +58,15 @@ export async function recordHabitProgress(
     // Le damos puntos al usuario
     await actualizarPuntosUsuario(idPerfil, puntosADar);
 
-    // Actualizamos la racha en CADA avance, no solo cuando se completa
-    let infoRacha: ProgressResponse['rachaInfo'] | undefined;
-
-    // PRIMERO: Revisamos si hay rachas que deben expirar (ANTES de actualizar)
-    console.log("🔍 Verificando rachas expiradas ANTES de actualizar...");
-    await checkAndDeactivateExpiredRachas(idHabito, intervaloMeta);
-
-    // DESPUÉS: Actualizar la racha en cada click
-    console.log("📈 Actualizando racha para hábito:", idHabito);
-    const resultadoRacha = await updateRachaOnHabitCompletion(
-      registroId,
-      idHabito,
-      intervaloMeta,
-      habitoCompletado,
-      metaRepeticion
-    );
-
-    console.log("Resultado de actualización de racha:", resultadoRacha);
-
-    if (resultadoRacha.success && resultadoRacha.racha) {
-      infoRacha = {
-        diasConsecutivos: resultadoRacha.diasConsecutivos,
-        isNewRacha: resultadoRacha.isNewRacha,
-        rachaMessage: resultadoRacha.message,
-      };
-      console.log("Info de racha creada:", infoRacha);
-    }
+    // NOTA: La actualización de racha ahora es AUTOMÁTICA
+    // El servicio autoProgressService verificará y actualizará la racha
+    // cuando detecte que se alcanzó meta_repeticion
+    console.log("✅ Progreso registrado. La racha se actualizará automáticamente.");
 
     // Creamos el mensaje para mostrar al usuario
-    let mensaje = habitoCompletado
+    const mensaje = habitoCompletado
       ? `¡Felicidades! Completaste tu hábito y ganaste ${puntosADar} puntos 🎉`
-      : `¡Buen progreso! Ganaste ${puntosADar} puntos`;
-
-    if (infoRacha) {
-      mensaje += ` ${infoRacha.rachaMessage}`;
-    }
+      : `¡Buen progreso! Ganaste ${puntosADar} puntos (${newProgress}/${metaRepeticion})`;
 
     return {
       success: true,
@@ -107,7 +74,6 @@ export async function recordHabitProgress(
       pointsAdded: puntosADar,
       message: mensaje,
       isComplete: habitoCompletado,
-      rachaInfo: infoRacha,
     };
 
   } catch (error: any) {
