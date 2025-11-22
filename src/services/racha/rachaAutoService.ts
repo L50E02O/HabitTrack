@@ -103,6 +103,15 @@ async function actualizarRachaEnPerfil(
         console.error('Error actualizando racha_maxima:', updateError);
       } else {
         console.log(`🏆 ¡Nuevo récord! Racha máxima actualizada: ${rachaMaximaPerfil} → ${nuevaRachaMaxima} días`);
+        
+        // IMPORTANTE: Verificar logros después de actualizar racha_maxima
+        // El trigger en la BD también lo hará, pero esto asegura que se haga desde el código
+        try {
+          await verificarYDesbloquearLogros(idPerfil, nuevaRachaMaxima);
+        } catch (logroError) {
+          console.warn('Error verificando logros después de actualizar racha máxima:', logroError);
+          // No lanzamos el error para no bloquear la actualización de racha
+        }
       }
     }
   } catch (error) {

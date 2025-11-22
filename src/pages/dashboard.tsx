@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { Moon, Sun, Plus, LogOut, ChevronRight, ShoppingCart, Sprout } from 'lucide-react';
@@ -49,6 +49,7 @@ export default function Dashboard() {
     const [openLogros, setOpenLogros] = useState(false);
     const [openTienda, setOpenTienda] = useState(false);
     const [puntosUsuario, setPuntosUsuario] = useState(0);
+    const notificacionesIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // Hook para detectar cambios de rango
     const { rangoAnterior, rangoActual, huboRankUp, resetRankUp } = useRankDetection(puntosUsuario);
@@ -102,6 +103,11 @@ export default function Dashboard() {
                 const puntosActuales = await getPuntosActuales(session.user.id);
                 setPuntosUsuario(puntosActuales);
 
+                // Inicializar notificaciones programadas
+                const { programarNotificacionesDiarias } = await import('../services/recordatorio/notificacionService');
+                const intervalId = programarNotificacionesDiarias(session.user.id);
+                notificacionesIntervalRef.current = intervalId;
+
                 // NUEVO: Verificar automáticamente el progreso y actualizar rachas
                 console.log('🤖 Verificando progreso automático al cargar dashboard...');
                 const resultadoAuto = await checkAndUpdateAutoProgress(session.user.id);
@@ -142,6 +148,15 @@ export default function Dashboard() {
         };
 
         run();
+        
+        // Función de limpieza
+        return () => {
+            if (notificacionesIntervalRef.current) {
+                const { cancelarProgramacionNotificaciones } = require('../services/recordatorio/notificacionService');
+                cancelarProgramacionNotificaciones(notificacionesIntervalRef.current);
+                notificacionesIntervalRef.current = null;
+            }
+        };
     }, [navigate]);
 
     // Verificar progreso y rachas automáticamente cada 30 segundos
