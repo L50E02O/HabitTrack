@@ -1,0 +1,57 @@
+/* Estilos básicos para la página de presentación */
+.pt-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 70vh;
+	padding: 2rem;
+}
+
+.pt-hero {
+	text-align: center;
+	max-width: 520px;
+	width: 100%;
+	padding: 2rem;
+	border-radius: 12px;
+}
+
+.pt-icon {
+	color: #16a34a;
+	display: inline-block;
+	margin-bottom: 0.5rem;
+}
+
+.pt-title {
+	font-size: 2.25rem;
+	margin: 0.25rem 0 0.5rem;
+}
+
+.pt-subtitle {
+	color: #374151;
+	margin-bottom: 1.25rem;
+}
+
+.pt-actions {
+	display: flex;
+	gap: 0.75rem;
+	justify-content: center;
+	margin-top: 1rem;
+}
+
+.pt-primary {
+	background: #10b981;
+	color: white;
+	border: none;
+	padding: 0.5rem 1rem;
+	border-radius: 8px;
+	cursor: pointer;
+}
+
+.pt-secondary {
+	background: transparent;
+	color: #10b981;
+	border: 2px solid #10b981;
+	padding: 0.45rem 0.9rem;
+	border-radius: 8px;
+	cursor: pointer;
+}
