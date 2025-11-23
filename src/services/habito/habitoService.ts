@@ -1,6 +1,83 @@
 import { supabase } from "../../config/supabase";
 import type { IHabito, CreateIHabito, UpdateIHabito } from "../../types/IHabito";
 
+// Helpers para calcular fechas de períodos
+function toDateString(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function startOfWeekLocal(date: Date): Date {
+  // Lunes como inicio
+  const d = new Date(date);
+  const day = d.getDay(); // 0 dom .. 6 sab
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function endOfWeekLocal(date: Date): Date {
+  const s = startOfWeekLocal(date);
+  const e = new Date(s);
+  e.setDate(s.getDate() + 6);
+  e.setHours(23, 59, 59, 999);
+  return e;
+}
+
+function startOfMonthLocal(date: Date): Date {
+  const d = new Date(date);
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function endOfMonthLocal(date: Date): Date {
+  const d = new Date(date);
+  d.setMonth(d.getMonth() + 1);
+  d.setDate(0);
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
+function getPeriodDates(intervaloMeta: string | null): { inicio: Date; fin: Date } | null {
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  if (intervaloMeta === "semanal") {
+    // Inicio: Hoy
+    const inicio = new Date(hoy);
+    // Fin: Hoy + 6 días
+    const fin = new Date(hoy);
+    fin.setDate(fin.getDate() + 6);
+    fin.setHours(23, 59, 59, 999);
+    return { inicio, fin };
+  }
+
+  if (intervaloMeta === "mensual") {
+    // Inicio: Hoy
+    const inicio = new Date(hoy);
+    // Fin: Un día antes del mismo día del próximo mes
+    const fin = new Date(hoy);
+    fin.setMonth(fin.getMonth() + 1); // Ir al próximo mes
+    fin.setDate(fin.getDate() - 1); // Restar 1 día (día anterior al mismo día del mes siguiente)
+    fin.setHours(23, 59, 59, 999);
+    return { inicio, fin };
+  }
+
+  // diario
+  if (intervaloMeta === "diario") {
+    const inicio = new Date(hoy);
+    const fin = new Date(hoy);
+    fin.setHours(23, 59, 59, 999);
+    return { inicio, fin };
+  }
+
+  return null;
+}
+
 export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito> {
     // Validar meta_repeticion
     if (nuevoHabito.meta_repeticion < 1 || nuevoHabito.meta_repeticion > 365) {
@@ -18,18 +95,26 @@ export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito>
         throw new Error(errorHabito.message);
     }
 
-    // Crear registro_intervalo inicial
+    // Obtener fechas del período según el tipo de hábito
+    const periodoInfo = getPeriodDates(habitoCreado.intervalo_meta);
     const hoy = new Date();
     hoy.setUTCHours(0, 0, 0, 0);
     
+    const fechaInicio = periodoInfo ? toDateString(periodoInfo.inicio) : toDateString(hoy);
+    const fechaFin = periodoInfo ? toDateString(periodoInfo.fin) : toDateString(hoy);
+
+    // Crear registro_intervalo inicial
     const { data: registroInicial, error: errorRegistro } = await supabase
         .from("registro_intervalo")
         .insert({
             id_habito: habitoCreado.id_habito,
-            fecha: hoy.toISOString().split('T')[0],
+            fecha: fechaInicio,
+            fecha_inicio_intervalo: fechaInicio,
+            fecha_fin_intervalo: fechaFin,
             cumplido: false,
             puntos: 0,
             progreso: 0,
+            cumplido_periodo_anterior: false,
         })
         .select()
         .single();
@@ -46,10 +131,10 @@ export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito>
             .from("racha")
             .insert({
                 id_registro_intervalo: registroInicial.id_registro,
-                inicio_racha: hoy.toISOString().split('T')[0],
-                fin_racha: hoy.toISOString().split('T')[0],
+                inicio_racha: fechaInicio,
+                fin_racha: fechaInicio,
                 dias_consecutivos: 0,
-                racha_activa: true,
+                racha_activa: false,
                 protectores_asignados: 0,
             });
 
