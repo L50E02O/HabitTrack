@@ -45,6 +45,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Configurar NavigationRoute para manejar todas las rutas de la SPA
+        // Esto permite que el router del cliente maneje el enrutamiento
+        navigateFallback: '/index.html',
+        navigateFallbackAllowlist: [/./], // Permitir todas las rutas (patrón estándar de Workbox)
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
