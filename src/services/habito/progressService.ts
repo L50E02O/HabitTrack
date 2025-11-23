@@ -206,7 +206,6 @@ async function guardarRegistroProgreso(
       fecha: hoy.toISOString(),
       cumplido: habitoCompletado,
       puntos: newProgress,
-      notas: "",
     })
     .select()
     .single();

@@ -35,7 +35,6 @@ CREATE TABLE IF NOT EXISTS recordatorio (
     id_habito UUID REFERENCES habito(id_habito),
     fecha DATE DEFAULT CURRENT_DATE,
     cumplido BOOLEAN DEFAULT false,
-    notas TEXT,
     puntos INTEGER DEFAULT 0
 );
 */

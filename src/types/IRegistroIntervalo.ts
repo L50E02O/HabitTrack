@@ -3,7 +3,6 @@ export interface IRegistroIntervalo {
     id_habito: string;
     fecha: Date;
     cumplido: boolean;
-    notas: string;
     puntos: number;
 }
 
@@ -11,7 +10,6 @@ export interface CreateIRegistroIntervalo {
     id_habito: string;
     fecha: Date;
     cumplido: boolean;
-    notas: string;
     puntos: number;
 }
 
@@ -19,6 +17,5 @@ export interface UpdateIRegistroIntervalo {
     id_habito?: string;
     fecha?: Date;
     cumplido?: boolean;
-    notas?: string;
     puntos?: number;
 }
