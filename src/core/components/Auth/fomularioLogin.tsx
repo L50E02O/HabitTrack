@@ -69,6 +69,9 @@ const FormularioLogin: React.FC<FormularioLoginProps> = ({ onSubmit }) => {
         <a onClick={handleForgot} role="button" tabIndex={0} className={styles.forgotLink}>
           ¿Olvidaste tu contraseña?
         </a>
+        <a onClick={() => navigate("/")} role="button" tabIndex={0} className={styles.forgotLink}>
+         ¿Volver? 
+        </a>
       </div>
 
       <button type="submit" className={styles.botonLogin}>Iniciar Sesión</button>
