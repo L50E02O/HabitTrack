@@ -170,6 +170,11 @@ describe('pwaService', () => {
                 },
             };
 
+            // Mock Notification API
+            (globalThis as any).Notification = {
+                permission: 'granted',
+            };
+
             await enviarNotificacionViaSW('Título', 'Cuerpo', { tag: 'test' });
 
             expect(mockActive.postMessage).toHaveBeenCalledWith({
@@ -201,6 +206,11 @@ describe('pwaService', () => {
                 },
             };
 
+            // Mock Notification API
+            (globalThis as any).Notification = {
+                permission: 'granted',
+            };
+
             await enviarNotificacionViaSW('Título', 'Cuerpo');
 
             expect(mockActive.postMessage).toHaveBeenCalledWith(
@@ -219,15 +229,20 @@ describe('pwaService', () => {
                 },
             };
 
-            const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            // Mock Notification como constructor
+            const mockNotification = vi.fn();
+            (globalThis as any).Notification = mockNotification as any;
+            (globalThis as any).Notification.permission = 'granted';
+
+            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
             await enviarNotificacionViaSW('Título', 'Cuerpo');
 
-            expect(consoleSpy).toHaveBeenCalledWith(
-                '[PWA] Service Worker no está activo, usando Notification API directamente'
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                '[PWA] Usando Notification API directamente'
             );
 
-            consoleSpy.mockRestore();
+            consoleLogSpy.mockRestore();
         });
 
         it('debería manejar errores al enviar mensaje al SW', async () => {
@@ -248,16 +263,22 @@ describe('pwaService', () => {
                 },
             };
 
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            // Mock Notification como constructor
+            const mockNotification = vi.fn();
+            (globalThis as any).Notification = mockNotification as any;
+            (globalThis as any).Notification.permission = 'granted';
+
+            const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
             await enviarNotificacionViaSW('Título', 'Cuerpo');
 
-            expect(consoleSpy).toHaveBeenCalledWith(
-                expect.stringContaining('[PWA] Error enviando notificación via SW:'),
+            // Debe loguear que hay error con SW
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                expect.stringContaining('[PWA] Error con Service Worker'),
                 expect.any(Error)
             );
 
-            consoleSpy.mockRestore();
+            consoleWarnSpy.mockRestore();
         });
     });
 

@@ -9,39 +9,6 @@ function toDateString(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-function startOfWeekLocal(date: Date): Date {
-  // Lunes como inicio
-  const d = new Date(date);
-  const day = d.getDay(); // 0 dom .. 6 sab
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function endOfWeekLocal(date: Date): Date {
-  const s = startOfWeekLocal(date);
-  const e = new Date(s);
-  e.setDate(s.getDate() + 6);
-  e.setHours(23, 59, 59, 999);
-  return e;
-}
-
-function startOfMonthLocal(date: Date): Date {
-  const d = new Date(date);
-  d.setDate(1);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function endOfMonthLocal(date: Date): Date {
-  const d = new Date(date);
-  d.setMonth(d.getMonth() + 1);
-  d.setDate(0);
-  d.setHours(23, 59, 59, 999);
-  return d;
-}
-
 function getPeriodDates(intervaloMeta: string | null): { inicio: Date; fin: Date } | null {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
@@ -201,3 +168,37 @@ export async function deleteHabito(id: string): Promise<void> {
         throw new Error(error.message);
     }
 }
+
+
+// function startOfWeekLocal(date: Date): Date {
+//   // Lunes como inicio
+//   const d = new Date(date);
+//   const day = d.getDay(); // 0 dom .. 6 sab
+//   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+//   d.setDate(diff);
+//   d.setHours(0, 0, 0, 0);
+//   return d;
+// }
+
+// function endOfWeekLocal(date: Date): Date {
+//   const s = startOfWeekLocal(date);
+//   const e = new Date(s);
+//   e.setDate(s.getDate() + 6);
+//   e.setHours(23, 59, 59, 999);
+//   return e;
+// }
+
+// function startOfMonthLocal(date: Date): Date {
+//   const d = new Date(date);
+//   d.setDate(1);
+//   d.setHours(0, 0, 0, 0);
+//   return d;
+// }
+
+// function endOfMonthLocal(date: Date): Date {
+//   const d = new Date(date);
+//   d.setMonth(d.getMonth() + 1);
+//   d.setDate(0);
+//   d.setHours(23, 59, 59, 999);
+//   return d;
+// }

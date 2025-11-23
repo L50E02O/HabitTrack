@@ -86,10 +86,11 @@ describe('emailNotificationService', () => {
       const callArgs = (global.fetch as any).mock.calls[0];
       const body = JSON.parse(callArgs[1].body);
 
-      expect(body.email).toBe('user@example.com');
-      expect(body.titulo).toBe('Título');
-      expect(body.mensaje).toBe('Mensaje personalizado');
-      expect(body.nombreHabito).toBe('Nombre del Hábito');
+      expect(body.toEmail).toBe('user@example.com');
+      expect(body.subject).toBe('Título');
+      expect(body.message).toBe('Mensaje personalizado');
+      expect(body.habitName).toBe('Nombre del Hábito');
+      expect(body.directSend).toBe(true);
     });
   });
 });
