@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
-import Presentacion from './core/components/Presentacion/presentacion'
+// import Presentacion from './core/components/Presentacion/presentacion'
+import Presentation from './pages/presentation'
 import LoginPage from './pages/Auth/loginPage'
 import RegistroPage from './pages/Auth/registroPage'
 import ForgotPasswordPage from './pages/Auth/forgotPasswordPage'
@@ -12,7 +13,7 @@ import RankingPage from './pages/RankingPage'
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Presentacion />} />
+      <Route path="/" element={<Presentation />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/registro" element={<RegistroPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
