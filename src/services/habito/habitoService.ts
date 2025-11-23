@@ -7,17 +7,59 @@ export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito>
         throw new Error("La meta de repetición debe estar entre 1 y 365");
     }
 
-    const { data, error } = await supabase
+    // Crear el hábito
+    const { data: habitoCreado, error: errorHabito } = await supabase
         .from("habito")
         .insert(nuevoHabito)
         .select()
         .single();
 
-    if (error) {
-        throw new Error(error.message);
+    if (errorHabito) {
+        throw new Error(errorHabito.message);
     }
 
-    return data;
+    // Crear registro_intervalo inicial
+    const hoy = new Date();
+    hoy.setUTCHours(0, 0, 0, 0);
+    
+    const { data: registroInicial, error: errorRegistro } = await supabase
+        .from("registro_intervalo")
+        .insert({
+            id_habito: habitoCreado.id_habito,
+            fecha: hoy.toISOString().split('T')[0],
+            cumplido: false,
+            puntos: 0,
+            progreso: 0,
+        })
+        .select()
+        .single();
+
+    if (errorRegistro) {
+        console.error("Error creando registro inicial:", errorRegistro);
+        // No lanzamos error para no bloquear la creación del hábito
+        // El registro se puede crear después
+    }
+
+    // Crear racha inicial
+    if (registroInicial) {
+        const { error: errorRacha } = await supabase
+            .from("racha")
+            .insert({
+                id_registro_intervalo: registroInicial.id_registro,
+                inicio_racha: hoy.toISOString().split('T')[0],
+                fin_racha: hoy.toISOString().split('T')[0],
+                dias_consecutivos: 0,
+                racha_activa: true,
+                protectores_asignados: 0,
+            });
+
+        if (errorRacha) {
+            console.error("Error creando racha inicial:", errorRacha);
+            // No lanzamos error para no bloquear la creación del hábito
+        }
+    }
+
+    return habitoCreado;
 }
 
 export async function getAllHabitos(): Promise<IHabito[]> {

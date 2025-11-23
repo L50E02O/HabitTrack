@@ -4,6 +4,9 @@ export interface IRegistroIntervalo {
     fecha: Date;
     cumplido: boolean;
     puntos: number;
+    progreso: number;
+    fecha_inicio_intervalo?: Date | null;
+    fecha_fin_intervalo?: Date | null;
 }
 
 export interface CreateIRegistroIntervalo {
@@ -11,6 +14,9 @@ export interface CreateIRegistroIntervalo {
     fecha: Date;
     cumplido: boolean;
     puntos: number;
+    progreso: number;
+    fecha_inicio_intervalo?: Date | null;
+    fecha_fin_intervalo?: Date | null;
 }
 
 export interface UpdateIRegistroIntervalo {
@@ -18,4 +24,7 @@ export interface UpdateIRegistroIntervalo {
     fecha?: Date;
     cumplido?: boolean;
     puntos?: number;
+    progreso?: number;
+    fecha_inicio_intervalo?: Date | null;
+    fecha_fin_intervalo?: Date | null;
 }

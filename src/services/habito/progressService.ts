@@ -89,30 +89,23 @@ export async function recordHabitProgress(
  */
 export async function getHabitCurrentProgress(
   idHabito: string,
-  intervaloMeta: string
+  _intervaloMeta: string // No usado, mantenido para compatibilidad
 ): Promise<number> {
   try {
-    const hoy = new Date();
-    hoy.setUTCHours(0, 0, 0, 0);
-
-    // Calcular el inicio del período actual según el intervalo
-    const inicioPeriodo = calcularInicioPeriodo(hoy, intervaloMeta);
-
-    // Contar TODOS los registros desde el inicio del período hasta hoy
-    const { data: registros, error } = await supabase
+    // Buscar el registro único del hábito y usar el campo progreso
+    const { data: registro, error } = await supabase
       .from("registro_intervalo")
-      .select("*", { count: 'exact' })
+      .select("progreso")
       .eq("id_habito", idHabito)
-      .gte("fecha", inicioPeriodo.toISOString())
-      .lte("fecha", hoy.toISOString());
+      .maybeSingle();
 
     if (error) {
       console.error("Error al obtener progreso:", error);
       return 0;
     }
 
-    const progresoActual = registros ? registros.length : 0;
-    console.log(`Progreso actual del hábito ${idHabito}: ${progresoActual} registros`);
+    const progresoActual = registro?.progreso || 0;
+    console.log(`Progreso actual del hábito ${idHabito}: ${progresoActual} (del campo progreso)`);
     return progresoActual;
 
   } catch (error: any) {
@@ -122,54 +115,43 @@ export async function getHabitCurrentProgress(
 }
 
 // Función auxiliar para calcular el inicio del período
-function calcularInicioPeriodo(fecha: Date, intervaloMeta: string): Date {
-  const inicio = new Date(fecha);
-  inicio.setUTCHours(0, 0, 0, 0);
-
-  if (intervaloMeta === 'diario') {
-    // Para diario, el inicio es el mismo día
-    return inicio;
-  } else if (intervaloMeta === 'semanal') {
-    // Para semanal, el inicio es el lunes de esta semana
-    const diaSemana = inicio.getDay();
-    const diasDesdeInicio = diaSemana === 0 ? 6 : diaSemana - 1;
-    inicio.setDate(inicio.getDate() - diasDesdeInicio);
-    return inicio;
-  } else if (intervaloMeta === 'mensual') {
-    // Para mensual, el inicio es el día 1 del mes
-    inicio.setDate(1);
-    return inicio;
-  }
-
-  return inicio;
-}
+// Comentada porque ya no se usa (el backend maneja los períodos)
+// function calcularInicioPeriodo(fecha: Date, intervaloMeta: string): Date {
+//   const inicio = new Date(fecha);
+//   inicio.setUTCHours(0, 0, 0, 0);
+//
+//   if (intervaloMeta === 'diario') {
+//     return inicio;
+//   } else if (intervaloMeta === 'semanal') {
+//     const diaSemana = inicio.getDay();
+//     const diasDesdeInicio = diaSemana === 0 ? 6 : diaSemana - 1;
+//     inicio.setDate(inicio.getDate() - diasDesdeInicio);
+//     return inicio;
+//   } else if (intervaloMeta === 'mensual') {
+//     inicio.setDate(1);
+//     return inicio;
+//   }
+//
+//   return inicio;
+// }
 
 // Funciones auxiliares que hacen el trabajo pesado
 
-async function obtenerProgresoActual(idHabito: string, intervaloMeta: string) {
-  const hoy = new Date();
-  hoy.setUTCHours(0, 0, 0, 0);
-
-  // Calcular el inicio del período actual
-  const inicioPeriodo = calcularInicioPeriodo(hoy, intervaloMeta);
-
-  // Contar TODOS los registros del período actual
-  const { data: registros, error } = await supabase
+async function obtenerProgresoActual(idHabito: string, _intervaloMeta: string) {
+  // Buscar el registro único del hábito
+  const { data: registro, error } = await supabase
     .from("registro_intervalo")
     .select("*")
     .eq("id_habito", idHabito)
-    .gte("fecha", inicioPeriodo.toISOString())
-    .lte("fecha", hoy.toISOString())
-    .order("fecha", { ascending: false });
+    .maybeSingle();
 
   if (error) throw error;
 
-  // El progreso actual es el número de registros en este período
-  const currentProgress = registros ? registros.length : 0;
-  const lastRegistro = registros && registros.length > 0 ? registros[0] : null;
+  // El progreso actual viene del campo progreso del registro único
+  const currentProgress = registro?.progreso || 0;
 
-  console.log(`Progreso actual en obtenerProgresoActual: ${currentProgress}`);
-  return { currentProgress, lastRegistro };
+  console.log(`Progreso actual en obtenerProgresoActual: ${currentProgress} (del campo progreso)`);
+  return { currentProgress, lastRegistro: registro };
 }
 
 function calcularPuntosPorDificultad(dificultad: string): number {
@@ -191,43 +173,78 @@ async function guardarRegistroProgreso(
   const hoy = new Date();
   hoy.setUTCHours(0, 0, 0, 0);
 
-  console.log("🔍 Intentando crear registro:", { 
+  console.log("🔍 Intentando actualizar registro:", { 
     idHabito, 
-    fecha: hoy.toISOString(), 
-    cumplido: habitoCompletado, 
-    puntos: newProgress 
+    progreso: newProgress, 
+    cumplido: habitoCompletado 
   });
 
-  // SIEMPRE creamos un nuevo registro por cada avance (cada clic cuenta)
-  const { data: nuevoRegistro, error } = await supabase
+  // Buscar el registro único del hábito
+  const { data: registroExistente, error: errorBusqueda } = await supabase
     .from("registro_intervalo")
-    .insert({
-      id_habito: idHabito,
-      fecha: hoy.toISOString(),
-      cumplido: habitoCompletado,
-      puntos: newProgress,
-    })
-    .select()
-    .single();
+    .select("*")
+    .eq("id_habito", idHabito)
+    .maybeSingle();
 
-  if (error) {
-    console.error("❌ Error al guardar registro:", error);
-    console.error("Detalles:", {
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-      code: error.code
-    });
-    throw new Error(`Error al crear registro: ${error.message}`);
+  if (errorBusqueda && errorBusqueda.code !== 'PGRST116') { // PGRST116 = no rows returned
+    console.error("❌ Error al buscar registro:", errorBusqueda);
+    throw new Error(`Error al buscar registro: ${errorBusqueda.message}`);
   }
 
-  if (!nuevoRegistro) {
-    console.error("❌ No se retornó ningún registro");
-    throw new Error("No se pudo crear el registro");
+  let registroId: string;
+
+  if (registroExistente) {
+    // Actualizar el registro existente
+    const { data: registroActualizado, error: errorUpdate } = await supabase
+      .from("registro_intervalo")
+      .update({
+        progreso: newProgress,
+        cumplido: habitoCompletado,
+        puntos: newProgress, // Los puntos también se actualizan
+      })
+      .eq("id_registro", registroExistente.id_registro)
+      .select()
+      .single();
+
+    if (errorUpdate) {
+      console.error("❌ Error al actualizar registro:", errorUpdate);
+      throw new Error(`Error al actualizar registro: ${errorUpdate.message}`);
+    }
+
+    if (!registroActualizado) {
+      throw new Error("No se pudo actualizar el registro");
+    }
+
+    registroId = registroActualizado.id_registro;
+    console.log("✅ Registro actualizado:", registroId);
+  } else {
+    // Crear el registro si no existe (no debería pasar si se creó correctamente con el hábito)
+    const { data: nuevoRegistro, error: errorInsert } = await supabase
+      .from("registro_intervalo")
+      .insert({
+        id_habito: idHabito,
+        fecha: hoy.toISOString().split('T')[0],
+        cumplido: habitoCompletado,
+        puntos: newProgress,
+        progreso: newProgress,
+      })
+      .select()
+      .single();
+
+    if (errorInsert) {
+      console.error("❌ Error al crear registro:", errorInsert);
+      throw new Error(`Error al crear registro: ${errorInsert.message}`);
+    }
+
+    if (!nuevoRegistro) {
+      throw new Error("No se pudo crear el registro");
+    }
+
+    registroId = nuevoRegistro.id_registro;
+    console.log("✅ Nuevo registro creado:", registroId);
   }
 
-  console.log("✅ Nuevo registro creado:", nuevoRegistro.id_registro);
-  return nuevoRegistro.id_registro;
+  return registroId;
 }
 
 async function actualizarPuntosUsuario(idPerfil: string, puntosADar: number): Promise<void> {
