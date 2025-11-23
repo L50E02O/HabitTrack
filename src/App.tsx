@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
+import Presentacion from './core/components/Presentacion/presentacion'
 import LoginPage from './pages/Auth/loginPage'
 import RegistroPage from './pages/Auth/registroPage'
 import ForgotPasswordPage from './pages/Auth/forgotPasswordPage'
@@ -11,7 +12,7 @@ import RankingPage from './pages/RankingPage'
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace/>} />
+      <Route path="/" element={<Presentacion />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/registro" element={<RegistroPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
