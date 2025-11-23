@@ -1,9 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import "./presentacion.css";
+import { useEffect } from "react";
 import { Sprout } from "lucide-react";
 
 export default function Presentacion() {
 	const navigate = useNavigate();
+
+    useEffect(()=>{
+        console.log("Presentacion montada");
+    }, []);
 
 	return (
 		<div className="pt-container">
