@@ -7,7 +7,9 @@ import type { IHabito } from '../types/IHabito';
 import { getAllHabitos, deleteHabito } from '../services/habito/habitoService';
 import { recordHabitProgress, getHabitCurrentProgress } from '../services/habito/progressService';
 import { checkAndUpdateAutoProgress } from '../services/habito/autoProgressService';
+import { recalcularRachaMaxima } from '../services/racha/rachaAutoService';
 import { getRachasMultiplesHabitos } from '../services/racha/rachaAutoService';
+import { programarNotificacionesDiarias, cancelarProgramacionNotificaciones } from '../services/recordatorio/notificacionService';
 import { 
     asignarProtectorAHabito, 
     quitarProtectorDeHabito, 
@@ -104,7 +106,6 @@ export default function Dashboard() {
                 setPuntosUsuario(puntosActuales);
 
                 // Inicializar notificaciones programadas
-                const { programarNotificacionesDiarias } = await import('../services/recordatorio/notificacionService');
                 const intervalId = programarNotificacionesDiarias(session.user.id);
                 notificacionesIntervalRef.current = intervalId;
 
@@ -112,6 +113,9 @@ export default function Dashboard() {
                 console.log('🤖 Verificando progreso automático al cargar dashboard...');
                 const resultadoAuto = await checkAndUpdateAutoProgress(session.user.id);
                 console.log(`🤖 Resultado auto-progreso: ${resultadoAuto.mensaje}`);
+
+                // Recalcular racha máxima del usuario al entrar al dashboard
+                await recalcularRachaMaxima(session.user.id);
 
                 // Si se actualizaron rachas, recargar
                 if (resultadoAuto.rachasActualizadas.length > 0) {
@@ -152,7 +156,6 @@ export default function Dashboard() {
         // Función de limpieza
         return () => {
             if (notificacionesIntervalRef.current) {
-                const { cancelarProgramacionNotificaciones } = require('../services/recordatorio/notificacionService');
                 cancelarProgramacionNotificaciones(notificacionesIntervalRef.current);
                 notificacionesIntervalRef.current = null;
             }

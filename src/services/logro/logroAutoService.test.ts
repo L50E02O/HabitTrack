@@ -28,11 +28,9 @@ describe('logroAutoService', () => {
         { id_logro: '2', nombre_logro: 'Primer Mes', criterio_racha: 30, icono: '🏆' },
       ];
 
-      const mockLogrosObtenidos = [];
+      const mockLogrosObtenidos: any[] = [];
 
       const mockPerfil = { protectores_racha: 0 };
-
-      const mockSelect = vi.fn();
       const mockEq = vi.fn();
       const mockLte = vi.fn();
       const mockOrder = vi.fn();
@@ -100,7 +98,7 @@ describe('logroAutoService', () => {
       });
 
       // Configurar mocks para la cadena de llamadas
-      const logroChain = {
+      const _logroChain = {
         select: vi.fn().mockReturnValue({
           lte: vi.fn().mockReturnValue({
             order: vi.fn().mockResolvedValue({
@@ -140,7 +138,7 @@ describe('logroAutoService', () => {
       };
 
       (supabase.from as any).mockImplementation((table: string) => {
-        if (table === 'logro') return logroChain;
+        if (table === 'logro') return _logroChain;
         if (table === 'logro_usuario') return logroUsuarioChain;
         if (table === 'perfil') return perfilChain;
         return {};
@@ -315,13 +313,6 @@ describe('logroAutoService', () => {
 
   describe('obtenerProgresoLogros', () => {
     it('debe calcular correctamente el progreso de logros', async () => {
-      const chain = {
-        select: vi.fn().mockReturnValue({
-          count: 'exact',
-          head: true,
-        }),
-      };
-
       // Mock para total de logros
       (supabase.from as any).mockImplementationOnce(() => ({
         select: vi.fn().mockResolvedValue({

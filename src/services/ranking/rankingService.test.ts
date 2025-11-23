@@ -6,7 +6,6 @@ import {
     obtenerUsuariosCercanos
 } from './rankingService';
 import { supabase } from '../../config/supabase';
-import { obtenerRangoPorPuntos } from '../../core/constants/rangos';
 
 // Mock de Supabase
 vi.mock('../../config/supabase', () => ({

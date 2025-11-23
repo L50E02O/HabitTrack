@@ -47,7 +47,7 @@ export async function recordHabitProgress(
     const puntosADar = habitoCompletado ? puntosBase * 2 : puntosBase; // Doble puntos si completa
 
     // Guardamos el registro del progreso
-    const registroId = await guardarRegistroProgreso(
+    await guardarRegistroProgreso(
       idHabito,
       lastRegistro,
       intervaloMeta,

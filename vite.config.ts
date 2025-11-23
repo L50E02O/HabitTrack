@@ -91,7 +91,7 @@ export default defineConfig({
         secure: false,
         // Si el servidor no está disponible, no fallar silenciosamente
         configure: (proxy, _options) => {
-          proxy.on('error', (err, _req, _res) => {
+          proxy.on('error', (_err, _req, _res) => {
             console.warn('[Vite Proxy] El servidor API en localhost:4000 no está disponible.');
             console.warn('[Vite Proxy] Ejecuta "npm run dev:api" en otra terminal para solucionarlo.');
             console.warn('[Vite Proxy] La app funcionará pero el ranking puede no cargar correctamente.');
