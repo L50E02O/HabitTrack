@@ -83,8 +83,8 @@ describe("NotificacionService - TDD", () => {
                 "Es hora de hacer ejercicio",
                 expect.objectContaining({
                     body: "Es hora de hacer ejercicio",
-                    icon: "/icon-192.png",
-                    badge: "/icon-192.png",
+                    icon: "https://cdn-icons-png.flaticon.com/192/2234/2234767.png",
+                    badge: "https://cdn-icons-png.flaticon.com/192/2234/2234767.png",
                 })
             );
             expect(resultado).toBeNull(); // SW maneja la notificación
@@ -102,8 +102,8 @@ describe("NotificacionService - TDD", () => {
             expect(pwaService.enviarNotificacionViaSW).not.toHaveBeenCalled();
             expect(mockNotification).toHaveBeenCalledWith("Recordatorio", {
                 body: "Es hora de hacer ejercicio",
-                icon: "/icon-192.png",
-                badge: "/icon-192.png",
+                icon: "https://cdn-icons-png.flaticon.com/192/2234/2234767.png",
+                badge: "https://cdn-icons-png.flaticon.com/192/2234/2234767.png",
             });
             expect(resultado).toBeInstanceOf(Object);
         });

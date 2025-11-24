@@ -31,22 +31,20 @@ describe('pwaService', () => {
                 addEventListener: vi.fn(),
             };
 
-            const mockRegister = vi.fn().mockResolvedValue(mockRegistration);
-
             (globalThis as any).navigator = {
                 serviceWorker: {
-                    register: mockRegister,
+                    ready: Promise.resolve(mockRegistration),
                     controller: null,
                 },
             };
 
             const resultado = await registrarServiceWorker();
 
-            expect(mockRegister).toHaveBeenCalledWith('/sw.js', {
-                scope: '/',
-                type: 'module',
-            });
             expect(resultado).toEqual(mockRegistration);
+            expect(mockRegistration.addEventListener).toHaveBeenCalledWith(
+                'updatefound',
+                expect.any(Function)
+            );
         });
 
         it('debería retornar null si Service Worker no está soportado', async () => {
@@ -97,11 +95,9 @@ describe('pwaService', () => {
                 }),
             };
 
-            const mockRegister = vi.fn().mockResolvedValue(mockRegistration);
-
             (globalThis as any).navigator = {
                 serviceWorker: {
-                    register: mockRegister,
+                    ready: Promise.resolve(mockRegistration),
                     controller: {
                         postMessage: vi.fn(),
                     },
@@ -155,69 +151,60 @@ describe('pwaService', () => {
 
     describe('enviarNotificacionViaSW', () => {
         it('debería enviar notificación a través del Service Worker', async () => {
-            const mockActive = {
-                postMessage: vi.fn(),
-            };
-
             const mockRegistration = {
-                active: mockActive,
+                scope: '/',
+                showNotification: vi.fn().mockResolvedValue(undefined),
             };
 
             (globalThis as any).navigator = {
                 serviceWorker: {
-                    controller: mockActive,
+                    controller: {},
                     ready: Promise.resolve(mockRegistration),
                 },
             };
 
-            // Mock Notification API
-            (globalThis as any).Notification = {
-                permission: 'granted',
-            };
+            // Mock Notification como constructor
+            const mockNotificationConstructor = vi.fn();
+            (globalThis as any).Notification = mockNotificationConstructor as any;
+            (globalThis as any).Notification.permission = 'granted';
 
-            await enviarNotificacionViaSW('Título', 'Cuerpo', { tag: 'test' });
+            await enviarNotificacionViaSW('Test', 'Mensaje de prueba');
 
-            expect(mockActive.postMessage).toHaveBeenCalledWith({
-                type: 'SHOW_NOTIFICATION',
-                title: 'Título',
-                body: 'Cuerpo',
-                options: expect.objectContaining({
-                    icon: '/icon-192.png',
-                    badge: '/icon-192.png',
-                    tag: 'test',
-                    requireInteraction: false,
-                }),
-            });
+            expect(mockRegistration.showNotification).toHaveBeenCalledWith(
+                'Test',
+                expect.objectContaining({
+                    body: 'Mensaje de prueba',
+                    icon: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
+                })
+            );
         });
 
         it('debería usar valores por defecto si no se pasan opciones', async () => {
-            const mockActive = {
-                postMessage: vi.fn(),
-            };
-
             const mockRegistration = {
-                active: mockActive,
+                scope: '/',
+                showNotification: vi.fn().mockResolvedValue(undefined),
             };
 
             (globalThis as any).navigator = {
                 serviceWorker: {
-                    controller: mockActive,
+                    controller: {},
                     ready: Promise.resolve(mockRegistration),
                 },
             };
 
-            // Mock Notification API
-            (globalThis as any).Notification = {
-                permission: 'granted',
-            };
+            // Mock Notification como constructor
+            const mockNotificationConstructor = vi.fn();
+            (globalThis as any).Notification = mockNotificationConstructor as any;
+            (globalThis as any).Notification.permission = 'granted';
 
-            await enviarNotificacionViaSW('Título', 'Cuerpo');
+            await enviarNotificacionViaSW('Test', 'Mensaje');
 
-            expect(mockActive.postMessage).toHaveBeenCalledWith(
+            expect(mockRegistration.showNotification).toHaveBeenCalledWith(
+                'Test',
                 expect.objectContaining({
-                    type: 'SHOW_NOTIFICATION',
-                    title: 'Título',
-                    body: 'Cuerpo',
+                    body: 'Mensaje',
+                    icon: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
+                    badge: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
                 })
             );
         });

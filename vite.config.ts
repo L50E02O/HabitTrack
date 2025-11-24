@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon-192.png', 'icon-512.png', 'badge.png'],
+      includeAssets: ['manifest.json'],
       manifest: {
         name: 'HabitTrack - Seguimiento de Hábitos',
         short_name: 'HabitTrack',
@@ -21,16 +21,28 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/icon-192.png',
+            src: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
-            src: '/icon-512.png',
+            src: 'https://cdn-icons-png.flaticon.com/512/2234/2234767.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: 'https://cdn-icons-png.flaticon.com/512/2234/2234767.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ],
         shortcuts: [
@@ -39,7 +51,11 @@ export default defineConfig({
             short_name: 'Dashboard',
             description: 'Ver tu dashboard de hábitos',
             url: '/dashboard',
-            icons: [{ src: '/icon-192.png', sizes: '192x192' }]
+            icons: [{ 
+              src: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png', 
+              sizes: '192x192',
+              type: 'image/png'
+            }]
           }
         ]
       },

@@ -3,14 +3,15 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { BrowserRouter } from 'react-router-dom'
-import { registrarServiceWorker } from './utils/pwaService'
+import { initPWA } from './utils/initPWA'
 
-// Registrar Service Worker para PWA
-if ('serviceWorker' in navigator) {
-  registrarServiceWorker().catch((error) => {
-    console.warn('Error registrando Service Worker:', error)
-  })
+// Limpiar sessionStorage del banner si el permiso cambió
+if (Notification.permission !== 'default') {
+  sessionStorage.removeItem('notificacion-banner-cerrado');
 }
+
+// Inicializar PWA (Service Worker y permisos)
+initPWA().catch(console.error);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

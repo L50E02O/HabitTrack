@@ -28,6 +28,7 @@ import RankingWidget from '../core/components/Ranking/RankingWidget';
 import RankUpModal from '../core/components/Ranking/RankUpModal';
 import { useRankDetection } from '../hooks/useRankDetection';
 import { getPuntosActuales } from '../services/protector/protectorService';
+import { PermisosNotificacion } from '../components/PermisosNotificacion';
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -361,6 +362,9 @@ export default function Dashboard() {
 
     return (
         <div className={`dashboard ${darkMode ? 'dark' : ''}`}>
+            {/* Banner de permisos de notificación */}
+            <PermisosNotificacion />
+
             {/* Botones flotantes */}
             <button 
                 className="floating-protectores-button"

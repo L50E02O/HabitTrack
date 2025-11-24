@@ -92,8 +92,8 @@ self.addEventListener('push', (event) => {
   let notificationData = {
     title: 'HabitTrack',
     body: 'Tienes un nuevo recordatorio',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    icon: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
+    badge: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
     tag: 'habittrack-notification',
     requireInteraction: false,
     data: {}
@@ -169,26 +169,9 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Manejar notificaciones programadas desde el cliente
+// Manejar mensajes desde el cliente
 self.addEventListener('message', (event) => {
   console.log('[Service Worker] Mensaje recibido:', event.data);
-  
-  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
-    const { title, body, options } = event.data;
-    
-    event.waitUntil(
-      self.registration.showNotification(title, {
-        body: body,
-        icon: options?.icon || '/icon-192.png',
-        badge: options?.badge || '/icon-192.png',
-        tag: options?.tag || 'habittrack-notification',
-        requireInteraction: options?.requireInteraction || false,
-        data: options?.data || {},
-        vibrate: [200, 100, 200],
-        ...options
-      })
-    );
-  }
   
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
