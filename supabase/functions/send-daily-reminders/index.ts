@@ -58,7 +58,11 @@ serve(async (req) => {
 
         // Consultar recordatorios activos que coincidan con la hora actual
         // Usamos una función para convertir time a text y comparar solo HH:MM
-        const { data: recordatorios, error: fetchError } = await supabaseClient
+        // Si se pasa user_id en query params, sólo procesar recordatorios creados por ese usuario
+        const url = new URL(req.url)
+        const userIdFilter = url.searchParams.get('user_id')
+
+        const query = supabaseClient
             .from('recordatorio')
             .select(`
         id_recordatorio,
@@ -69,7 +73,8 @@ serve(async (req) => {
         intervalo_recordar,
         perfil:id_perfil (
           id,
-          nombre
+          nombre,
+          email
         ),
         habito:id_habito (
           nombre_habito,
@@ -79,6 +84,12 @@ serve(async (req) => {
             .eq('activo', true)
             .gte('intervalo_recordar', `${currentHour}:${currentMinute}:00`)
             .lt('intervalo_recordar', `${currentHour}:${currentMinute}:59`)
+
+        if (userIdFilter) {
+            query.eq('id_perfil', userIdFilter)
+        }
+
+        const { data: recordatorios, error: fetchError } = await query
 
         if (fetchError) {
             throw fetchError
@@ -111,115 +122,79 @@ serve(async (req) => {
         const fromEmail = Deno.env.get('SENDGRID_FROM_EMAIL') || 'jvicenteontaneda110@gmail.com'
 
         // Enviar emails
-        const results = []
+        const results: Array<any> = []
         for (const recordatorio of recordatorios as Recordatorio[]) {
             try {
-                // Obtener el email usando la función SQL (con cast explícito a UUID)
-                const { data: userEmail, error: emailError } = await supabaseClient
-                    .rpc('get_user_email', { user_id: recordatorio.id_perfil })
-
-                if (emailError) {
-                    console.error(`❌ Error obteniendo email para ${recordatorio.id_perfil}:`, emailError)
-                }
+                // Usar el email obtenido por el join en perfil.email
+                const userEmail = (recordatorio as any).perfil?.email ?? null
 
                 if (!userEmail) {
-                    console.error(`❌ No se encontró email para perfil ${recordatorio.id_perfil}`)
+                    console.error(`❌ No se encontró email en perfil ${recordatorio.id_perfil}`)
                     results.push({
                         id: recordatorio.id_recordatorio,
                         success: false,
-                        error: 'Email no encontrado'
+                        error: 'Email no encontrado en perfil'
                     })
                     continue
                 }
 
-                console.log(`📧 Email encontrado: ${userEmail}`)
-
                 const userName = recordatorio.perfil?.nombre || 'Usuario'
                 const habitName = recordatorio.habito?.nombre_habito || 'tu hábito'
 
-                // Enviar email usando SendGrid
+                // Preparar payload de SendGrid
+                const payload = {
+                    personalizations: [{ to: [{ email: userEmail }], subject: `🔔 Recordatorio: ${habitName}` }],
+                    from: { email: fromEmail, name: 'HabitTrack' },
+                    content: [{ type: 'text/html', value: generateEmailHTML(userName, habitName, recordatorio.mensaje) }]
+                }
+
                 const emailResponse = await fetch('https://api.sendgrid.com/v3/mail/send', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${sendgridApiKey}`,
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        personalizations: [{
-                            to: [{ email: userEmail }],
-                            subject: `🔔 Recordatorio: ${habitName}`
-                        }],
-                        from: {
-                            email: fromEmail,
-                            name: 'HabitTrack'
-                        },
-                        content: [{
-                            type: 'text/html',
-                            value: generateEmailHTML(userName, habitName, recordatorio.mensaje)
-                        }]
-                    }),
+                    body: JSON.stringify(payload),
                 })
 
-                const sendgridData = await emailResponse.json() as any
-
-                if (!emailResponse.ok) {
-                    console.error(`❌ Error enviando email a ${userEmail}:`, sendgridData)
-                    results.push({
-                        id: recordatorio.id_recordatorio,
-                        success: false,
-                        error: sendgridData.errors?.[0]?.message || 'Error desconocido'
-                    })
-                } else {
+                if (emailResponse.status === 202) {
                     console.log(`✅ Email enviado exitosamente a ${userEmail}`)
-                    results.push({
-                        id: recordatorio.id_recordatorio,
-                        success: true,
-                        email: userEmail
-                    })
+                    results.push({ id: recordatorio.id_recordatorio, success: true, email: userEmail })
+                } else {
+                    let body: any = null
+                    const contentType = emailResponse.headers.get('content-type') || ''
+                    if (contentType.includes('application/json')) {
+                        body = await emailResponse.json().catch(() => null)
+                    } else {
+                        body = await emailResponse.text().catch(() => null)
+                    }
+                    console.error(`❌ Error enviando email a ${userEmail}:`, body)
+                    results.push({ id: recordatorio.id_recordatorio, success: false, error: body?.errors?.[0]?.message || `HTTP ${emailResponse.status}` })
                 }
-
             } catch (emailError: any) {
                 console.error(`❌ Error procesando recordatorio ${recordatorio.id_recordatorio}:`, emailError)
-                results.push({
-                    id: recordatorio.id_recordatorio,
-                    success: false,
-                    error: emailError.message
-                })
+                results.push({ id: recordatorio.id_recordatorio, success: false, error: emailError?.message || String(emailError) })
             }
         }
 
-        const successCount = results.filter(r => r.success).length
+        const successCount = results.filter((r) => r.success).length
         console.log(`✅ Enviados ${successCount} de ${recordatorios.length} recordatorios`)
 
         return new Response(
-            JSON.stringify({
-                message: 'Proceso completado',
-                time: currentTime,
-                total: recordatorios.length,
-                sent: successCount,
-                failed: recordatorios.length - successCount,
-                results
-            }),
-            {
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                status: 200
-            }
+          JSON.stringify({ message: 'Proceso completado', time: currentTime, total: recordatorios.length, sent: successCount, failed: recordatorios.length - successCount, results }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
+          }
         )
-
-    } catch (error: any) {
+      } catch (error: any) {
         console.error('❌ Error en send-daily-reminders:', error)
         return new Response(
-            JSON.stringify({
-                error: error.message,
-                details: error.toString()
-            }),
-            {
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                status: 500
-            }
+          JSON.stringify({ error: error.message, details: String(error) }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
         )
-    }
-})
+      }
+    })
 
 // Función para generar el HTML del email
 function generateEmailHTML(userName: string, habitName: string, mensaje: string): string {
