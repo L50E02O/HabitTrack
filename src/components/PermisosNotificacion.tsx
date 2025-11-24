@@ -43,7 +43,7 @@ export function PermisosNotificacion() {
         // Mostrar notificación de prueba
         new Notification("¡Notificaciones activadas!", {
           body: "Recibirás recordatorios de tus hábitos",
-          icon: "https://cdn-icons-png.flaticon.com/192/2234/2234767.png"
+          icon: "/icon-192.png"
         });
       }
     } catch (error) {

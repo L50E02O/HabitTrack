@@ -174,7 +174,7 @@ describe('pwaService', () => {
                 'Test',
                 expect.objectContaining({
                     body: 'Mensaje de prueba',
-                    icon: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
+                    icon: '/icon-192.png',
                 })
             );
         });
@@ -203,8 +203,8 @@ describe('pwaService', () => {
                 'Test',
                 expect.objectContaining({
                     body: 'Mensaje',
-                    icon: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
-                    badge: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
+                    icon: '/icon-192.png',
+                    badge: '/badge.png',
                 })
             );
         });
