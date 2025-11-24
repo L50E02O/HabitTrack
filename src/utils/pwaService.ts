@@ -72,8 +72,8 @@ export async function enviarNotificacionViaSW(
           console.log('[PWA] Enviando notificación via Service Worker');
           await registration.showNotification(titulo, {
             body: cuerpo,
-            icon: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
-            badge: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
+            icon: '/icon-192.png',
+            badge: '/badge.png',
             tag: opciones?.tag || `habittrack-${Date.now()}`,
             requireInteraction: opciones?.requireInteraction || false,
             data: opciones?.data || {},
@@ -91,8 +91,8 @@ export async function enviarNotificacionViaSW(
     console.log('[PWA] Usando Notification API directamente');
     const notification = new Notification(titulo, {
       body: cuerpo,
-      icon: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
-      badge: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
+      icon: '/icon-192.png',
+      badge: '/badge.png',
       tag: opciones?.tag || `habittrack-${Date.now()}`,
       requireInteraction: opciones?.requireInteraction || false,
       data: opciones?.data || {},

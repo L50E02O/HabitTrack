@@ -33,8 +33,8 @@ export function DebugNotificaciones() {
       console.log("🧪 [DEBUG] Creando notificación directa...");
       const notif = new Notification("🧪 Prueba Directa", {
         body: "Si ves esto, las notificaciones funcionan!",
-        icon: "https://cdn-icons-png.flaticon.com/192/2234/2234767.png",
-        badge: "https://cdn-icons-png.flaticon.com/96/2234/2234767.png",
+        icon: "/icon-192.png",
+        badge: "/badge.png",
         requireInteraction: false,
         tag: "test-direct"
       });

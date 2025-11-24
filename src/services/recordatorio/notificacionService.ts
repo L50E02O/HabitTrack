@@ -51,8 +51,8 @@ export async function enviarNotificacion(
 
     const opcionesCompletas: NotificationOptions = {
         body: cuerpo,
-        icon: "https://cdn-icons-png.flaticon.com/192/2234/2234767.png",
-        badge: "https://cdn-icons-png.flaticon.com/192/2234/2234767.png",
+        icon: "/icon-192.png",
+        badge: "/badge.png",
         ...opciones,
     };
 

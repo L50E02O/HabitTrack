@@ -4,6 +4,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    emptyOutDir: true
+  },
   plugins: [
     react(),
     VitePWA({
@@ -24,25 +29,25 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
+            src: '/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'https://cdn-icons-png.flaticon.com/512/2234/2234767.png',
+            src: '/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
+            src: '/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'maskable'
           },
           {
-            src: 'https://cdn-icons-png.flaticon.com/512/2234/2234767.png',
+            src: '/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
@@ -55,7 +60,7 @@ export default defineConfig({
             description: 'Ver tu dashboard de hábitos',
             url: '/dashboard',
             icons: [{ 
-              src: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png', 
+              src: '/icon-192.png', 
               sizes: '192x192',
               type: 'image/png'
             }]

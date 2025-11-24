@@ -92,8 +92,8 @@ self.addEventListener('push', (event) => {
   let notificationData = {
     title: 'HabitTrack',
     body: 'Tienes un nuevo recordatorio',
-    icon: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
-    badge: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
+    icon: '/icon-192.png',
+    badge: '/badge.png',
     tag: 'habittrack-notification',
     requireInteraction: false,
     data: {}
