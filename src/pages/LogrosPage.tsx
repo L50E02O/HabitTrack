@@ -3,6 +3,7 @@ import { Trophy, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LogroCard from '../core/components/Logro/LogroCard';
 import { obtenerLogrosUsuario, obtenerProgresoLogros } from '../services/logro/logroAutoService';
+import { recalcularRachaMaxima } from '../services/racha/rachaAutoService';
 import { ILogro } from '../types/ILogro';
 import { ILogroUsuario } from '../types/ILogroUsuario';
 import { supabase } from '../config/supabase';
@@ -37,18 +38,22 @@ export const LogrosPage: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Recalcular racha máxima del usuario (asegura que esté actualizada)
+      const maxDias = await recalcularRachaMaxima(user.id);
+      setMaxStreak(maxDias);
+      console.log(`🏆 Racha máxima recalculada: ${maxDias} días`);
+
       // Obtener perfil del usuario
-      const { data: perfil } = await supabase
+      const { data: perfil, error: perfilError } = await supabase
         .from('perfil')
-        .select('id, racha_maxima')
-        .eq('user_id', user.id)
+        .select('id')
+        .eq('id', user.id)
         .single();
 
-      if (!perfil) return;
-
-      // Obtener racha máxima directamente del perfil del usuario
-      const maxDias = perfil.racha_maxima || 0;
-      setMaxStreak(maxDias);
+      if (perfilError || !perfil) {
+        console.error('Error al obtener perfil:', perfilError);
+        return;
+      }
 
       // Obtener todos los logros
       const { data: todosLosLogros } = await supabase

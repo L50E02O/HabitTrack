@@ -26,7 +26,6 @@ describe("RegistroIntervaloService", () => {
       id_habito: "habito1",
       fecha: new Date(),
       cumplido: true,
-      notas: "Completado",
       puntos: 10,
     };
 

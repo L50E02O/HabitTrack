@@ -1,113 +1,154 @@
 # HabitTrack
+
 Proyecto modelado siguiendo metodologías ágiles (Kanban y XP).
 
-## Descripción
-HabitTrack es una aplicación React (Vite + TypeScript) para seguimiento de hábitos. Este README explica cómo instalar, configurar y ejecutar el proyecto en un entorno de desarrollo local, así como las dependencias principales usadas.
+## 📖 Descripción
 
-## Requisitos previos
+HabitTrack es una aplicación React (Vite + TypeScript) para seguimiento de hábitos con funcionalidades avanzadas como:
+- Sistema de puntos y logros
+- Ranking de usuarios
+- PWA con notificaciones push
+- Sistema de protectores de racha
+- Recordatorios programados
+
+## 🚀 Inicio Rápido
+
+### Requisitos Previos
 - Node.js (recomendado >= 18)
-- npm (v8+ normalmente instalada con Node)
-- Una cuenta en Supabase si vas a usar la integración con Supabase
+- npm (v8+)
+- Una cuenta en Supabase
 
-Nota: en Windows usa PowerShell (el proyecto se probó desde PowerShell en este equipo).
+### Instalación
 
-## Instalación
 1. Clona el repositorio:
-
-```powershell
+```bash
 git clone https://github.com/L50E02O/HabitTrack.git
 cd HabitTrack
 ```
 
 2. Instala las dependencias:
-
-```powershell
+```bash
 npm install
 ```
 
-Si necesitas instalar paquetes adicionales mencionados durante el desarrollo, aquí están los comandos que se usaron en este proyecto:
-
-```powershell
-# Dependencias de runtime
-npm install react-router-dom @supabase/supabase-js
-
-# Dependencias de desarrollo / testing
-npm install --save-dev vitest @testing-library/react @testing-library/jest-dom
-```
-
-## Scripts útiles
-Los scripts definidos en `package.json` en este proyecto son:
-
-- `npm run dev` — arranca el servidor de desarrollo (Vite).
-- `npm run build` — compila la app (TypeScript + Vite build).
-- `npm run preview` — sirve la build para probarla localmente.
-- `npm run lint` — lanza ESLint (según configuración del repo).
-
-Ejecutar en PowerShell:
-
-```powershell
-npm run dev
-```
-
-Para ejecutar pruebas con Vitest (no hay script `test` por defecto en `package.json`), puedes usar:
-
-```powershell
-npx vitest
-# o para ejecutar en modo watch
-npx vitest --watch
-```
-
-## Variables de entorno (Supabase)
-Si usas Supabase en el cliente, Vite requiere que las variables de entorno públicas empiecen con `VITE_`. Crea un archivo `.env` en la raíz del proyecto con al menos:
-
-```text
+3. Configura las variables de entorno:
+Crea un archivo `.env` en la raíz:
+```env
 VITE_SUPABASE_URL=https://tu-supabase-url.supabase.co
 VITE_SUPABASE_ANON_KEY=tu-anon-key
 ```
 
-No comites estas claves al repositorio. Para producción usa secretos o variables del entorno del proveedor de hosting.
-
-## Dependencias principales detectadas
-Basado en `package.json`, estas son las dependencias y devDependencies relevantes del proyecto:
-
-- Dependencias (runtime):
-	- react ^19.1.1
-	- react-dom ^19.1.1
-	- react-router-dom ^7.9.5
-	- @supabase/supabase-js ^2.78.0
-
-- DevDependencies (testing, build, lint):
-	- vite ^7.1.7
-	- typescript ~5.9.3
-	- vitest ^4.0.5
-	- @testing-library/react ^16.3.0
-	- @testing-library/jest-dom ^6.9.1
-	- eslint, @vitejs/plugin-react, plugins y tipos para TS/React
-
-Si agregaste paquetes durante tu sesión local (por ejemplo con `npm install`), ya deberían aparecer en `package.json` y en `node_modules`.
-
-## Notas rápidas y buenas prácticas
-- Usa variables con prefijo `VITE_` para exponer las que necesite el cliente.
-- Para producción, protege tus claves (usa server-side functions o variables de entorno en el hosting).
-- Añade un script `test` en `package.json` si prefieres ejecutar pruebas con `npm test`. Por ejemplo:
-
-```json
-"scripts": {
-	"test": "vitest"
-}
+4. Inicia el servidor de desarrollo:
+```bash
+npm run dev
 ```
 
-## Cómo contribuir
-- Sigue las normas de estilo del proyecto (ESLint configurado).
-- Abre issues o pull requests en GitHub y describe claramente los cambios.
+## 📚 Scripts Disponibles
 
-## Recursos
-- Vite: https://vitejs.dev/
-- React Router: https://reactrouter.com/
-- Supabase JS: https://supabase.com/docs/reference/javascript
-- Vitest: https://vitest.dev/
+- `npm run dev` - Servidor de desarrollo (Vite)
+- `npm run build` - Compila la aplicación
+- `npm run preview` - Previsualiza la build
+- `npm test` - Ejecuta los tests
+- `npm run lint` - Ejecuta ESLint
+- `npm run dev:api` - Servidor API local (requiere variables de entorno)
+- `npm run generate-icons` - Genera iconos PWA
+
+## 🧪 Testing
+
+El proyecto incluye tests completos con Vitest:
+
+```bash
+# Ejecutar todos los tests
+npm test
+
+# Modo watch
+npm test -- --watch
+
+# Con cobertura
+npm test -- --coverage
+```
+
+Ver [docs/TESTS_README.md](./docs/TESTS_README.md) para más detalles.
+
+## 📋 Documentación
+
+Toda la documentación está en la carpeta `docs/`:
+
+- **[docs/README.md](./docs/README.md)** - Índice de documentación
+- **[docs/PWA_SETUP.md](./docs/PWA_SETUP.md)** - Configuración PWA y notificaciones
+- **[docs/RANKING_FIX.md](./docs/RANKING_FIX.md)** - Sistema de ranking
+- **[docs/TESTS_README.md](./docs/TESTS_README.md)** - Guía completa de testing
+- **[docs/BACKEND_VERIFICATION.md](./docs/BACKEND_VERIFICATION.md)** - Verificación del backend
+
+## 🛠️ Tecnologías
+
+### Dependencias Principales
+- **React** ^19.1.1
+- **React Router** ^7.9.5
+- **Supabase** ^2.78.0
+- **Lucide React** ^0.552.0
+
+### DevDependencies
+- **Vite** ^7.1.7
+- **TypeScript** ~5.9.3
+- **Vitest** ^4.0.5
+- **Testing Library** ^16.3.0
+- **Vite PWA Plugin** ^1.1.0
+
+## 📁 Estructura del Proyecto
+
+```
+HabitTrack/
+├── docs/              # Documentación
+├── public/            # Archivos estáticos (PWA)
+├── src/
+│   ├── config/       # Configuración (Supabase)
+│   ├── core/         # Componentes y lógica core
+│   ├── pages/        # Páginas de la aplicación
+│   ├── services/     # Servicios y lógica de negocio
+│   ├── types/        # Tipos TypeScript
+│   └── utils/        # Utilidades (PWA, etc.)
+├── scripts/          # Scripts de utilidad
+└── database/         # Migraciones SQL
+```
+
+## ✅ Funcionalidades
+
+- ✅ Sistema de hábitos con categorías y dificultades
+- ✅ Sistema de puntos y logros automáticos
+- ✅ Ranking de usuarios (máximo 100)
+- ✅ PWA instalable con notificaciones
+- ✅ Sistema de protectores de racha
+- ✅ Recordatorios programados
+- ✅ Tema oscuro/claro
+- ✅ Responsive design
+
+## 🔒 Seguridad
+
+- Variables de entorno para credenciales
+- RLS (Row Level Security) en Supabase
+- Validación de datos en frontend y backend
+
+## 🤝 Contribuir
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## 📝 Licencia
+
+Este proyecto es privado.
+
+## 🔗 Recursos
+
+- [Vite](https://vitejs.dev/)
+- [React Router](https://reactrouter.com/)
+- [Supabase](https://supabase.com/)
+- [Vitest](https://vitest.dev/)
+- [PWA Guide](https://web.dev/progressive-web-apps/)
 
 ---
 
-Si quieres, puedo añadir un script de `test` al `package.json`, crear ejemplos de configuración `.env.example` o añadir instrucciones para desplegar en Netlify/Vercel. ¿Qué prefieres que haga ahora?
-
+Para más información, consulta la [documentación completa](./docs/README.md).

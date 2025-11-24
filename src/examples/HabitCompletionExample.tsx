@@ -31,11 +31,6 @@ export const HabitCompletionExample = () => {
       // pero no los retorna directamente en ProgressResponse
       // Los logros se manejan automáticamente dentro del servicio
       console.log(result.message);
-      
-      if (result.rachaInfo) {
-        console.log(`Racha: ${result.rachaInfo.diasConsecutivos} días consecutivos`);
-        console.log(result.rachaInfo.rachaMessage);
-      }
 
     } catch (error) {
       console.error('Error al completar hábito:', error);

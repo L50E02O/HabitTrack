@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { Moon, Sun, Plus, LogOut, ChevronRight, ShoppingCart, Sprout } from 'lucide-react';
@@ -6,8 +6,11 @@ import HabitCard from '../core/components/Auth/HabitCard';
 import type { IHabito } from '../types/IHabito';
 import { getAllHabitos, deleteHabito } from '../services/habito/habitoService';
 import { recordHabitProgress, getHabitCurrentProgress } from '../services/habito/progressService';
-import { checkAndUpdateAutoProgress } from '../services/habito/autoProgressService';
+// La lógica de rachas ahora la maneja el backend (bright-processor Edge Function)
+// import { checkAndUpdateAutoProgress } from '../services/habito/autoProgressService';
+import { recalcularRachaMaxima } from '../services/racha/rachaAutoService';
 import { getRachasMultiplesHabitos } from '../services/racha/rachaAutoService';
+import { programarNotificacionesDiarias, cancelarProgramacionNotificaciones } from '../services/recordatorio/notificacionService';
 import { 
     asignarProtectorAHabito, 
     quitarProtectorDeHabito, 
@@ -49,6 +52,7 @@ export default function Dashboard() {
     const [openLogros, setOpenLogros] = useState(false);
     const [openTienda, setOpenTienda] = useState(false);
     const [puntosUsuario, setPuntosUsuario] = useState(0);
+    const notificacionesIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // Hook para detectar cambios de rango
     const { rangoAnterior, rangoActual, huboRankUp, resetRankUp } = useRankDetection(puntosUsuario);
@@ -102,10 +106,16 @@ export default function Dashboard() {
                 const puntosActuales = await getPuntosActuales(session.user.id);
                 setPuntosUsuario(puntosActuales);
 
-                // NUEVO: Verificar automáticamente el progreso y actualizar rachas
-                console.log('🤖 Verificando progreso automático al cargar dashboard...');
-                const resultadoAuto = await checkAndUpdateAutoProgress(session.user.id);
-                console.log(`🤖 Resultado auto-progreso: ${resultadoAuto.mensaje}`);
+                // Inicializar notificaciones programadas
+                const intervalId = programarNotificacionesDiarias(session.user.id);
+                notificacionesIntervalRef.current = intervalId;
+
+                // NOTA: La lógica de rachas ahora la maneja el backend (bright-processor Edge Function)
+                // que se ejecuta todos los días a las 00:00 UTC
+                console.log('ℹ️ Las rachas se actualizan automáticamente por el backend');
+
+                // Recalcular racha máxima del usuario al entrar al dashboard
+                await recalcularRachaMaxima(session.user.id);
 
                 // Si se actualizaron rachas, recargar
                 if (resultadoAuto.rachasActualizadas.length > 0) {
@@ -142,31 +152,27 @@ export default function Dashboard() {
         };
 
         run();
+        
+        // Función de limpieza
+        return () => {
+            if (notificacionesIntervalRef.current) {
+                cancelarProgramacionNotificaciones(notificacionesIntervalRef.current);
+                notificacionesIntervalRef.current = null;
+            }
+        };
     }, [navigate]);
 
-    // Verificar progreso y rachas automáticamente cada 30 segundos
+    // Recargar rachas periódicamente (el backend las actualiza, solo las mostramos)
     useEffect(() => {
         if (!user || habitos.length === 0) return;
 
         const intervalId = setInterval(async () => {
-            console.log('🔍 Verificación automática periódica...');
+            console.log('🔍 Recargando rachas desde el backend...');
             
-            // 1. Verificar y actualizar progreso automáticamente
-            const resultadoAuto = await checkAndUpdateAutoProgress(user.id);
-            
-            // 2. Recargar rachas
+            // Solo recargar rachas para mostrarlas (el backend las actualiza)
             const habitoIds = habitos.map(h => h.id_habito);
             const rachasMapNuevo = await getRachasMultiplesHabitos(habitoIds);
-
-            // 3. Si se actualizaron rachas, notificar
-            if (resultadoAuto.rachasActualizadas.length > 0) {
-                setHabitosRachas(rachasMapNuevo);
-                setNotification({
-                    message: `🔥 ${resultadoAuto.rachasActualizadas.length} racha${resultadoAuto.rachasActualizadas.length > 1 ? 's actualizadas' : ' actualizada'} automáticamente`,
-                    type: 'success',
-                });
-                setTimeout(() => setNotification(null), 4000);
-            }
+            setHabitosRachas(rachasMapNuevo);
 
             // 4. Detectar rachas rotas
             Object.keys(rachasMapNuevo).forEach(habitoId => {
@@ -252,15 +258,11 @@ export default function Dashboard() {
                 [habito.id_habito]: result.newProgress,
             }));
 
-            // NUEVO: Verificar progreso automático después del clic
-            // Esto actualizará la racha si alcanzó meta_repeticion
-            const resultadoAuto = await checkAndUpdateAutoProgress(user.id);
-            if (resultadoAuto.rachasActualizadas.length > 0) {
-                const habitoIds = habitos.map(h => h.id_habito);
-                const rachasActualizadas = await getRachasMultiplesHabitos(habitoIds);
-                setHabitosRachas(rachasActualizadas);
-                console.log(`🔥 Racha actualizada automáticamente`);
-            }
+            // NOTA: La lógica de rachas ahora la maneja el backend (bright-processor Edge Function)
+            // Solo recargamos las rachas para mostrarlas
+            const habitoIds = habitos.map(h => h.id_habito);
+            const rachasActualizadas = await getRachasMultiplesHabitos(habitoIds);
+            setHabitosRachas(rachasActualizadas);
 
             // Actualizar puntos del usuario para detectar cambios de rango
             const puntosActuales = await getPuntosActuales(user.id);
