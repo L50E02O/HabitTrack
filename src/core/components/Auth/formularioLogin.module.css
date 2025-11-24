@@ -47,7 +47,7 @@
 
 .input:focus {
   outline: none;
-  border-color: #f5a623;
+  border-color: #23f5a1;
   background-color: white;
 }
 
@@ -76,7 +76,7 @@
 }
 
 .forgotLink {
-  color: #f5a623;
+  color: #10b981;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -89,7 +89,7 @@
 .botonLogin {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #f5a623 0%, #f39c12 100%);
+  background: linear-gradient(135deg, #10b981 0%, #10b981 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -97,12 +97,12 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(245, 166, 35, 0.3);
+  box-shadow: 0 4px 12px rgba(35, 245, 116, 0.3);
 }
 
 .botonLogin:hover {
-  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-  box-shadow: 0 6px 16px rgba(245, 166, 35, 0.4);
+  background: linear-gradient(135deg, #10b981 0%, #10b981 100%);
+  box-shadow: 0 6px 16px rgba(35, 245, 116, 0.4);
   transform: translateY(-2px);
 }
 
