@@ -38,6 +38,52 @@
   font-family: monospace;
 }
 
+.install-pwa-info {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(74, 144, 226, 0.1);
+  border: 1px solid rgba(74, 144, 226, 0.2);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.install-pwa-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.status-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.status-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.status-title {
+  font-weight: 600;
+  color: #4a90e2;
+  margin-bottom: 2px;
+}
+
+.status-subtitle {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.status-hint {
+  font-size: 10px;
+  color: #888;
+  font-style: italic;
+  margin-top: 4px;
+}
+
 /* Modo oscuro */
 .dark .install-pwa-button {
   background: linear-gradient(135deg, #5a9fe2 0%, #4580cd 100%);
@@ -52,5 +98,22 @@
 .dark .install-pwa-debug {
   color: #aaa;
   background: rgba(255, 255, 255, 0.05);
+}
+
+.dark .install-pwa-info {
+  background: rgba(90, 159, 226, 0.15);
+  border-color: rgba(90, 159, 226, 0.3);
+}
+
+.dark .status-title {
+  color: #5a9fe2;
+}
+
+.dark .status-subtitle {
+  color: #aaa;
+}
+
+.dark .status-hint {
+  color: #888;
 }
 
