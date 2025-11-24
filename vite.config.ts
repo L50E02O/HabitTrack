@@ -9,6 +9,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['manifest.json'],
+      filename: 'sw.js',
+      strategies: 'generateSW',
+      injectRegister: 'auto',
       manifest: {
         name: 'HabitTrack - Seguimiento de Hábitos',
         short_name: 'HabitTrack',
