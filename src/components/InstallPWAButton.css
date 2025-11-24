@@ -1,0 +1,56 @@
+.install-pwa-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.3);
+}
+
+.install-pwa-button:hover {
+  background: linear-gradient(135deg, #357abd 0%, #2a5f8f 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(74, 144, 226, 0.4);
+}
+
+.install-pwa-button:active {
+  transform: translateY(0);
+}
+
+.install-pwa-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.install-pwa-debug {
+  font-size: 10px;
+  color: #666;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+/* Modo oscuro */
+.dark .install-pwa-button {
+  background: linear-gradient(135deg, #5a9fe2 0%, #4580cd 100%);
+  box-shadow: 0 2px 4px rgba(90, 159, 226, 0.3);
+}
+
+.dark .install-pwa-button:hover {
+  background: linear-gradient(135deg, #4580cd 0%, #3570bd 100%);
+  box-shadow: 0 4px 8px rgba(90, 159, 226, 0.4);
+}
+
+.dark .install-pwa-debug {
+  color: #aaa;
+  background: rgba(255, 255, 255, 0.05);
+}
+

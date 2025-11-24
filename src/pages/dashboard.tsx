@@ -29,6 +29,7 @@ import RankUpModal from '../core/components/Ranking/RankUpModal';
 import { useRankDetection } from '../hooks/useRankDetection';
 import { getPuntosActuales } from '../services/protector/protectorService';
 import { PermisosNotificacion } from '../components/PermisosNotificacion';
+import { InstallPWAButton } from '../components/InstallPWAButton';
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -392,6 +393,8 @@ export default function Dashboard() {
                 </div>
 
                 <div className="headerActions">
+                    <InstallPWAButton />
+                    
                     <button
                         className="themeToggle"
                         onClick={() => setDarkMode(!darkMode)}
