@@ -37,13 +37,29 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
       - name: Deploy to Vercel
         id: vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          DEPLOY_URL=$(npx vercel --prod --yes --token=$VERCEL_TOKEN --confirm | grep -Eo 'https://[^ ]+\.vercel\.app' | tail -n 1)
-          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+          echo "🚀 Iniciando deployment a Vercel..."
+          DEPLOY_OUTPUT=$(vercel --prod --yes --token=$VERCEL_TOKEN 2>&1)
+          echo "$DEPLOY_OUTPUT"
+          
+          # Intentar extraer la URL del deployment
+          DEPLOY_URL=$(echo "$DEPLOY_OUTPUT" | grep -oE 'https://[a-zA-Z0-9-]+\.vercel\.app' | head -n 1 || echo "")
+          
+          if [ -z "$DEPLOY_URL" ]; then
+            echo "⚠️ No se pudo extraer la URL automáticamente, pero el deployment puede haber sido exitoso"
+            echo "Revisa el output anterior para la URL del deployment"
+            # No fallar el workflow, solo advertir
+          else
+            echo "✅ Deployment exitoso: $DEPLOY_URL"
+            echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+          fi
 
       - name: Register deployment in GitHub
         uses: actions/github-script@v7
