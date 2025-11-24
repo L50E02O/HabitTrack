@@ -76,7 +76,6 @@ export async function enviarNotificacionViaSW(
             badge: 'https://cdn-icons-png.flaticon.com/192/2234/2234767.png',
             tag: opciones?.tag || `habittrack-${Date.now()}`,
             requireInteraction: opciones?.requireInteraction || false,
-            vibrate: [200, 100, 200],
             data: opciones?.data || {},
             ...opciones
           });
