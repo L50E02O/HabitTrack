@@ -222,31 +222,9 @@ export function InstallPWAButton() {
     }
   };
 
-  // No mostrar si ya está instalado
-  if (isInstalled) {
+  // No mostrar si ya está instalado o si no hay prompt disponible
+  if (isInstalled || !showButton || !deferredPrompt) {
     return null;
-  }
-
-  // Mostrar información de diagnóstico si no hay prompt disponible
-  if (!showButton || !deferredPrompt) {
-    return (
-      <div className="install-pwa-info">
-        <div className="install-pwa-status">
-          <span className="status-icon">⏳</span>
-          <div className="status-text">
-            <div className="status-title">App lista para instalar</div>
-            <div className="status-subtitle">
-              {installabilityStatus.includes('esperando') 
-                ? 'El navegador mostrará el botón de instalación automáticamente'
-                : installabilityStatus}
-            </div>
-            <div className="status-hint">
-              💡 También puedes instalar desde el menú del navegador (⋮ → Instalar aplicación)
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (

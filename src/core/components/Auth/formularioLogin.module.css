@@ -1,22 +1,23 @@
 .loginForm {
   background-color: white;
-  padding: 40px;
-  border-radius: 16px;
+  padding: clamp(24px, 5vw, 32px);
+  border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   width: 100%;
   max-width: 400px;
+  box-sizing: border-box;
 }
 
 .inputGroup {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .label {
   display: block;
-  font-size: 14px;
+  font-size: clamp(13px, 3vw, 14px);
   font-weight: 600;
   color: #1a1a1a;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .inputWrapper {
@@ -27,17 +28,19 @@
 
 .inputIcon {
   position: absolute;
-  left: 16px;
+  left: 12px;
   color: #999;
   pointer-events: none;
   z-index: 1;
+  width: 18px;
+  height: 18px;
 }
 
 .input {
   width: 100%;
-  padding: 14px 16px;
-  padding-left: 45px;
-  font-size: 15px;
+  padding: 12px 14px;
+  padding-left: 40px;
+  font-size: clamp(14px, 3vw, 15px);
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background-color: #f9f9f9;
@@ -53,33 +56,40 @@
 
 .input::placeholder {
   color: #b0b0b0;
+  font-size: clamp(13px, 3vw, 14px);
 }
 
 .rememberContainer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .rememberLabel {
   display: flex;
   align-items: center;
-  font-size: 14px;
+  font-size: clamp(12px, 3vw, 13px);
   color: #6b6b6b;
   cursor: pointer;
 }
 
 .rememberCheckbox {
-  margin-right: 8px;
+  margin-right: 6px;
   cursor: pointer;
+  width: 16px;
+  height: 16px;
 }
 
 .forgotLink {
   color: #10b981;
   text-decoration: none;
-  font-size: 14px;
+  font-size: clamp(12px, 3vw, 13px);
   font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .forgotLink:hover {
@@ -88,12 +98,12 @@
 
 .botonLogin {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   background: linear-gradient(135deg, #10b981 0%, #10b981 100%);
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: clamp(14px, 3vw, 15px);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -108,4 +118,43 @@
 
 .botonLogin:active {
   transform: translateY(0);
+}
+
+/* Responsive para móviles pequeños */
+@media (max-width: 480px) {
+  .loginForm {
+    padding: 20px;
+    border-radius: 10px;
+  }
+
+  .inputGroup {
+    margin-bottom: 14px;
+  }
+
+  .input {
+    padding: 10px 12px;
+    padding-left: 36px;
+  }
+
+  .inputIcon {
+    left: 10px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .rememberContainer {
+    margin-bottom: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .forgotLink {
+    width: 100%;
+    text-align: left;
+  }
+
+  .botonLogin {
+    padding: 11px;
+  }
 }

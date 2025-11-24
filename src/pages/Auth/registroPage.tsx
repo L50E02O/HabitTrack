@@ -4,6 +4,7 @@ import FormularioRegistro from "../../core/components/Auth/formularioRegistro";
 import { signUp } from "../../services/auth/authService";
 import { createPerfil } from "../../services/perfil/perfilService";
 import styles from "./registroPage.module.css";
+import { ArrowLeft } from "lucide-react";
  
 export default function RegistroPage() {
 	const navigate = useNavigate();
@@ -38,6 +39,16 @@ export default function RegistroPage() {
 
 	return (
 		<div className={styles.authPage}>
+			<button 
+				className={styles.backButton}
+				onClick={() => navigate("/")}
+				aria-label="Volver al inicio"
+				title="Volver al inicio"
+			>
+				<ArrowLeft size={20} />
+				<span>Volver</span>
+			</button>
+			
 			<div className={styles.iconContainer}>
 				<span className={styles.icon}>✓</span>
 			</div>

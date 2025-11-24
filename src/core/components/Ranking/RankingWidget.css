@@ -5,30 +5,29 @@
     position: fixed;
     bottom: 9.5rem;
     right: 2rem;
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     background: linear-gradient(135deg, #FFD700, #FFA500);
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 24px rgba(255, 215, 0, 0.4),
-                0 0 40px rgba(255, 215, 0, 0.2);
+    border: none;
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1001;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    animation: pulse-gold-ranking 2s infinite;
 }
 
 .ranking-float-button:hover {
-    transform: scale(1.1) translateY(-4px);
-    box-shadow: 0 12px 32px rgba(255, 215, 0, 0.5),
-                0 0 60px rgba(255, 215, 0, 0.3);
+    transform: scale(1.1);
+    box-shadow: 0 6px 30px rgba(255, 215, 0, 0.6);
 }
 
 .ranking-float-button:active {
-    transform: scale(1.05);
+    transform: scale(0.95);
 }
 
 .ranking-float-button.loading {
@@ -40,6 +39,15 @@
 @keyframes pulse-loading {
     0%, 100% { opacity: 0.6; }
     50% { opacity: 0.8; }
+}
+
+@keyframes pulse-gold-ranking {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 30px rgba(255, 215, 0, 0.7);
+    }
 }
 
 .ranking-float-button svg {
@@ -78,7 +86,7 @@
     bottom: 11rem;
     right: 2rem;
     width: 400px;
-    max-height: 600px;
+    max-height: calc(100vh - 12rem);
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     border-radius: 16px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -86,6 +94,8 @@
     z-index: 1000;
     border: 1px solid rgba(255, 255, 255, 0.1);
     animation: slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
 }
 
 @keyframes slide-up {
@@ -128,8 +138,10 @@
 
 .ranking-content-expanded {
     padding: 1.5rem;
-    max-height: 520px;
+    flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
 }
 
 .widget-skeleton {
@@ -557,13 +569,19 @@
 }
 
 /* Responsive */
-/* Responsive */
+@media (max-width: 1024px) {
+    .ranking-widget-expanded {
+        width: 380px;
+        max-height: calc(100vh - 13rem);
+    }
+}
+
 @media (max-width: 768px) {
     .ranking-float-button {
         bottom: 9rem;
-        right: 1.5rem;
-        width: 56px;
-        height: 56px;
+        right: 1rem;
+        width: 48px;
+        height: 48px;
     }
 
     .ranking-float-button svg {
@@ -578,19 +596,22 @@
 
     .ranking-widget-expanded {
         bottom: 9rem;
-        right: 1.5rem;
-        left: 1.5rem;
+        right: 1rem;
+        left: 1rem;
         width: auto;
-        max-height: 500px;
+        max-width: calc(100vw - 2rem);
+        max-height: calc(100vh - 11rem);
     }
 
     .ranking-header-expanded {
         padding: 0.875rem 1rem;
+        flex-shrink: 0;
     }
 
     .ranking-content-expanded {
         padding: 1rem;
-        max-height: 420px;
+        flex: 1;
+        min-height: 0;
     }
 
     .tu-rango-section,
@@ -603,7 +624,7 @@
         height: 50px;
     }
 
-    .rango-nome {
+    .rango-nombre {
         font-size: 1.125rem;
     }
 
@@ -615,20 +636,128 @@
         width: 36px;
         height: 36px;
     }
+
+    .progreso-bar {
+        height: 20px;
+    }
+
+    .progreso-porcentaje {
+        font-size: 0.7rem;
+    }
 }
 
 @media (max-width: 480px) {
     .ranking-float-button {
         bottom: 8.5rem;
-        width: 52px;
-        height: 52px;
+        right: 1rem;
+        width: 48px;
+        height: 48px;
     }
 
     .ranking-widget-expanded {
         bottom: 8.5rem;
-        right: 1rem;
-        left: 1rem;
-        max-height: 450px;
+        right: 0.75rem;
+        left: 0.75rem;
+        max-width: calc(100vw - 1.5rem);
+        max-height: calc(100vh - 10rem);
+        border-radius: 12px;
+    }
+
+    .ranking-header-expanded {
+        padding: 0.75rem;
+    }
+
+    .ranking-content-expanded {
+        padding: 0.875rem;
+    }
+
+    .tu-rango-section,
+    .top-usuarios-section {
+        padding: 0.875rem;
+    }
+
+    .rango-icon-container {
+        width: 45px;
+        height: 45px;
+    }
+
+    .rango-nombre {
+        font-size: 1rem;
+    }
+
+    .rango-posicion {
+        font-size: 0.8rem;
+    }
+
+    .progreso-header {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .progreso-label,
+    .progreso-puntos {
+        font-size: 0.8rem;
+    }
+
+    .section-title {
+        font-size: 0.9rem;
+    }
+
+    .item-nombre {
+        font-size: 0.85rem;
+    }
+
+    .item-rango {
+        font-size: 0.7rem;
+    }
+
+    .item-puntos {
+        font-size: 0.9rem;
+    }
+
+    .btn-ver-completo {
+        padding: 0.625rem 0.875rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Ajustes para cuando el zoom está al 100% o más */
+@media (max-height: 700px) {
+    .ranking-widget-expanded {
+        max-height: calc(100vh - 10rem);
+    }
+
+    .ranking-content-expanded {
+        padding: 1rem;
+    }
+
+    .tu-rango-section,
+    .top-usuarios-section {
+        padding: 1rem;
+    }
+}
+
+@media (max-height: 600px) {
+    .ranking-widget-expanded {
+        max-height: calc(100vh - 8rem);
+    }
+
+    .ranking-content-expanded {
+        padding: 0.875rem;
+    }
+
+    .tu-rango-section,
+    .top-usuarios-section {
+        padding: 0.875rem;
+    }
+
+    .rango-icon-container {
+        width: 45px;
+        height: 45px;
+    }
+
+    .rango-nombre {
+        font-size: 1rem;
     }
 }
 
