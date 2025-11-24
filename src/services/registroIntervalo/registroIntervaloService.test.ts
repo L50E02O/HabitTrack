@@ -22,11 +22,11 @@ describe("RegistroIntervaloService", () => {
 
   it("deberia crear un registro de intervalo correctamente", async () => {
     const mockRegistro = {
-      id_registro: "1",
       id_habito: "habito1",
       fecha: new Date(),
       cumplido: true,
       puntos: 10,
+      progreso: 1,
     };
 
     (supabase.from as any).mockReturnValue({

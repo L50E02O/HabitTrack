@@ -117,18 +117,6 @@ export default function Dashboard() {
                 // Recalcular racha máxima del usuario al entrar al dashboard
                 await recalcularRachaMaxima(session.user.id);
 
-                // Si se actualizaron rachas, recargar
-                if (resultadoAuto.rachasActualizadas.length > 0) {
-                    const rachasMapActualizado = await getRachasMultiplesHabitos(habitoIds);
-                    setHabitosRachas(rachasMapActualizado);
-                    
-                    setNotification({
-                        message: `🔥 ${resultadoAuto.rachasActualizadas.length} racha${resultadoAuto.rachasActualizadas.length > 1 ? 's actualizadas' : ' actualizada'} automáticamente`,
-                        type: 'success',
-                    });
-                    setTimeout(() => setNotification(null), 4000);
-                }
-
                 // Detectar si alguna racha se rompió (comparar con el estado anterior)
                 Object.keys(rachasMapNuevo).forEach(habitoId => {
                     const rachaAnterior = habitosRachas[habitoId] || 0;
