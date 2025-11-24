@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { actualizarRachaMaximaEnPerfil } from './rachaAutoService';
 import { supabase } from '../../config/supabase';
+import { verificarYDesbloquearLogros } from '../logro/logroAutoService';
 
 vi.mock('../../config/supabase', () => ({
   supabase: {
@@ -8,47 +9,49 @@ vi.mock('../../config/supabase', () => ({
   },
 }));
 
+vi.mock('../logro/logroAutoService', () => ({
+  verificarYDesbloquearLogros: vi.fn(),
+}));
+
 describe('actualizarRachaMaximaEnPerfil', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock por defecto para verificarYDesbloquearLogros
+    (verificarYDesbloquearLogros as any).mockResolvedValue({
+      logrosNuevos: [],
+      protectoresGanados: 0,
+      mensaje: '',
+    });
   });
 
   it('debe calcular la racha máxima entre TODOS los hábitos del usuario', async () => {
     const mockFrom = vi.fn().mockImplementation((table) => {
-      if (table === 'habito') {
+      if (table === 'racha') {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockResolvedValue({
               data: [
-                { id_habito: 'habito-1' },
-                { id_habito: 'habito-2' },
-                { id_habito: 'habito-3' },
-              ],
-              error: null,
-            }),
-          }),
-        };
-      } else if (table === 'registro_intervalo') {
-        return {
-          select: vi.fn().mockReturnValue({
-            in: vi.fn().mockResolvedValue({
-              data: [
-                { id_registro: 'reg-1', id_habito: 'habito-1' },
-                { id_registro: 'reg-2', id_habito: 'habito-2' },
-                { id_registro: 'reg-3', id_habito: 'habito-3' },
-              ],
-              error: null,
-            }),
-          }),
-        };
-      } else if (table === 'racha') {
-        return {
-          select: vi.fn().mockReturnValue({
-            in: vi.fn().mockResolvedValue({
-              data: [
-                { dias_consecutivos: 10 }, // Hábito 1: 10 días
-                { dias_consecutivos: 25 }, // Hábito 2: 25 días ← LA MÁS ALTA
-                { dias_consecutivos: 7 },  // Hábito 3: 7 días
+                { 
+                  dias_consecutivos: 10,
+                  registro_intervalo: {
+                    id_habito: 'habito-1',
+                    habito: { id_perfil: 'user-123' }
+                  }
+                },
+                { 
+                  dias_consecutivos: 25,
+                  registro_intervalo: {
+                    id_habito: 'habito-2',
+                    habito: { id_perfil: 'user-123' }
+                  }
+                },
+                { 
+                  dias_consecutivos: 7,
+                  registro_intervalo: {
+                    id_habito: 'habito-3',
+                    habito: { id_perfil: 'user-123' }
+                  }
+                },
               ],
               error: null,
             }),
@@ -81,39 +84,28 @@ describe('actualizarRachaMaximaEnPerfil', () => {
     await actualizarRachaMaximaEnPerfil('user-123', 15);
 
     // Verificar que se llamó a las tablas correctas
-    expect(mockFrom).toHaveBeenCalledWith('habito');
-    expect(mockFrom).toHaveBeenCalledWith('registro_intervalo');
     expect(mockFrom).toHaveBeenCalledWith('racha');
     expect(mockFrom).toHaveBeenCalledWith('perfil');
+    
+    // Verificar que se llamó a verificarYDesbloquearLogros después de actualizar
+    expect(verificarYDesbloquearLogros).toHaveBeenCalledWith('user-123', 25);
   });
 
   it('debe actualizar con la racha actual si es mayor que todas las demás', async () => {
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const mockFrom = vi.fn().mockImplementation((table) => {
-      if (table === 'habito') {
+      if (table === 'racha') {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockResolvedValue({
-              data: [{ id_habito: 'habito-1' }],
-              error: null,
-            }),
-          }),
-        };
-      } else if (table === 'registro_intervalo') {
-        return {
-          select: vi.fn().mockReturnValue({
-            in: vi.fn().mockResolvedValue({
-              data: [{ id_registro: 'reg-1', id_habito: 'habito-1' }],
-              error: null,
-            }),
-          }),
-        };
-      } else if (table === 'racha') {
-        return {
-          select: vi.fn().mockReturnValue({
-            in: vi.fn().mockResolvedValue({
               data: [
-                { dias_consecutivos: 10 }, // Racha existente: 10 días
+                { 
+                  dias_consecutivos: 10,
+                  registro_intervalo: {
+                    id_habito: 'habito-1',
+                    habito: { id_perfil: 'user-123' }
+                  }
+                },
               ],
               error: null,
             }),
@@ -146,7 +138,7 @@ describe('actualizarRachaMaximaEnPerfil', () => {
 
     // Debe actualizar a 30
     expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('5 → 30')
+      expect.stringContaining('máxima: 30')
     );
     consoleSpy.mockRestore();
   });
@@ -154,29 +146,19 @@ describe('actualizarRachaMaximaEnPerfil', () => {
   it('NO debe actualizar si ninguna racha supera el récord actual en perfil', async () => {
     const mockUpdate = vi.fn();
     const mockFrom = vi.fn().mockImplementation((table) => {
-      if (table === 'habito') {
+      if (table === 'racha') {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockResolvedValue({
-              data: [{ id_habito: 'habito-1' }],
-              error: null,
-            }),
-          }),
-        };
-      } else if (table === 'registro_intervalo') {
-        return {
-          select: vi.fn().mockReturnValue({
-            in: vi.fn().mockResolvedValue({
-              data: [{ id_registro: 'reg-1' }],
-              error: null,
-            }),
-          }),
-        };
-      } else if (table === 'racha') {
-        return {
-          select: vi.fn().mockReturnValue({
-            in: vi.fn().mockResolvedValue({
-              data: [{ dias_consecutivos: 10 }],
+              data: [
+                { 
+                  dias_consecutivos: 10,
+                  registro_intervalo: {
+                    id_habito: 'habito-1',
+                    habito: { id_perfil: 'user-123' }
+                  }
+                },
+              ],
               error: null,
             }),
           }),
@@ -210,11 +192,11 @@ describe('actualizarRachaMaximaEnPerfil', () => {
 
   it('debe usar la racha actual si el usuario no tiene hábitos', async () => {
     const mockFrom = vi.fn().mockImplementation((table) => {
-      if (table === 'habito') {
+      if (table === 'racha') {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockResolvedValue({
-              data: [], // Sin hábitos
+              data: [], // Sin rachas (sin hábitos)
               error: null,
             }),
           }),
@@ -250,13 +232,27 @@ describe('actualizarRachaMaximaEnPerfil', () => {
   it('debe manejar errores sin lanzar excepciones', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const mockFrom = vi.fn().mockImplementation((table) => {
-      if (table === 'habito') {
+      if (table === 'racha') {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockResolvedValue({
               data: null,
               error: new Error('Database error'),
             }),
+          }),
+        };
+      } else if (table === 'perfil') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({
+                data: { racha_maxima: 0 },
+                error: null,
+              }),
+            }),
+          }),
+          update: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ data: {}, error: null }),
           }),
         };
       }

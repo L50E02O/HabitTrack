@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Bell } from 'lucide-react';
 import { supabase } from '../../../config/supabase';
+import { solicitarPermisoNotificaciones } from '../../../services/recordatorio/notificacionService';
 import './RecordatorioConfig.css';
 
 interface RecordatorioConfigProps {
@@ -58,9 +59,25 @@ export default function RecordatorioConfig({ habitoId, nombreHabito, onClose }: 
             }
 
             console.log('✅ Recordatorio creado:', data);
+            
+            // Solicitar permisos de notificaciones si no los tiene
+            try {
+                const permiso = await solicitarPermisoNotificaciones();
+                if (permiso === 'granted') {
+                    console.log('✅ Permisos de notificaciones otorgados');
+                } else if (permiso === 'denied') {
+                    console.warn('⚠️ Permisos de notificaciones denegados');
+                    setMensaje({ 
+                        texto: `✅ Recordatorio guardado, pero las notificaciones están deshabilitadas. Actívalas en la configuración del navegador.`, 
+                        tipo: 'success' 
+                    });
+                }
+            } catch (error) {
+                console.warn('⚠️ Error solicitando permisos de notificaciones:', error);
+            }
+
             setMensaje({ texto: `✅ Recordatorio guardado para las ${hora} (hora local)`, tipo: 'success' });
             console.log(`✅ Recordatorio configurado para ${nombreHabito} a las ${hora} (hora local) / ${horaUTC} (UTC)`);
-
 
             setTimeout(() => {
                 onClose();
