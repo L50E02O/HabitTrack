@@ -13,10 +13,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['manifest.json'],
+      includeAssets: ['icon-192.png', 'icon-512.png', 'badge.png'],
       filename: 'sw.js',
       strategies: 'generateSW',
       injectRegister: 'auto',
+      manifestFilename: 'manifest.webmanifest',
       manifest: {
         name: 'HabitTrack - Seguimiento de Hábitos',
         short_name: 'HabitTrack',

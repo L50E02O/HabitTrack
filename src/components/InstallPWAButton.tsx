@@ -79,10 +79,40 @@ export function InstallPWAButton() {
               display: manifest.display
             });
             
+            // Verificar que los iconos sean válidos
+            if (manifest.icons && manifest.icons.length > 0) {
+              console.log('📱 [INSTALL] Iconos en manifest:', manifest.icons);
+              for (const icon of manifest.icons) {
+                try {
+                  const iconResponse = await fetch(icon.src);
+                  if (!iconResponse.ok) {
+                    console.error(`📱 [INSTALL] ❌ Icono no accesible: ${icon.src} (${iconResponse.status})`);
+                  } else {
+                    console.log(`📱 [INSTALL] ✅ Icono accesible: ${icon.src}`);
+                  }
+                } catch (iconError) {
+                  console.error(`📱 [INSTALL] ❌ Error verificando icono ${icon.src}:`, iconError);
+                }
+              }
+            }
+            
             checks.hasIcons = (manifest.icons?.length || 0) > 0;
           } else {
-            console.error('📱 [INSTALL] ❌ Error cargando manifest:', response.status);
+            console.error('📱 [INSTALL] ❌ Error cargando manifest:', response.status, response.statusText);
+            // Intentar cargar manifest.json como fallback
+            try {
+              const fallbackResponse = await fetch('/manifest.json');
+              if (fallbackResponse.ok) {
+                const fallbackManifest = await fallbackResponse.json();
+                console.log('📱 [INSTALL] ✅ Manifest fallback cargado:', fallbackManifest);
+                checks.hasIcons = (fallbackManifest.icons?.length || 0) > 0;
+              }
+            } catch (fallbackError) {
+              console.error('📱 [INSTALL] ❌ Error cargando manifest fallback:', fallbackError);
+            }
           }
+        } else {
+          console.warn('📱 [INSTALL] ⚠️ No se encontró link al manifest en el HTML');
         }
       } catch (error) {
         console.error('📱 [INSTALL] ❌ Error verificando manifest:', error);
