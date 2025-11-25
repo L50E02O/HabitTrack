@@ -56,15 +56,8 @@ export default function HabitCard({
     const pctBucket = Math.min(100, Math.max(0, Math.round(pct / 10) * 10));
     const isComplete = progress >= goal;
 
-    // Determinar la unidad de tiempo según el intervalo
-    const getUnidadTiempo = () => {
-        if (intervalo_meta === 'diario') return streakDays === 1 ? 'día' : 'días';
-        if (intervalo_meta === 'semanal') return streakDays === 1 ? 'semana' : 'semanas';
-        if (intervalo_meta === 'mensual') return streakDays === 1 ? 'mes' : 'meses';
-        return streakDays === 1 ? 'vez' : 'veces';
-    };
-
-    const unidadTiempo = getUnidadTiempo();
+    // La unidad es siempre días (el backend ya convierte a días)
+    const unidadTiempo = streakDays === 1 ? 'día' : 'días';
 
     const handleDelete = () => {
         if (window.confirm(`¿Estás seguro de eliminar "${nombre_habito}"?`)) {
