@@ -28,6 +28,8 @@ import RankingWidget from '../core/components/Ranking/RankingWidget';
 import RankUpModal from '../core/components/Ranking/RankUpModal';
 import { useRankDetection } from '../hooks/useRankDetection';
 import { getPuntosActuales } from '../services/protector/protectorService';
+import { PermisosNotificacion } from '../components/PermisosNotificacion';
+import { InstallPWAButton } from '../components/InstallPWAButton';
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -270,6 +272,17 @@ export default function Dashboard() {
     };
 
     const handleAsignarProtector = async (habito: IHabito) => {
+        // Validar que el hábito tenga una racha activa (mayor a 0 días)
+        const rachaActual = habitosRachas[habito.id_habito] || 0;
+        if (rachaActual <= 0) {
+            setNotification({
+                message: 'No puedes asignar un protector a un hábito sin racha activa. Primero completa el hábito para crear una racha.',
+                type: 'error',
+            });
+            setTimeout(() => setNotification(null), 3000);
+            return;
+        }
+
         if (protectoresDisponibles <= 0) {
             setNotification({
                 message: 'No tienes protectores disponibles. Cómpralos en la tienda o gana más completando rachas.',
@@ -361,6 +374,9 @@ export default function Dashboard() {
 
     return (
         <div className={`dashboard ${darkMode ? 'dark' : ''}`}>
+            {/* Banner de permisos de notificación */}
+            <PermisosNotificacion />
+
             {/* Botones flotantes */}
             <button 
                 className="floating-protectores-button"
@@ -388,6 +404,8 @@ export default function Dashboard() {
                 </div>
 
                 <div className="headerActions">
+                    <InstallPWAButton />
+                    
                     <button
                         className="themeToggle"
                         onClick={() => setDarkMode(!darkMode)}

@@ -84,7 +84,7 @@ describe("NotificacionService - TDD", () => {
                 expect.objectContaining({
                     body: "Es hora de hacer ejercicio",
                     icon: "/icon-192.png",
-                    badge: "/icon-192.png",
+                    badge: "/badge.png",
                 })
             );
             expect(resultado).toBeNull(); // SW maneja la notificación
@@ -103,7 +103,7 @@ describe("NotificacionService - TDD", () => {
             expect(mockNotification).toHaveBeenCalledWith("Recordatorio", {
                 body: "Es hora de hacer ejercicio",
                 icon: "/icon-192.png",
-                badge: "/icon-192.png",
+                badge: "/badge.png",
             });
             expect(resultado).toBeInstanceOf(Object);
         });

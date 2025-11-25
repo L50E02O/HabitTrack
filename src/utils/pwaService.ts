@@ -13,14 +13,10 @@ export async function registrarServiceWorker(): Promise<ServiceWorkerRegistratio
   }
 
   try {
-    // En desarrollo, usar el SW personalizado
-    // En producción, Vite PWA lo manejará automáticamente
-    const registration = await navigator.serviceWorker.register('/sw.js', {
-      scope: '/',
-      type: 'module'
-    });
+    // Esperar a que el Service Worker esté listo (Vite PWA lo registra automáticamente)
+    const registration = await navigator.serviceWorker.ready;
 
-    console.log('[PWA] Service Worker registrado:', registration.scope);
+    console.log('[PWA] Service Worker listo:', registration.scope);
 
     // Escuchar actualizaciones
     registration.addEventListener('updatefound', () => {
@@ -72,21 +68,18 @@ export async function enviarNotificacionViaSW(
       try {
         const registration = await navigator.serviceWorker.ready;
         
-        if (registration.active) {
+        if (registration) {
           console.log('[PWA] Enviando notificación via Service Worker');
-          registration.active.postMessage({
-            type: 'SHOW_NOTIFICATION',
-            title: titulo,
+          await registration.showNotification(titulo, {
             body: cuerpo,
-            options: {
-              icon: '/icon-192.png',
-              badge: '/icon-192.png',
-              tag: opciones?.tag || `habittrack-${Date.now()}`,
-              requireInteraction: opciones?.requireInteraction || false,
-              data: opciones?.data || {},
-              ...opciones
-            }
+            icon: '/icon-192.png',
+            badge: '/badge.png',
+            tag: opciones?.tag || `habittrack-${Date.now()}`,
+            requireInteraction: opciones?.requireInteraction || false,
+            data: opciones?.data || {},
+            ...opciones
           });
+          console.log('[PWA] Notificación enviada correctamente');
           return; // Salir si se envió correctamente
         }
       } catch (swError) {
@@ -99,7 +92,7 @@ export async function enviarNotificacionViaSW(
     const notification = new Notification(titulo, {
       body: cuerpo,
       icon: '/icon-192.png',
-      badge: '/icon-192.png',
+      badge: '/badge.png',
       tag: opciones?.tag || `habittrack-${Date.now()}`,
       requireInteraction: opciones?.requireInteraction || false,
       data: opciones?.data || {},

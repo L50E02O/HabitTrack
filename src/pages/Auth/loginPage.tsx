@@ -3,7 +3,7 @@ import FormularioLogin from "../../core/components/Auth/fomularioLogin";
 import { signIn } from "../../services/auth/authService";
 import { useNavigate } from "react-router-dom";
 import styles from "./loginPage.module.css";
-import { Sprout } from "lucide-react";
+import { Sprout, ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -33,6 +33,16 @@ export default function LoginPage() {
 
     return (
         <div className={styles.authPage}>
+            <button 
+                className={styles.backButton}
+                onClick={() => navigate("/")}
+                aria-label="Volver al inicio"
+                title="Volver al inicio"
+            >
+                <ArrowLeft size={20} />
+                <span>Volver</span>
+            </button>
+            
             <div className={styles.iconContainer}>
                 <span className={styles.icon}>
                     <Sprout size={24} />

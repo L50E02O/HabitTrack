@@ -314,6 +314,122 @@
     font-size: 14px;
 }
 
+/* Modo oscuro */
+.dashboard.dark .recordatorio-list-header {
+    color: #e5e7eb;
+}
+
+.dashboard.dark .recordatorio-list-header h2 {
+    color: #f3f4f6;
+}
+
+.dashboard.dark .empty-state {
+    color: #9ca3af;
+}
+
+.dashboard.dark .empty-state h3 {
+    color: #d1d5db;
+}
+
+.dashboard.dark .recordatorio-item {
+    background: #262626;
+    border-color: #404040;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dashboard.dark .recordatorio-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.dashboard.dark .recordatorio-item.inactivo {
+    opacity: 0.5;
+    border-color: #404040;
+}
+
+.dashboard.dark .habit-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.dashboard.dark .toggle-btn.inactivo {
+    background: #404040;
+    border-color: #555;
+    color: #9ca3af;
+}
+
+.dashboard.dark .mensaje-text {
+    color: #e5e7eb;
+}
+
+.dashboard.dark .hora-section {
+    background: #1f2937;
+    border-left-color: #667eea;
+}
+
+.dashboard.dark .hora-section svg {
+    color: #667eea;
+}
+
+.dashboard.dark .hora-text {
+    color: #f3f4f6;
+}
+
+.dashboard.dark .recordatorio-footer-item {
+    border-top-color: #404040;
+}
+
+.dashboard.dark .btn-icon.edit:hover {
+    background: #1f2937;
+}
+
+.dashboard.dark .btn-icon.delete:hover {
+    background: #3a1f1f;
+}
+
+.dashboard.dark .edit-field label {
+    color: #9ca3af;
+}
+
+.dashboard.dark .habit-name-edit {
+    background: #1f2937;
+    color: #e5e7eb;
+}
+
+.dashboard.dark .edit-input {
+    background: #1f2937;
+    border-color: #404040;
+    color: #e5e7eb;
+}
+
+.dashboard.dark .edit-input:focus {
+    border-color: #667eea;
+}
+
+.dashboard.dark .edit-input::placeholder {
+    color: #6b7280;
+}
+
+.dashboard.dark .btn-cancel {
+    background: #404040;
+    color: #d1d5db;
+}
+
+.dashboard.dark .btn-cancel:hover {
+    background: #4a4a4a;
+}
+
+.dashboard.dark .recordatorio-list-footer {
+    background: #1f2937;
+}
+
+.dashboard.dark .footer-info {
+    color: #9ca3af;
+}
+
+.dashboard.dark .spinner {
+    border-color: #404040;
+    border-top-color: #667eea;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .recordatorios-grid {

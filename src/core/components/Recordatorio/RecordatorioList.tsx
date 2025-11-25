@@ -279,7 +279,7 @@ export default function RecordatorioList() {
 
             <div className="recordatorio-list-footer">
                 <p className="footer-info">
-                    💡 Los recordatorios se envían automáticamente por email a la hora configurada
+                    Los recordatorios se envien a la hora especifica en la barra de notificaciones del dispotivo 
                 </p>
             </div>
         </div>

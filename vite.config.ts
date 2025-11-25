@@ -4,11 +4,20 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    emptyOutDir: true
+  },
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon-192.png', 'icon-512.png', 'badge.png'],
+      filename: 'sw.js',
+      strategies: 'generateSW',
+      injectRegister: 'auto',
+      manifestFilename: 'manifest.webmanifest',
       manifest: {
         name: 'HabitTrack - Seguimiento de Hábitos',
         short_name: 'HabitTrack',
@@ -24,13 +33,25 @@ export default defineConfig({
             src: '/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
             src: '/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: '/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ],
         shortcuts: [
@@ -39,7 +60,11 @@ export default defineConfig({
             short_name: 'Dashboard',
             description: 'Ver tu dashboard de hábitos',
             url: '/dashboard',
-            icons: [{ src: '/icon-192.png', sizes: '192x192' }]
+            icons: [{ 
+              src: '/icon-192.png', 
+              sizes: '192x192',
+              type: 'image/png'
+            }]
           }
         ]
       },
