@@ -123,10 +123,21 @@ export default function HabitCard({
                                 <Bell size={16} />
                                 Recordatorio
                             </button>
-                            <button onClick={handleAsignarProtector} className="dropdownItem protector-item">
-                                <Shield size={16} />
-                                Asignar Protector
-                            </button>
+                            {streakDays > 0 ? (
+                                <button onClick={handleAsignarProtector} className="dropdownItem protector-item">
+                                    <Shield size={16} />
+                                    Asignar Protector
+                                </button>
+                            ) : (
+                                <button 
+                                    className="dropdownItem protector-item" 
+                                    disabled 
+                                    title="Necesitas tener una racha activa para asignar un protector"
+                                >
+                                    <Shield size={16} />
+                                    Asignar Protector
+                                </button>
+                            )}
                             {protectoresAsignados > 0 && (
                                 <button onClick={handleQuitarProtector} className="dropdownItem protector-item">
                                     <ShieldOff size={16} />

@@ -272,6 +272,17 @@ export default function Dashboard() {
     };
 
     const handleAsignarProtector = async (habito: IHabito) => {
+        // Validar que el hábito tenga una racha activa (mayor a 0 días)
+        const rachaActual = habitosRachas[habito.id_habito] || 0;
+        if (rachaActual <= 0) {
+            setNotification({
+                message: 'No puedes asignar un protector a un hábito sin racha activa. Primero completa el hábito para crear una racha.',
+                type: 'error',
+            });
+            setTimeout(() => setNotification(null), 3000);
+            return;
+        }
+
         if (protectoresDisponibles <= 0) {
             setNotification({
                 message: 'No tienes protectores disponibles. Cómpralos en la tienda o gana más completando rachas.',

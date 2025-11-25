@@ -121,6 +121,17 @@
     background: #d1fae5;
 }
 
+.dropdownItem:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    color: #9ca3af;
+}
+
+.dropdownItem:disabled:hover {
+    background: none;
+    color: #9ca3af;
+}
+
 .habitTitle {
     margin: 6px 0 0 0;
     font-size: 18px;
