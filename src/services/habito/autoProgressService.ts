@@ -7,21 +7,21 @@ import type { IHabito } from "../../types/IHabito";
  * 
  * LÓGICA DE RACHAS:
  * 
- * 📅 DIARIO: La racha aumenta +1 cada día que completes la meta diaria
+ * DIARIO: La racha aumenta +1 cada día que completes la meta diaria
  *    - Completas hoy → Racha +1
  *    - NO completas hoy → Racha se PIERDE
  * 
- * 📆 SEMANAL: La racha aumenta +1 CADA DÍA durante la semana
+ * SEMANAL: La racha aumenta +1 CADA DÍA durante la semana
  *    - Cada día que avanzas → Racha +1 (acumulando)
  *    - Al final de la semana verifica si completaste meta_repeticion
- *      ✅ Completaste → Racha continúa acumulando
- *      ❌ NO completaste → Racha se PIERDE (toda la acumulada)
+ *      Completaste → Racha continúa acumulando
+ *      NO completaste → Racha se PIERDE (toda la acumulada)
  * 
- * 🗓️ MENSUAL: La racha aumenta +1 CADA DÍA durante el mes
+ * MENSUAL: La racha aumenta +1 CADA DÍA durante el mes
  *    - Cada día que avanzas → Racha +1 (acumulando)
  *    - Al final del mes verifica si completaste meta_repeticion
- *      ✅ Completaste → Racha continúa acumulando
- *      ❌ NO completaste → Racha se PIERDE (toda la acumulada)
+ *      Completaste → Racha continúa acumulando
+ *      NO completaste → Racha se PIERDE (toda la acumulada)
  * 
  * Se ejecuta:
  * - Cuando el usuario abre el dashboard
@@ -43,7 +43,7 @@ export async function checkAndUpdateAutoProgress(
   idPerfil: string
 ): Promise<AutoProgressResult> {
   try {
-    console.log("🔄 Iniciando verificación automática de progreso...");
+    console.log("Iniciando verificación automática de progreso...");
 
     // 1. Obtener todos los hábitos activos del usuario
     const { data: habitos, error: habitosError } = await supabase
@@ -79,7 +79,7 @@ export async function checkAndUpdateAutoProgress(
       }
     }
 
-    console.log(`✅ Verificación completa. ${rachasActualizadas.length} rachas actualizadas.`);
+    console.log(`Verificación completa. ${rachasActualizadas.length} rachas actualizadas.`);
 
     return {
       habitosActualizados: habitos.length,
@@ -117,12 +117,12 @@ async function verificarYActualizarRacha(habito: IHabito): Promise<boolean> {
     // Usar la función correcta que busca por id_habito a través de registro_intervalo
     const rachaActual = await getRachaActivaByHabito(habito.id_habito);
 
-    if (rachaActual) {
+      if (rachaActual) {
       const finRacha = new Date(rachaActual.fin_racha);
       finRacha.setUTCHours(0, 0, 0, 0);
       
       if (finRacha.getTime() === hoy.getTime()) {
-        console.log(`✅ ${habito.nombre_habito}: Racha ya actualizada hoy`);
+        console.log(`${habito.nombre_habito}: Racha ya actualizada hoy`);
         return false; // Ya actualizamos hoy, no duplicar
       }
     }
@@ -150,11 +150,11 @@ async function verificarYActualizarRacha(habito: IHabito): Promise<boolean> {
       const metaCompletada = progresoHoy >= habito.meta_repeticion;
       
       if (!metaCompletada) {
-        console.log(`⏳ ${habito.nombre_habito} (Diario): ${progresoHoy}/${habito.meta_repeticion} - Meta no alcanzada`);
+        console.log(`${habito.nombre_habito} (Diario): ${progresoHoy}/${habito.meta_repeticion} - Meta no alcanzada`);
         return false;
       }
 
-      console.log(`🔥 ${habito.nombre_habito} (Diario): Meta completada - Actualizando racha...`);
+      console.log(`${habito.nombre_habito} (Diario): Meta completada - Actualizando racha...`);
       return await actualizarRachaHabito(habito, registrosHoy[0]);
     }
 
@@ -163,7 +163,7 @@ async function verificarYActualizarRacha(habito: IHabito): Promise<boolean> {
       // Al final del período verifica si completó la meta
       
       if (progresoHoy === 0) {
-        console.log(`⏳ ${habito.nombre_habito} (${habito.intervalo_meta}): Sin progreso hoy`);
+        console.log(`${habito.nombre_habito} (${habito.intervalo_meta}): Sin progreso hoy`);
         
         // Verificar si terminó el período sin completar meta
         if (rachaActual) {
@@ -173,7 +173,7 @@ async function verificarYActualizarRacha(habito: IHabito): Promise<boolean> {
           
           // Si cambió el período, verificar si completó la meta del período anterior
           if (inicioPeriodoActual.getTime() !== inicioPeriodoRacha.getTime()) {
-            console.log(`🔍 ${habito.nombre_habito}: Periodo cambió, verificando meta del período anterior...`);
+            console.log(`${habito.nombre_habito}: Periodo cambió, verificando meta del período anterior...`);
             
             // Obtener registros del período anterior
             const finPeriodoAnterior = new Date(inicioPeriodoActual);
@@ -192,7 +192,7 @@ async function verificarYActualizarRacha(habito: IHabito): Promise<boolean> {
             const progresoAnterior = registrosPeriodoAnterior ? registrosPeriodoAnterior.length : 0;
             
             if (progresoAnterior < habito.meta_repeticion) {
-              console.log(`💔 ${habito.nombre_habito}: Período anterior NO completado (${progresoAnterior}/${habito.meta_repeticion}). Verificando rachas expiradas...`);
+              console.log(`${habito.nombre_habito}: Período anterior NO completado (${progresoAnterior}/${habito.meta_repeticion}). Verificando rachas expiradas...`);
               await checkAndDeactivateExpiredRachas(habito.id_habito, habito.intervalo_meta);
             }
           }
@@ -202,7 +202,7 @@ async function verificarYActualizarRacha(habito: IHabito): Promise<boolean> {
       }
 
       // Hay progreso hoy → Actualizar racha (suma +1 por el día)
-      console.log(`🔥 ${habito.nombre_habito} (${habito.intervalo_meta}): Progreso hoy (${progresoHoy}) - Actualizando racha diaria...`);
+      console.log(`${habito.nombre_habito} (${habito.intervalo_meta}): Progreso hoy (${progresoHoy}) - Actualizando racha diaria...`);
       return await actualizarRachaHabito(habito, registrosHoy[0]);
     }
 
@@ -237,7 +237,7 @@ async function actualizarRachaHabito(habito: IHabito, ultimoRegistro: any): Prom
     );
 
     if (resultado.success) {
-      console.log(`✅ Racha actualizada para ${habito.nombre_habito}: ${resultado.diasConsecutivos} días`);
+      console.log(`Racha actualizada para ${habito.nombre_habito}: ${resultado.diasConsecutivos} días`);
       return true;
     }
 

@@ -139,7 +139,7 @@ export async function comprarProtector(userId: string): Promise<{
 
     return {
       success: true,
-      message: '¡Protector comprado exitosamente! 🛡️',
+      message: 'Protector comprado exitosamente.',
       protectoresNuevos: perfil?.protectores_racha || 0,
     };
   } catch (error: any) {
@@ -194,7 +194,7 @@ export async function usarProtector(
 
     return {
       success: true,
-      message: '¡Racha protegida! 🛡️',
+      message: 'Racha protegida.',
       protectoresRestantes: perfil?.protectores_racha || 0,
     };
   } catch (error: any) {
@@ -234,7 +234,7 @@ export async function sincronizarProtectoresPorRacha(userId: string): Promise<vo
         .eq('id', userId);
 
       console.log(
-        `✅ Protectores sincronizados: ${protectoresActuales} → ${protectoresEsperados}`
+        `Protectores sincronizados: ${protectoresActuales} a ${protectoresEsperados}`
       );
     }
   } catch (error) {

@@ -145,7 +145,7 @@ describe('TiendaProtectores', () => {
     vi.mocked(protectorService.puedeComprarProtectorEstaSemana).mockResolvedValue(true);
     vi.mocked(protectorService.comprarProtector).mockResolvedValue({
       success: true,
-      message: '¡Protector comprado exitosamente! 🛡️',
+      message: 'Protector comprado exitosamente.',
       protectoresNuevos: 3,
     });
 

@@ -120,7 +120,7 @@ export default function LogrosModal({ isOpen, onClose, userId }: LogrosModalProp
             />
           </div>
           <div className="racha-maxima">
-            <span>🔥 Racha máxima: <strong>{rachaMaxima} días</strong></span>
+            <span>Racha máxima: <strong>{rachaMaxima} días</strong></span>
           </div>
         </div>
 
@@ -153,10 +153,10 @@ export default function LogrosModal({ isOpen, onClose, userId }: LogrosModalProp
                         <div className="logro-info">
                           <h4>{logro.nombre_logro}</h4>
                           <p className="logro-description">{logro.descripcion}</p>
-                          <p className="logro-criteria">🎯 {logro.criterio_racha} días de racha</p>
+                          <p className="logro-criteria">Criterio: {logro.criterio_racha} días de racha</p>
                           {logro.fechaDesbloqueo && (
                             <p className="logro-date">
-                              🎉 {new Date(logro.fechaDesbloqueo).toLocaleDateString('es-ES', {
+                              {new Date(logro.fechaDesbloqueo).toLocaleDateString('es-ES', {
                                 year: 'numeric',
                                 month: 'short',
                                 day: 'numeric'
@@ -192,7 +192,7 @@ export default function LogrosModal({ isOpen, onClose, userId }: LogrosModalProp
                           <div className="logro-info">
                             <h4>{logro.nombre_logro}</h4>
                             <p className="logro-description">{logro.descripcion}</p>
-                            <p className="logro-criteria">🎯 {logro.criterio_racha} días de racha</p>
+                            <p className="logro-criteria">Criterio: {logro.criterio_racha} días de racha</p>
                             <p className="logro-missing">
                               Faltan <strong>{diasFaltantes}</strong> días
                             </p>

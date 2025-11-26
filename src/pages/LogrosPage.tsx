@@ -41,7 +41,7 @@ export const LogrosPage: React.FC = () => {
       // Recalcular racha máxima del usuario (asegura que esté actualizada)
       const maxDias = await recalcularRachaMaxima(user.id);
       setMaxStreak(maxDias);
-      console.log(`🏆 Racha máxima recalculada: ${maxDias} días`);
+      console.log(`Racha máxima recalculada: ${maxDias} días`);
 
       // Obtener perfil del usuario
       const { data: perfil, error: perfilError } = await supabase

@@ -47,10 +47,10 @@ export async function enviarEmailRecordatorio(
         }
 
         const result = await response.json().catch(() => ({ success: true }));
-        console.log('✅ Email enviado exitosamente:', result);
+        console.log('Email enviado exitosamente:', result);
         return { success: true };
     } catch (error: any) {
-        console.error('❌ Error enviando email de recordatorio:', error);
+        console.error('Error enviando email de recordatorio:', error);
         return {
             success: false,
             error: error.message || 'Error enviando email',

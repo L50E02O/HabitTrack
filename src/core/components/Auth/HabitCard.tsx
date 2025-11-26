@@ -207,7 +207,7 @@ export default function HabitCard({
                     title="¡Hábito completado para este período!"
                 >
                     <CheckCircle size={18} />
-                    ¡Completado! ✓
+                    Hábito completado
                 </button>
             )}
         </div>

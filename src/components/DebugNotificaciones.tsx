@@ -9,30 +9,30 @@ export function DebugNotificaciones() {
   const [mensaje, setMensaje] = useState('');
 
   const probarNotificacion = async () => {
-    console.log("🧪 [DEBUG] Probando notificación...");
-    console.log("🧪 [DEBUG] Permiso:", Notification.permission);
+    console.log("[DEBUG NOTIF] Probando notificación...");
+    console.log("[DEBUG NOTIF] Permiso:", Notification.permission);
 
     if (Notification.permission === 'default') {
-      console.log("🧪 [DEBUG] Solicitando permiso...");
+      console.log("[DEBUG NOTIF] Solicitando permiso...");
       const permiso = await Notification.requestPermission();
-      console.log("🧪 [DEBUG] Permiso obtenido:", permiso);
+      console.log("[DEBUG NOTIF] Permiso obtenido:", permiso);
       
       if (permiso !== 'granted') {
-        setMensaje('❌ Permiso denegado');
+        setMensaje('Permiso de notificaciones denegado');
         return;
       }
     }
 
     if (Notification.permission === 'denied') {
-      setMensaje('❌ Notificaciones bloqueadas. Ve a configuración del navegador.');
+      setMensaje('Notificaciones bloqueadas. Ve a configuración del navegador.');
       return;
     }
 
     try {
       // Método 1: API directa
-      console.log("🧪 [DEBUG] Creando notificación directa...");
-      const notif = new Notification("🧪 Prueba Directa", {
-        body: "Si ves esto, las notificaciones funcionan!",
+      console.log("[DEBUG NOTIF] Creando notificación directa...");
+      const notif = new Notification("Prueba directa de notificaciones", {
+        body: "Si ves esto, las notificaciones funcionan.",
         icon: "/icon-192.png",
         badge: "/badge.png",
         requireInteraction: false,
@@ -40,13 +40,13 @@ export function DebugNotificaciones() {
       });
       
       notif.onclick = () => {
-        console.log("🧪 [DEBUG] Usuario hizo clic en notificación directa");
+        console.log("[DEBUG NOTIF] Usuario hizo clic en notificación directa");
       };
 
       // Método 2: Service Worker
-      console.log("🧪 [DEBUG] Enviando vía Service Worker...");
+      console.log("[DEBUG NOTIF] Enviando vía Service Worker...");
       await enviarNotificacion(
-        "🧪 Prueba Service Worker",
+        "Prueba Service Worker",
         "Enviado vía Service Worker",
         {
           tag: "test-sw",
@@ -54,31 +54,31 @@ export function DebugNotificaciones() {
         }
       );
 
-      setMensaje('✅ Notificaciones enviadas! Revisa si aparecen.');
+      setMensaje('Notificaciones enviadas. Revisa si aparecen.');
     } catch (error) {
-      console.error("🧪 [DEBUG] Error:", error);
-      setMensaje(`❌ Error: ${error}`);
+      console.error("[DEBUG NOTIF] Error:", error);
+      setMensaje(`Error: ${error}`);
     }
   };
 
   const verificarEstado = () => {
-    console.log("🧪 [DEBUG] === ESTADO DEL SISTEMA ===");
-    console.log("🧪 [DEBUG] Notification API:", 'Notification' in window);
-    console.log("🧪 [DEBUG] Permiso:", Notification.permission);
-    console.log("🧪 [DEBUG] Service Worker:", 'serviceWorker' in navigator);
+    console.log("[DEBUG NOTIF] === ESTADO DEL SISTEMA ===");
+    console.log("[DEBUG NOTIF] Notification API:", 'Notification' in window);
+    console.log("[DEBUG NOTIF] Permiso:", Notification.permission);
+    console.log("[DEBUG NOTIF] Service Worker:", 'serviceWorker' in navigator);
     
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistration().then(reg => {
-        console.log("🧪 [DEBUG] SW Registrado:", !!reg);
-        console.log("🧪 [DEBUG] SW Activo:", !!reg?.active);
-        console.log("🧪 [DEBUG] SW State:", reg?.active?.state);
+        console.log("[DEBUG NOTIF] SW Registrado:", !!reg);
+        console.log("[DEBUG NOTIF] SW Activo:", !!reg?.active);
+        console.log("[DEBUG NOTIF] SW State:", reg?.active?.state);
       });
     }
 
     setMensaje(`
-      Notification: ${'Notification' in window ? '✅' : '❌'}
-      Permiso: ${Notification.permission}
-      Service Worker: ${'serviceWorker' in navigator ? '✅' : '❌'}
+Notification: ${'Notification' in window ? 'OK' : 'NO'}
+Permiso: ${Notification.permission}
+Service Worker: ${'serviceWorker' in navigator ? 'OK' : 'NO'}
     `);
   };
 
@@ -100,7 +100,7 @@ export function DebugNotificaciones() {
       zIndex: 9999,
       minWidth: '250px'
     }}>
-      <h4 style={{ margin: '0 0 10px 0', fontSize: '14px' }}>🧪 Debug Notificaciones</h4>
+      <h4 style={{ margin: '0 0 10px 0', fontSize: '14px' }}>Debug Notificaciones</h4>
       
       <button
         onClick={probarNotificacion}
@@ -116,7 +116,7 @@ export function DebugNotificaciones() {
           fontSize: '12px'
         }}
       >
-        🔔 Probar Notificación
+        Probar notificación
       </button>
 
       <button
@@ -132,7 +132,7 @@ export function DebugNotificaciones() {
           fontSize: '12px'
         }}
       >
-        📊 Ver Estado
+        Ver estado
       </button>
 
       {mensaje && (

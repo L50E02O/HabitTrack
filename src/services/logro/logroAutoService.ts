@@ -109,10 +109,10 @@ export async function verificarYDesbloquearLogros(
 
     if (protectoresGanados > 0) {
       if (mensaje) mensaje += " ";
-      mensaje += `🛡️ +${protectoresGanados} Protector${protectoresGanados > 1 ? "es" : ""} de Racha`;
+      mensaje += `+${protectoresGanados} protector${protectoresGanados > 1 ? "es" : ""} de racha`;
     }
 
-    console.log(`✅ Verificación de logros completada para perfil ${idPerfil}`);
+    console.log(`Verificación de logros completada para perfil ${idPerfil}`);
     console.log(`   - Logros nuevos: ${logrosNuevos.length}`);
     console.log(`   - Protectores ganados: ${protectoresGanados}`);
     console.log(`   - Días de racha: ${diasRachaActual}`);

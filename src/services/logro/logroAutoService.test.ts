@@ -24,8 +24,8 @@ describe('logroAutoService', () => {
   describe('verificarYDesbloquearLogros', () => {
     it('debe desbloquear logros cuando el usuario alcanza el criterio de racha', async () => {
       const mockLogrosDisponibles = [
-        { id_logro: '1', nombre_logro: 'Primera Semana', criterio_racha: 7, icono: '🔥' },
-        { id_logro: '2', nombre_logro: 'Primer Mes', criterio_racha: 30, icono: '🏆' },
+        { id_logro: '1', nombre_logro: 'Primera Semana', criterio_racha: 7, icono: 'fuego' },
+        { id_logro: '2', nombre_logro: 'Primer Mes', criterio_racha: 30, icono: 'trofeo' },
       ];
 
       const mockLogrosObtenidos: any[] = [];
@@ -155,7 +155,7 @@ describe('logroAutoService', () => {
     it('debe actualizar logros cuando cambia racha_maxima', async () => {
       // Este test verifica que cuando se actualiza racha_maxima, se verifican los logros
       const mockLogrosDisponibles = [
-        { id_logro: '3', nombre_logro: '50 Días', criterio_racha: 50, icono: '🎯' },
+        { id_logro: '3', nombre_logro: '50 Días', criterio_racha: 50, icono: 'objetivo' },
       ];
 
       const mockLogrosObtenidos = [
@@ -218,7 +218,7 @@ describe('logroAutoService', () => {
 
     it('no debe desbloquear logros si el usuario ya los tiene', async () => {
       const mockLogrosDisponibles = [
-        { id_logro: '1', nombre_logro: 'Primera Semana', criterio_racha: 7, icono: '🔥' },
+        { id_logro: '1', nombre_logro: 'Primera Semana', criterio_racha: 7, icono: 'fuego' },
       ];
 
       const mockLogrosObtenidos = [{ id_logro: '1' }]; // Ya tiene este logro
@@ -286,7 +286,7 @@ describe('logroAutoService', () => {
             id_logro: '1',
             nombre_logro: 'Primera Semana',
             criterio_racha: 7,
-            icono: '🔥',
+            icono: 'fuego',
           },
         },
       ];
@@ -345,7 +345,7 @@ describe('logroAutoService', () => {
         id_logro: '3',
         nombre_logro: '50 Días',
         criterio_racha: 50,
-        icono: '🎯',
+        icono: 'objetivo',
       };
 
       const logroUsuarioChain = {

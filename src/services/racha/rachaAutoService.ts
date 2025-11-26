@@ -35,7 +35,7 @@ export async function recalcularRachaMaxima(idPerfil: string): Promise<number> {
     const todasLasRachas = (rachas || []).map(r => r.dias_consecutivos || 0);
     const rachaMaximaCalculada = todasLasRachas.length > 0 ? Math.max(...todasLasRachas) : 0;
 
-    console.log(`📊 Recalculando racha máxima: ${todasLasRachas.length} rachas encontradas, máxima: ${rachaMaximaCalculada}`);
+    console.log(`Recalculando racha máxima: ${todasLasRachas.length} rachas encontradas, máxima: ${rachaMaximaCalculada}`);
 
     // Actualizar el perfil con la racha máxima calculada
     await actualizarRachaEnPerfil(idPerfil, rachaMaximaCalculada);
@@ -89,7 +89,7 @@ export async function actualizarRachaMaximaEnPerfil(
     
     const rachaMaximaCalculada = Math.max(...todasLasRachas);
 
-    console.log(`📊 Rachas del usuario: ${todasLasRachas.length} encontradas, máxima: ${rachaMaximaCalculada}`);
+    console.log(`Rachas del usuario: ${todasLasRachas.length} encontradas, máxima: ${rachaMaximaCalculada}`);
 
     // Actualizar el perfil con la racha máxima calculada
     await actualizarRachaEnPerfil(idPerfil, rachaMaximaCalculada);
@@ -134,7 +134,7 @@ async function actualizarRachaEnPerfil(
       if (updateError) {
         console.error('Error actualizando racha_maxima:', updateError);
       } else {
-        console.log(`🏆 ¡NUEVO RÉCORD! Racha máxima actualizada: ${rachaMaximaPerfil} → ${nuevaRachaMaxima} días`);
+        console.log(`Nuevo récord. Racha máxima actualizada: ${rachaMaximaPerfil} a ${nuevaRachaMaxima} días`);
         
         // IMPORTANTE: Verificar logros después de actualizar racha_maxima
         // El trigger en la BD también lo hará, pero esto asegura que se haga desde el código
@@ -145,8 +145,8 @@ async function actualizarRachaEnPerfil(
           // No lanzamos el error para no bloquear la actualización de racha
         }
       }
-    } else {
-      console.log(`📊 Racha actual: ${nuevaRachaMaxima} días (Récord: ${rachaMaximaPerfil} días)`);
+      } else {
+      console.log(`Racha actual: ${nuevaRachaMaxima} días (Récord: ${rachaMaximaPerfil} días)`);
     }
   } catch (error) {
     console.error('Error en actualizarRachaEnPerfil:', error);
@@ -246,7 +246,7 @@ export async function updateRachaOnHabitCompletion(
         
         // Si se usó un protector, agregar info al mensaje
         if (usóProtector) {
-          resultado.message = `🛡️ ${resultado.message} (Protector usado para salvar tu racha)`;
+          resultado.message = `${resultado.message} (Protector usado para salvar tu racha)`;
         }
         
         return resultado;
@@ -275,7 +275,7 @@ async function buscarRachaActiva(idHabito: string): Promise<IRacha | null> {
       .eq("id_habito", idHabito);
 
     if (errorRegistros) {
-      console.error("❌ Error al buscar registros:", errorRegistros);
+      console.error("Error al buscar registros:", errorRegistros);
       return null;
     }
 
@@ -296,7 +296,7 @@ async function buscarRachaActiva(idHabito: string): Promise<IRacha | null> {
       .limit(1);
 
     if (error) {
-      console.error("❌ Error al buscar racha activa:", error);
+      console.error("Error al buscar racha activa:", error);
       return null;
     }
 
@@ -324,10 +324,10 @@ async function calcularPeriodosConsecutivos(
     .eq("id_habito", idHabito)
     .order("fecha", { ascending: false });
 
-  console.log(`📊 Total de registros para hábito ${idHabito}:`, registros?.length || 0);
+  console.log(`Total de registros para hábito ${idHabito}:`, registros?.length || 0);
 
   if (error) {
-    console.error("❌ Error al contar registros:", error);
+    console.error("Error al contar registros:", error);
     return 1;
   }
 
@@ -544,17 +544,17 @@ async function seRompioLaRachaConProteccion(
     const protectoresAsignados = rachaData.protectores_asignados || 0;
     const rachaActual = rachaData.dias_consecutivos || 0;
 
-    if (protectoresAsignados > 0) {
-      console.log(`🛡️ ¡Racha rota! Usando protector automáticamente...`);
+      if (protectoresAsignados > 0) {
+      console.log('Racha rota. Usando protector automáticamente...');
       
       // Usar el protector
       const resultado = await usarProtector(idPerfil, idHabito, rachaActual);
       
       if (resultado.success) {
-        console.log(`✅ Protector usado exitosamente. Racha salvada: ${rachaActual} días`);
+        console.log(`Protector usado exitosamente. Racha salvada: ${rachaActual} días`);
         return { seRompio: false, usóProtector: true };
       } else {
-        console.log(`❌ No se pudo usar el protector: ${resultado.message}`);
+        console.log(`No se pudo usar el protector: ${resultado.message}`);
         return { seRompio: true, usóProtector: false };
       }
     } else {
@@ -582,7 +582,7 @@ async function crearNuevaRacha(
   // Limitar períodos consecutivos a un máximo de 365
   const periodosLimitados = Math.min(periodosConsecutivos, 365);
 
-  // 🏆 Actualizar racha máxima en el perfil del usuario
+  // Actualizar racha máxima en el perfil del usuario
   await actualizarRachaMaximaEnPerfil(idPerfil, periodosLimitados);
 
   const nuevaRacha: CreateIRacha = {
@@ -609,7 +609,7 @@ async function crearNuevaRacha(
       .eq("id_racha", rachaAnterior.id_racha);
   }
 
-  // 🎖️ VERIFICAR Y DESBLOQUEAR LOGROS AUTOMÁTICAMENTE
+  // Verificar y desbloquear logros automáticamente
   let logrosInfo;
   try {
     const resultadoLogros = await verificarYDesbloquearLogros(idPerfil, periodosConsecutivos);
@@ -623,7 +623,7 @@ async function crearNuevaRacha(
 
   // Crear mensaje según el tipo de intervalo
   const unidad = obtenerUnidadTiempo(intervaloMeta);
-  let mensaje = `¡Empezaste una nueva racha! Llevas ${periodosConsecutivos} ${unidad}${periodosConsecutivos > 1 ? 's' : ''} 🔥`;
+  let mensaje = `Has empezado una nueva racha. Llevas ${periodosConsecutivos} ${unidad}${periodosConsecutivos > 1 ? 's' : ''}.`;
 
   if (logrosInfo?.mensaje) {
     mensaje += ` ${logrosInfo.mensaje}`;
@@ -652,7 +652,7 @@ async function extenderRacha(
   // Limitar períodos consecutivos a un máximo de 365
   const periodosLimitados = Math.min(periodosConsecutivos, 365);
 
-  // 🏆 Actualizar racha máxima en el perfil del usuario
+  // Actualizar racha máxima en el perfil del usuario
   await actualizarRachaMaximaEnPerfil(idPerfil, periodosLimitados);
 
   const datosActualizados: UpdateIRacha = {
@@ -677,7 +677,7 @@ async function extenderRacha(
 
   if (fetchError) throw fetchError;
 
-  // 🎖️ VERIFICAR Y DESBLOQUEAR LOGROS AUTOMÁTICAMENTE
+  // Verificar y desbloquear logros automáticamente
   let logrosInfo;
   try {
     const resultadoLogros = await verificarYDesbloquearLogros(idPerfil, periodosConsecutivos);
@@ -691,7 +691,7 @@ async function extenderRacha(
 
   // Crear mensaje según el tipo de intervalo
   const unidad = obtenerUnidadTiempo(intervaloMeta);
-  let mensaje = `¡Sigue así! Ya llevas ${periodosConsecutivos} ${unidad}${periodosConsecutivos > 1 ? 's' : ''} consecutivos 💪`;
+  let mensaje = `Sigue así. Ya llevas ${periodosConsecutivos} ${unidad}${periodosConsecutivos > 1 ? 's' : ''} consecutivos.`;
 
   if (logrosInfo?.mensaje) {
     mensaje += ` ${logrosInfo.mensaje}`;
@@ -864,9 +864,9 @@ export async function checkAndDeactivateExpiredRachas(
         .update({ racha_activa: false })
         .eq("id_racha", rachaActiva.id_racha);
       
-      console.log(`💔 Racha desactivada para hábito ${idHabito}`);
+      console.log(`Racha desactivada para hábito ${idHabito}`);
     } else if (usóProtector) {
-      console.log(`🛡️ Racha salvada con protector para hábito ${idHabito}`);
+      console.log(`Racha salvada con protector para hábito ${idHabito}`);
     }
   } catch (error: any) {
     console.error("Error al verificar rachas expiradas:", error);

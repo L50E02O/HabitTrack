@@ -18,7 +18,7 @@ export function InstallPWAButton() {
   const [installabilityStatus, setInstallabilityStatus] = useState<string>('Verificando...');
 
   useEffect(() => {
-    console.log('📱 [INSTALL] Componente InstallPWAButton montado');
+    console.log('[INSTALL] Componente InstallPWAButton montado');
     
     // Verificar si ya está instalado
     const checkIfInstalled = () => {
@@ -29,7 +29,7 @@ export function InstallPWAButton() {
       
       const installed = isStandalone || isInWebAppiOS || isInWebAppChrome;
       
-      console.log('📱 [INSTALL] Verificando si está instalado:', {
+      console.log('[INSTALL] Verificando si está instalado:', {
         isStandalone,
         isInWebAppiOS,
         isInWebAppChrome,
@@ -40,7 +40,7 @@ export function InstallPWAButton() {
       setIsInstalled(installed);
       
       if (installed) {
-        console.log('📱 [INSTALL] ✅ La app ya está instalada');
+        console.log('[INSTALL] La app ya está instalada');
         setInstallabilityStatus('Ya instalada');
         return;
       }
@@ -50,7 +50,7 @@ export function InstallPWAButton() {
 
     // Verificar criterios de instalabilidad
     const checkInstallability = async () => {
-      console.log('📱 [INSTALL] Verificando criterios de instalabilidad...');
+      console.log('[INSTALL] Verificando criterios de instalabilidad...');
       
       const checks = {
         hasServiceWorker: 'serviceWorker' in navigator,
@@ -59,19 +59,19 @@ export function InstallPWAButton() {
         hasIcons: true, // Asumimos que los iconos están en el manifest
       };
 
-      console.log('📱 [INSTALL] Criterios de instalabilidad:', checks);
+      console.log('[INSTALL] Criterios de instalabilidad:', checks);
 
       // Verificar manifest
       try {
         const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
         if (manifestLink) {
           const manifestUrl = manifestLink.href;
-          console.log('📱 [INSTALL] Manifest URL:', manifestUrl);
+          console.log('[INSTALL] Manifest URL:', manifestUrl);
           
           const response = await fetch(manifestUrl);
           if (response.ok) {
             const manifest = await response.json();
-            console.log('📱 [INSTALL] Manifest cargado:', {
+            console.log('[INSTALL] Manifest cargado:', {
               name: manifest.name,
               short_name: manifest.short_name,
               icons: manifest.icons?.length || 0,
@@ -81,55 +81,55 @@ export function InstallPWAButton() {
             
             // Verificar que los iconos sean válidos
             if (manifest.icons && manifest.icons.length > 0) {
-              console.log('📱 [INSTALL] Iconos en manifest:', manifest.icons);
+              console.log('[INSTALL] Iconos en manifest:', manifest.icons);
               for (const icon of manifest.icons) {
                 try {
                   const iconResponse = await fetch(icon.src);
                   if (!iconResponse.ok) {
-                    console.error(`📱 [INSTALL] ❌ Icono no accesible: ${icon.src} (${iconResponse.status})`);
+                    console.error(`[INSTALL] Icono no accesible: ${icon.src} (${iconResponse.status})`);
                   } else {
-                    console.log(`📱 [INSTALL] ✅ Icono accesible: ${icon.src}`);
+                    console.log(`[INSTALL] Icono accesible: ${icon.src}`);
                   }
                 } catch (iconError) {
-                  console.error(`📱 [INSTALL] ❌ Error verificando icono ${icon.src}:`, iconError);
+                  console.error(`[INSTALL] Error verificando icono ${icon.src}:`, iconError);
                 }
               }
             }
             
             checks.hasIcons = (manifest.icons?.length || 0) > 0;
           } else {
-            console.error('📱 [INSTALL] ❌ Error cargando manifest:', response.status, response.statusText);
+            console.error('[INSTALL] Error cargando manifest:', response.status, response.statusText);
             // Intentar cargar manifest.json como fallback
             try {
               const fallbackResponse = await fetch('/manifest.json');
               if (fallbackResponse.ok) {
                 const fallbackManifest = await fallbackResponse.json();
-                console.log('📱 [INSTALL] ✅ Manifest fallback cargado:', fallbackManifest);
+                console.log('[INSTALL] Manifest fallback cargado:', fallbackManifest);
                 checks.hasIcons = (fallbackManifest.icons?.length || 0) > 0;
               }
             } catch (fallbackError) {
-              console.error('📱 [INSTALL] ❌ Error cargando manifest fallback:', fallbackError);
+              console.error('[INSTALL] Error cargando manifest fallback:', fallbackError);
             }
           }
         } else {
-          console.warn('📱 [INSTALL] ⚠️ No se encontró link al manifest en el HTML');
+          console.warn('[INSTALL] No se encontró link al manifest en el HTML');
         }
       } catch (error) {
-        console.error('📱 [INSTALL] ❌ Error verificando manifest:', error);
+        console.error('[INSTALL] Error verificando manifest:', error);
       }
 
       // Verificar Service Worker
       if (checks.hasServiceWorker) {
         try {
           const registration = await navigator.serviceWorker.ready;
-          console.log('📱 [INSTALL] ✅ Service Worker listo:', registration.scope);
+          console.log('[INSTALL] Service Worker listo:', registration.scope);
         } catch (error) {
-          console.warn('📱 [INSTALL] ⚠️ Service Worker no listo:', error);
+          console.warn('[INSTALL] Service Worker no listo:', error);
         }
       }
 
       const allChecksPass = Object.values(checks).every(check => check === true);
-      console.log('📱 [INSTALL] Todos los criterios pasan:', allChecksPass, checks);
+      console.log('[INSTALL] Todos los criterios pasan:', allChecksPass, checks);
       
       if (!allChecksPass) {
         setInstallabilityStatus(`Faltan requisitos: ${Object.entries(checks).filter(([_, v]) => !v).map(([k]) => k).join(', ')}`);
@@ -142,7 +142,7 @@ export function InstallPWAButton() {
 
     // Escuchar el evento beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('📱 [INSTALL] 🎉 Evento beforeinstallprompt recibido!');
+      console.log('[INSTALL] Evento beforeinstallprompt recibido');
       e.preventDefault();
       
       const promptEvent = e as BeforeInstallPromptEvent;
@@ -150,12 +150,12 @@ export function InstallPWAButton() {
       setShowButton(true);
       setInstallabilityStatus('Lista para instalar - Botón disponible');
       
-      console.log('📱 [INSTALL] Prompt guardado, botón mostrado');
+      console.log('[INSTALL] Prompt guardado, botón mostrado');
     };
 
     // Escuchar cuando la app se instala
     const handleAppInstalled = () => {
-      console.log('📱 [INSTALL] ✅ App instalada exitosamente!');
+      console.log('[INSTALL] App instalada exitosamente');
       setIsInstalled(true);
       setShowButton(false);
       setDeferredPrompt(null);
@@ -167,7 +167,7 @@ export function InstallPWAButton() {
 
     // Log periódico del estado
     const statusInterval = setInterval(() => {
-      console.log('📱 [INSTALL] Estado actual:', {
+      console.log('[INSTALL] Estado actual:', {
         showButton,
         isInstalled,
         hasDeferredPrompt: deferredPrompt !== null,
@@ -176,7 +176,7 @@ export function InstallPWAButton() {
     }, 10000); // Cada 10 segundos
 
     return () => {
-      console.log('📱 [INSTALL] Componente desmontado, limpiando listeners');
+      console.log('[INSTALL] Componente desmontado, limpiando listeners');
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
       clearInterval(statusInterval);
@@ -184,32 +184,32 @@ export function InstallPWAButton() {
   }, [deferredPrompt, showButton, isInstalled, installabilityStatus]);
 
   const handleInstallClick = async () => {
-    console.log('📱 [INSTALL] Usuario hizo clic en instalar');
+    console.log('[INSTALL] Usuario hizo clic en instalar');
     
     if (!deferredPrompt) {
-      console.warn('📱 [INSTALL] ⚠️ No hay prompt disponible');
+      console.warn('[INSTALL] No hay prompt disponible');
       setInstallabilityStatus('Error: No hay prompt disponible');
       return;
     }
 
     try {
-      console.log('📱 [INSTALL] Mostrando prompt de instalación...');
+      console.log('[INSTALL] Mostrando prompt de instalación...');
       
       // Mostrar el prompt
       await deferredPrompt.prompt();
       
-      console.log('📱 [INSTALL] Prompt mostrado, esperando respuesta del usuario...');
+      console.log('[INSTALL] Prompt mostrado, esperando respuesta del usuario...');
       
       // Esperar la respuesta del usuario
       const { outcome } = await deferredPrompt.userChoice;
       
-      console.log('📱 [INSTALL] Usuario respondió:', outcome);
+      console.log('[INSTALL] Usuario respondió:', outcome);
       
       if (outcome === 'accepted') {
-        console.log('📱 [INSTALL] ✅ Usuario aceptó la instalación');
+        console.log('[INSTALL] Usuario aceptó la instalación');
         setInstallabilityStatus('Instalación aceptada');
       } else {
-        console.log('📱 [INSTALL] ❌ Usuario rechazó la instalación');
+        console.log('[INSTALL] Usuario rechazó la instalación');
         setInstallabilityStatus('Instalación rechazada');
       }
       
@@ -217,7 +217,7 @@ export function InstallPWAButton() {
       setDeferredPrompt(null);
       setShowButton(false);
     } catch (error) {
-      console.error('📱 [INSTALL] ❌ Error durante la instalación:', error);
+      console.error('[INSTALL] Error durante la instalación:', error);
       setInstallabilityStatus(`Error: ${error}`);
     }
   };
