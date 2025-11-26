@@ -114,7 +114,7 @@ export default function Dashboard() {
 
                 // NOTA: La lógica de rachas ahora la maneja el backend (bright-processor Edge Function)
                 // que se ejecuta todos los días a las 00:00 UTC
-                console.log('ℹ️ Las rachas se actualizan automáticamente por el backend');
+                console.log('Las rachas se actualizan automáticamente por el backend');
 
                 // Recalcular racha máxima del usuario al entrar al dashboard
                 await recalcularRachaMaxima(session.user.id);
@@ -128,7 +128,7 @@ export default function Dashboard() {
                     if (rachaAnterior > 0 && rachaNueva === 0) {
                         const habito = mine.find(h => h.id_habito === habitoId);
                         setNotification({
-                            message: `⚠️ Perdiste tu racha de ${rachaAnterior} día${rachaAnterior > 1 ? 's' : ''} en "${habito?.nombre_habito || 'un hábito'}"! Vuelve a empezar 💪`,
+                            message: `Has perdido tu racha de ${rachaAnterior} día${rachaAnterior > 1 ? 's' : ''} en "${habito?.nombre_habito || 'un hábito'}". Vuelve a empezar.`,
                             type: 'error',
                         });
                         setTimeout(() => setNotification(null), 5000);
@@ -157,14 +157,14 @@ export default function Dashboard() {
         if (!user || habitos.length === 0) return;
 
         const intervalId = setInterval(async () => {
-            console.log('🔍 Recargando rachas desde el backend...');
+            console.log('Recargando rachas desde el backend...');
             
             // Solo recargar rachas para mostrarlas (el backend las actualiza)
             const habitoIds = habitos.map(h => h.id_habito);
             const rachasMapNuevo = await getRachasMultiplesHabitos(habitoIds);
             setHabitosRachas(rachasMapNuevo);
 
-            // 4. Detectar rachas rotas
+            // Detectar rachas rotas
             Object.keys(rachasMapNuevo).forEach(habitoId => {
                 const rachaAnterior = habitosRachas[habitoId] || 0;
                 const rachaNueva = rachasMapNuevo[habitoId] || 0;
@@ -172,7 +172,7 @@ export default function Dashboard() {
                 if (rachaAnterior > 0 && rachaNueva === 0) {
                     const habito = habitos.find(h => h.id_habito === habitoId);
                     setNotification({
-                        message: `⚠️ ¡Perdiste tu racha de ${rachaAnterior} día${rachaAnterior > 1 ? 's' : ''} en "${habito?.nombre_habito}"! No completaste el hábito a tiempo 😔`,
+                        message: `Has perdido tu racha de ${rachaAnterior} día${rachaAnterior > 1 ? 's' : ''} en "${habito?.nombre_habito}". No se completó el hábito a tiempo.`,
                         type: 'error',
                     });
                     setTimeout(() => setNotification(null), 6000);
@@ -272,17 +272,6 @@ export default function Dashboard() {
     };
 
     const handleAsignarProtector = async (habito: IHabito) => {
-        // Validar que el hábito tenga una racha activa (mayor a 0 días)
-        const rachaActual = habitosRachas[habito.id_habito] || 0;
-        if (rachaActual <= 0) {
-            setNotification({
-                message: 'No puedes asignar un protector a un hábito sin racha activa. Primero completa el hábito para crear una racha.',
-                type: 'error',
-            });
-            setTimeout(() => setNotification(null), 3000);
-            return;
-        }
-
         if (protectoresDisponibles <= 0) {
             setNotification({
                 message: 'No tienes protectores disponibles. Cómpralos en la tienda o gana más completando rachas.',
@@ -297,7 +286,7 @@ export default function Dashboard() {
             
             if (result.success) {
                 setNotification({
-                    message: `🛡️ Protector asignado a "${habito.nombre_habito}"`,
+                    message: `Protector asignado a "${habito.nombre_habito}"`,
                     type: 'success',
                 });
 
@@ -343,7 +332,7 @@ export default function Dashboard() {
             
             if (result.success) {
                 setNotification({
-                    message: `🛡️ Protector removido de "${habito.nombre_habito}"`,
+                    message: `Protector removido de "${habito.nombre_habito}"`,
                     type: 'success',
                 });
 
@@ -459,7 +448,7 @@ export default function Dashboard() {
                         <div className="habitsGrid">
                             {habitos.length === 0 ? (
                                 <div className="emptyState">
-                                    <span className="emptyIcon">📝</span>
+                                    <span className="emptyIcon">-</span>
                                     <h3>No tienes hábitos aún</h3>
                                     <p>Comienza creando tu primer hábito</p>
                                 </div>

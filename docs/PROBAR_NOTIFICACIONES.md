@@ -1,65 +1,65 @@
-# 🚀 CÓMO PROBAR LAS NOTIFICACIONES
+# Cómo probar las notificaciones
 
-## 1️⃣ Inicia el servidor
+## 1. Inicia el servidor
 ```bash
 npm run dev
 ```
 
-## 2️⃣ Abre el navegador
+## 2. Abre el navegador
 Ve a: http://localhost:5173/dashboard
 
-## 3️⃣ Abre la Consola del Navegador
+## 3. Abre la consola del navegador
 - **Chrome/Brave:** F12 o Ctrl+Shift+J
 - Ve a la pestaña "Console"
 
-## 4️⃣ Observa los Logs
+## 4. Observa los logs
 
-### Al cargar la página verás:
+### Al cargar la página verás algo similar a:
 ```
-🎯 [BANNER] Componente montado
-🎯 [BANNER] Notification existe? true
-🎯 [BANNER] Permiso actual: default
-🎯 [BANNER] Programando mostrar en 2 segundos...
-🎯 [BANNER] ¡MOSTRANDO BANNER AHORA!
-🎯 [BANNER] 🎨 RENDERIZANDO BANNER VISIBLE
-```
-
-### Cada minuto verás:
-```
-⏰ [NOTIF] Verificando X recordatorios a las HH:MM
-📋 [NOTIF] Recordatorios encontrados: [...]
-🔍 [NOTIF] Recordatorio X: { intervalo_recordar: "HH:MM:SS", horaActual: "HH:MM", debeActivarse: true/false }
+[BANNER] Componente montado
+[BANNER] Notification existe? true
+[BANNER] Permiso actual: default
+[BANNER] Programando mostrar en 2 segundos...
+[BANNER] MOSTRANDO BANNER AHORA
+[BANNER] RENDERIZANDO BANNER VISIBLE
 ```
 
-### Cuando se envía notificación:
+### Cada minuto verás algo similar a:
 ```
-🔔 [NOTIF] *** ENVIANDO NOTIFICACIÓN *** Recordatorio X a las HH:MM
+[NOTIF] Verificando X recordatorios a las HH:MM
+[NOTIF] Recordatorios encontrados: [...]
+[NOTIF] Recordatorio X: { intervalo_recordar: "HH:MM:SS", horaActual: "HH:MM", debeActivarse: true/false }
 ```
 
-## 5️⃣ Usa el Panel de Debug
+### Cuando se envía una notificación:
+```
+[NOTIF] ENVIANDO NOTIFICACIÓN - Recordatorio X a las HH:MM
+```
 
-En la **esquina inferior derecha** verás un panel negro con:
+## 5. Usa el panel de debug
 
-### Botón 1: 🔔 Probar Notificación
+En la esquina inferior derecha verás un panel negro con:
+
+### Botón 1: Probar notificación
 - Solicita permisos si no los tienes
 - Envía 2 notificaciones de prueba inmediatamente
 - Muestra errores si algo falla
 
-### Botón 2: 📊 Ver Estado
+### Botón 2: Ver estado
 - Muestra permiso actual
 - Verifica Service Worker
 - Confirma que todo esté OK
 
-## 6️⃣ Si el Banner NO Aparece
+## 6. Si el banner no aparece
 
-### Opción A: Limpiar Storage
+### Opción A: limpiar storage
 Ejecuta en consola:
 ```javascript
 sessionStorage.clear();
 location.reload();
 ```
 
-### Opción B: Verificar Permiso
+### Opción B: verificar permiso
 ```javascript
 console.log("Permiso:", Notification.permission);
 ```
@@ -72,7 +72,7 @@ Si dice `granted` o `denied`, el banner NO aparecerá (ya decidiste).
 3. Cambia a "Preguntar (predeterminado)" o "Bloquear"
 4. Recarga la página
 
-## 7️⃣ Crear un Recordatorio de Prueba
+## 7. Crear un recordatorio de prueba
 
 1. Ve al dashboard
 2. Clic en "**Gestionar Recordatorios**" (botón abajo)
@@ -83,26 +83,26 @@ Si dice `granted` o `denied`, el banner NO aparecerá (ya decidiste).
 6. Activa el recordatorio
 7. **Espera 1-2 minutos**
 
-### Deberías ver en consola:
+### Deberías ver en consola algo similar a:
 ```
-⏰ [NOTIF] Verificando 1 recordatorios a las 21:31
-📋 [NOTIF] Recordatorios encontrados: [{id: ..., hora: "21:31:00", ...}]
-🔍 [NOTIF] Recordatorio X: { debeActivarse: true }
-🔔 [NOTIF] *** ENVIANDO NOTIFICACIÓN ***
+[NOTIF] Verificando 1 recordatorios a las 21:31
+[NOTIF] Recordatorios encontrados: [{id: ..., hora: "21:31:00", ...}]
+[NOTIF] Recordatorio X: { debeActivarse: true }
+[NOTIF] ENVIANDO NOTIFICACIÓN
 ```
 
-## 8️⃣ Si NO Funciona
+## 8. Si no funciona
 
-### Revisar Errores
+### Revisar errores
 Busca en consola líneas con `❌ [NOTIF]`
 
-### Error Común 1: Permiso Denegado
+### Error común 1: permiso denegado
 ```
 ❌ [NOTIF] Error enviando notificación push: NotAllowedError
 ```
-**Solución:** Ve a configuración del navegador y habilita notificaciones para localhost
+**Solución:** ve a la configuración del navegador y habilita notificaciones para localhost.
 
-### Error Común 2: Service Worker No Registrado
+### Error común 2: Service Worker no registrado
 ```
 🧪 [DEBUG] SW Registrado: false
 ```
@@ -111,16 +111,16 @@ Busca en consola líneas con `❌ [NOTIF]`
 - Recarga la página (Ctrl+Shift+R)
 - Revisa errores en consola
 
-### Error Común 3: Recordatorio en Hora Incorrecta
+### Error común 3: recordatorio en hora incorrecta
 ```
 🔍 [NOTIF] Recordatorio X: { debeActivarse: false }
 ```
-**Causa:** La hora del recordatorio no coincide con la hora actual
+**Causa:** la hora del recordatorio no coincide con la hora actual.  
 **Solución:** 
 - Verifica que la hora sea exacta (minuto actual)
 - Recuerda que se verifica cada 60 segundos
 
-## 9️⃣ Probar Notificación Manual
+## 9. Probar notificación manual
 
 Si todo lo demás falla, ejecuta en consola:
 ```javascript
@@ -128,7 +128,7 @@ Si todo lo demás falla, ejecuta en consola:
 await Notification.requestPermission();
 
 // Enviar notificación
-new Notification("🧪 Prueba Manual", {
+new Notification("Prueba manual", {
   body: "Si ves esto, las notificaciones SÍ funcionan",
   icon: "https://cdn-icons-png.flaticon.com/192/2234/2234767.png",
   requireInteraction: false
@@ -137,19 +137,19 @@ new Notification("🧪 Prueba Manual", {
 
 Si esta notificación **SÍ aparece**, el problema está en la lógica de recordatorios, no en los permisos.
 
-## 🔟 Verificación Final
+## 10. Verificación final
 
-### ✅ Checklist de Funcionamiento:
-- [ ] Banner de permisos aparece después de 2 segundos
-- [ ] Puedo hacer clic en "Activar" y sale popup de permisos
-- [ ] Después de aceptar, veo notificación de prueba "¡Notificaciones activadas!"
-- [ ] Panel de debug aparece en esquina inferior derecha
-- [ ] "🔔 Probar Notificación" envía notificaciones visibles
-- [ ] "📊 Ver Estado" muestra `Permiso: granted`
-- [ ] Cada minuto veo logs `⏰ [NOTIF]` en consola
-- [ ] Recordatorio programado envía notificación a la hora correcta
+### Checklist de funcionamiento
+- [ ] El banner de permisos aparece después de 2 segundos
+- [ ] Puedo hacer clic en "Activar" y sale el diálogo de permisos del navegador
+- [ ] Después de aceptar, veo una notificación de prueba de activación
+- [ ] El panel de debug aparece en la esquina inferior derecha
+- [ ] El botón "Probar notificación" envía notificaciones visibles
+- [ ] El botón "Ver estado" muestra `Permiso: granted`
+- [ ] Cada minuto veo logs `[NOTIF]` en consola
+- [ ] El recordatorio programado envía notificaciones a la hora correcta
 
-### ❌ Si Algo Falla:
+### Si algo falla
 1. **Copia TODOS los logs de consola** (desde que cargas la página)
 2. **Captura de pantalla** del panel de debug después de "Ver Estado"
 3. **Captura de pantalla** de configuración de recordatorios
@@ -157,20 +157,20 @@ Si esta notificación **SÍ aparece**, el problema está en la lógica de record
 
 ---
 
-## 🌐 IMPORTANTE: Notificaciones Fuera de la Página
+## Importante: notificaciones fuera de la página
 
-**Esto NO funciona en localhost.** Requiere:
+Esto no funciona en localhost. Requiere:
 
 1. **HTTPS** (localhost es HTTP)
 2. **Web Push API** con suscripción
 3. **Backend push service** (Supabase Edge Function)
 
-### Para Probar en Producción (Vercel):
+### Para probar en producción (Vercel)
 1. Deploy a Vercel: `npm run build && vercel --prod`
 2. Ve a `https://habittrack.vercel.app`
 3. Las notificaciones **dentro de la app** funcionarán
-4. Para notificaciones **fuera de la app**, necesitas configurar Web Push (ver `GUIA_NOTIFICACIONES.md`)
+4. Para notificaciones fuera de la aplicación, necesitas configurar Web Push (ver `GUIA_NOTIFICACIONES.md`).
 
 ---
 
-**¿Listo?** Ejecuta `npm run dev` y sigue los pasos. ¡Buena suerte! 🚀
+Ejecuta `npm run dev` y sigue los pasos anteriores para verificar que las notificaciones funcionen correctamente.

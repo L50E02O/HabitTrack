@@ -11,34 +11,34 @@ export function PermisosNotificacion() {
   const [solicitando, setSolicitando] = useState(false);
 
   useEffect(() => {
-    console.log("🎯 [BANNER] Componente montado");
-    console.log("🎯 [BANNER] Notification existe?", 'Notification' in window);
-    console.log("🎯 [BANNER] Permiso actual:", Notification?.permission);
-    console.log("🎯 [BANNER] sessionStorage:", sessionStorage.getItem('notificacion-banner-cerrado'));
+    console.log("[BANNER] Componente montado");
+    console.log("[BANNER] Notification existe?", 'Notification' in window);
+    console.log("[BANNER] Permiso actual:", Notification?.permission);
+    console.log("[BANNER] sessionStorage:", sessionStorage.getItem('notificacion-banner-cerrado'));
     
     // Verificar si debemos mostrar el banner
     if ('Notification' in window && Notification.permission === 'default') {
-      console.log("🎯 [BANNER] Programando mostrar en 2 segundos...");
+      console.log("[BANNER] Programando mostrar en 2 segundos...");
       // Esperar 2 segundos para no ser intrusivos
       const timer = setTimeout(() => {
-        console.log("🎯 [BANNER] ¡MOSTRANDO BANNER AHORA!");
+        console.log("[BANNER] Mostrando banner ahora");
         setMostrar(true);
       }, 2000);
 
       return () => clearTimeout(timer);
     } else {
-      console.log("🎯 [BANNER] No se muestra - Permiso:", Notification?.permission);
+      console.log("[BANNER] No se muestra - Permiso:", Notification?.permission);
     }
   }, []);
 
   const solicitarPermiso = async () => {
-    console.log("🎯 [BANNER] Usuario hizo clic en Activar");
+    console.log("[BANNER] Usuario hizo clic en Activar");
     setSolicitando(true);
     try {
       const permiso = await solicitarPermisoNotificaciones();
-      console.log("🎯 [BANNER] Permiso obtenido:", permiso);
+      console.log("[BANNER] Permiso obtenido:", permiso);
       if (permiso === 'granted') {
-        console.log('✅ [BANNER] Permiso de notificaciones otorgado');
+        console.log('[BANNER] Permiso de notificaciones otorgado');
         
         // Mostrar notificación de prueba
         new Notification("¡Notificaciones activadas!", {
@@ -47,7 +47,7 @@ export function PermisosNotificacion() {
         });
       }
     } catch (error) {
-      console.error('❌ [BANNER] Error solicitando permiso:', error);
+      console.error('[BANNER] Error solicitando permiso:', error);
     } finally {
       setSolicitando(false);
       setMostrar(false);
@@ -55,31 +55,31 @@ export function PermisosNotificacion() {
   };
 
   const cerrar = () => {
-    console.log("🎯 [BANNER] Usuario cerró el banner");
+    console.log("[BANNER] Usuario cerró el banner");
     setMostrar(false);
     // Recordar que el usuario cerró el banner (no volver a mostrar en esta sesión)
     sessionStorage.setItem('notificacion-banner-cerrado', 'true');
   };
 
-  console.log("🎯 [BANNER] Render - mostrar:", mostrar, "solicitando:", solicitando);
+  console.log("[BANNER] Render - mostrar:", mostrar, "solicitando:", solicitando);
 
   // No mostrar si ya fue cerrado en esta sesión
   if (sessionStorage.getItem('notificacion-banner-cerrado')) {
-    console.log("🎯 [BANNER] No renderiza - banner ya cerrado");
+    console.log("[BANNER] No renderiza - banner ya cerrado");
     return null;
   }
 
   if (!mostrar) {
-    console.log("🎯 [BANNER] No renderiza - mostrar=false");
+    console.log("[BANNER] No renderiza - mostrar=false");
     return null;
   }
 
-  console.log("🎯 [BANNER] 🎨 RENDERIZANDO BANNER VISIBLE");
+  console.log("[BANNER] Renderizando banner visible");
 
   return (
     <div className="permisos-notificacion-overlay">
       <div className="permisos-notificacion-banner">
-        <div className="banner-icono">🔔</div>
+        <div className="banner-icono">*</div>
         <div className="banner-contenido">
           <h3>¿Activar notificaciones?</h3>
           <p>Recibe recordatorios para completar tus hábitos diarios</p>

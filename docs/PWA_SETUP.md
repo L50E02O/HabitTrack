@@ -1,10 +1,10 @@
 # Configuración PWA - HabitTrack
 
-## ✅ Configuración Completada
+## Configuración completada
 
 La aplicación ahora está configurada como PWA (Progressive Web App) con soporte completo para notificaciones.
 
-## 📋 Resumen de Cambios
+## Resumen de cambios
 
 ### 1. **Error del Proxy ECONNREFUSED**
 
@@ -15,31 +15,31 @@ La aplicación ahora está configurada como PWA (Progressive Web App) con soport
 - O configura la variable de entorno `VITE_API_BASE_URL` para usar una API en producción
 - El código ahora tiene un fallback que usa Supabase directamente si el endpoint no está disponible
 
-### 2. **Configuración PWA**
+### 2. Configuración PWA
 
-#### Archivos Creados:
-- ✅ `public/manifest.json` - Manifest de la PWA
-- ✅ `public/sw.js` - Service Worker personalizado
-- ✅ `src/utils/pwaService.ts` - Utilidades para PWA
-- ✅ Configuración en `vite.config.ts` con `vite-plugin-pwa`
+#### Archivos creados
+- `public/manifest.json`: manifest de la PWA.
+- `public/sw.js`: Service Worker personalizado.
+- `src/utils/pwaService.ts`: utilidades para PWA.
+- Configuración en `vite.config.ts` con `vite-plugin-pwa`.
 
-#### Funcionalidades Implementadas:
-- ✅ Service Worker para notificaciones en background
-- ✅ Cache de recursos estáticos
-- ✅ Notificaciones push (cuando la app está cerrada)
-- ✅ Instalación como app nativa
-- ✅ Soporte offline básico
+#### Funcionalidades implementadas
+- Service Worker para notificaciones en background.
+- Cache de recursos estáticos.
+- Notificaciones push cuando la aplicación está cerrada (si está totalmente configurado).
+- Instalación como aplicación nativa.
+- Soporte offline básico.
 
-## 🚀 Cómo Usar
+## Cómo usar
 
-### Desarrollo Local
+### Desarrollo local
 
-1. **Iniciar el servidor de desarrollo:**
+1. Iniciar el servidor de desarrollo:
    ```bash
    npm run dev
    ```
 
-2. **Iniciar el servidor API (en otra terminal):**
+2. Iniciar el servidor API (en otra terminal):
    ```bash
    npm run dev:api
    ```
@@ -47,26 +47,26 @@ La aplicación ahora está configurada como PWA (Progressive Web App) con soport
 
 ### Producción
 
-1. **Construir la aplicación:**
+1. Construir la aplicación:
    ```bash
    npm run build
    ```
 
-2. **Previsualizar:**
+2. Previsualizar:
    ```bash
    npm run preview
    ```
 
-## 📱 Instalación como PWA
+## Instalación como PWA
 
 1. Abre la aplicación en un navegador compatible (Chrome, Edge, Safari)
 2. Busca el botón de "Instalar" en la barra de direcciones
 3. O ve a Configuración > Instalar aplicación
 4. La app se instalará y podrás abrirla como una app nativa
 
-## 🔔 Notificaciones
+## Notificaciones
 
-### Solicitar Permisos
+### Solicitar permisos
 
 Las notificaciones se solicitan automáticamente cuando:
 - El usuario crea un recordatorio
@@ -74,11 +74,11 @@ Las notificaciones se solicitan automáticamente cuando:
 
 ### Funcionamiento
 
-- **Con Service Worker activo:** Las notificaciones funcionan incluso cuando la app está cerrada
-- **Sin Service Worker:** Las notificaciones solo funcionan cuando la app está abierta
-- **Recordatorios programados:** Se verifican cada minuto y envían notificaciones a la hora configurada
+- Con Service Worker activo: las notificaciones pueden funcionar incluso cuando la aplicación está cerrada.
+- Sin Service Worker: las notificaciones solo funcionan cuando la aplicación está abierta.
+- Recordatorios programados: se verifican cada minuto y envían notificaciones a la hora configurada.
 
-## 🎨 Iconos Requeridos
+## Iconos requeridos
 
 Necesitas crear los siguientes iconos en la carpeta `public/`:
 
@@ -86,16 +86,16 @@ Necesitas crear los siguientes iconos en la carpeta `public/`:
 - `icon-512.png` - Icono 512x512px
 - `badge.png` - Badge para notificaciones (opcional, 96x96px)
 
-### Generar Iconos
+### Generar iconos
 
 Puedes usar herramientas como:
 - [PWA Asset Generator](https://github.com/onderceylan/pwa-asset-generator)
 - [RealFaviconGenerator](https://realfavicongenerator.net/)
 - Cualquier editor de imágenes
 
-## 🔧 Configuración Avanzada
+## Configuración avanzada
 
-### Variables de Entorno
+### Variables de entorno
 
 Crea un archivo `.env` en la raíz del proyecto:
 
@@ -112,7 +112,7 @@ El Service Worker está en `public/sw.js`. Puedes modificarlo para:
 - Personalizar las notificaciones
 - Agregar sincronización en background
 
-## 🐛 Solución de Problemas
+## Solución de problemas
 
 ### Las notificaciones no funcionan
 
@@ -134,7 +134,7 @@ Si ves errores `ECONNREFUSED`:
 - O configura `VITE_API_BASE_URL` para usar una API remota
 - La app funcionará pero el ranking puede no cargar correctamente
 
-## 📚 Recursos
+## Recursos
 
 - [MDN - Service Workers](https://developer.mozilla.org/es/docs/Web/API/Service_Worker_API)
 - [Web.dev - PWA](https://web.dev/progressive-web-apps/)

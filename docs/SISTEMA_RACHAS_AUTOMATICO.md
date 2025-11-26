@@ -1,120 +1,120 @@
-# Sistema de Rachas Automático
+# Sistema de rachas automático
 
-## 📋 Descripción General
+## Descripción general
 
-El sistema de rachas ahora funciona **automáticamente**. Ya no necesitas hacer clic adicional para actualizar las rachas - el sistema detecta cuando completaste tu objetivo y actualiza la racha automáticamente.
+El sistema de rachas ahora funciona de forma automática. Ya no necesitas hacer clic adicional para actualizar las rachas: el sistema detecta cuándo completaste tu objetivo y actualiza la racha automáticamente.
 
-## 🔥 Cómo Funciona
+## Cómo funciona
 
-### Lógica de Rachas por Tipo de Intervalo
+### Lógica de rachas por tipo de intervalo
 
-#### 📅 **Hábitos DIARIOS**
+#### Hábitos diarios
 
-La racha aumenta **+1 cada día** que completes la meta diaria:
-
-```
-Día 1: Completas 3/3 clicks → Racha: 1 día ✅
-Día 2: Completas 3/3 clicks → Racha: 2 días ✅
-Día 3: Solo 2/3 clicks → Racha: 0 (se pierde) ❌
-Día 4: Completas 3/3 clicks → Racha: 1 día (nueva) ✅
-```
-
-**Regla:** Si no completas la meta de un día → Racha se PIERDE
-
-#### 📆 **Hábitos SEMANALES**
-
-La racha aumenta **+1 cada día** que hagas progreso durante la semana:
+La racha aumenta en una unidad cada día que completes la meta diaria:
 
 ```
-Lunes: 1 click → Racha +1 (Racha: 1 día)
-Martes: 1 click → Racha +1 (Racha: 2 días)
-Miércoles: 1 click → Racha +1 (Racha: 3 días)
-Jueves: 1 click → Racha +1 (Racha: 4 días)
-Viernes: 1 click → Racha +1 (Racha: 5 días)
+Día 1: completas 3/3 clics → Racha: 1 día
+Día 2: completas 3/3 clics → Racha: 2 días
+Día 3: solo 2/3 clics → Racha: 0 (se pierde)
+Día 4: completas 3/3 clics → Racha: 1 día (nueva)
+```
+
+Regla: si no completas la meta de un día, la racha se pierde.
+
+#### Hábitos semanales
+
+La racha aumenta en una unidad cada día que hagas progreso durante la semana:
+
+```
+Lunes: 1 clic → Racha +1 (racha: 1 día)
+Martes: 1 clic → Racha +1 (racha: 2 días)
+Miércoles: 1 clic → Racha +1 (racha: 3 días)
+Jueves: 1 clic → Racha +1 (racha: 4 días)
+Viernes: 1 clic → Racha +1 (racha: 5 días)
 
 Fin de semana: 
-  ✅ Completaste 5/5 clicks → Racha CONTINÚA (sigue acumulando)
-  ❌ Solo 3/5 clicks → Racha se PIERDE (pierdes todos los días acumulados)
+  - Completaste 5/5 clics → la racha continúa (sigue acumulando).
+  - Solo 3/5 clics → la racha se pierde (pierdes todos los días acumulados).
 ```
 
-**Regla:** La racha crece cada día, pero al final de la semana verifica:
-- Si completaste `meta_repeticion` → Racha continúa
-- Si NO completaste `meta_repeticion` → Racha se PIERDE (toda)
+Regla: la racha crece cada día, pero al final de la semana se verifica:
+- Si completaste `meta_repeticion` → la racha continúa.
+- Si no completaste `meta_repeticion` → la racha se pierde por completo.
 
-#### 🗓️ **Hábitos MENSUALES**
+#### Hábitos mensuales
 
-La racha aumenta **+1 cada día** que hagas progreso durante el mes:
+La racha aumenta en una unidad cada día que hagas progreso durante el mes:
 
 ```
-Día 1-15: Haces progreso cada día → Racha: 15 días
-Día 16: Sin progreso → Racha: 15 días (no aumenta)
-Día 17-30: Haces progreso → Racha: 29 días
+Día 1-15: haces progreso cada día → Racha: 15 días
+Día 16: sin progreso → Racha: 15 días (no aumenta)
+Día 17-30: haces progreso → Racha: 29 días
 
 Fin de mes:
-  ✅ Completaste 20/20 clicks → Racha CONTINÚA (sigue acumulando)
-  ❌ Solo 18/20 clicks → Racha se PIERDE (pierdes los 29 días)
+  - Completaste 20/20 clics → la racha continúa (sigue acumulando).
+  - Solo 18/20 clics → la racha se pierde (pierdes los 29 días).
 ```
 
-**Regla:** La racha crece cada día, pero al final del mes verifica:
-- Si completaste `meta_repeticion` → Racha continúa
-- Si NO completaste `meta_repeticion` → Racha se PIERDE (toda)
+Regla: la racha crece cada día, pero al final del mes se verifica:
+- Si completaste `meta_repeticion` → la racha continúa.
+- Si no completaste `meta_repeticion` → la racha se pierde por completo.
 
-### Verificaciones Automáticas
+### Verificaciones automáticas
 
 El sistema verifica y actualiza rachas en tres momentos:
 
-1. **Al cargar el dashboard** - Verifica todos los hábitos al iniciar sesión
-2. **Cada 30 segundos** - Verificación periódica mientras navegas
-3. **Después de hacer clic** - Verifica inmediatamente tras registrar progreso
+1. Al cargar el dashboard: verifica todos los hábitos al iniciar sesión.
+2. Cada 30 segundos: verificación periódica mientras navegas.
+3. Después de hacer clic: verifica inmediatamente tras registrar progreso.
 
-## ✅ Validaciones Implementadas
+## Validaciones implementadas
 
-### 1. Actualización de Rachas por Día
+### 1. Actualización de rachas por día
 
-**Para TODOS los tipos de hábitos (diario, semanal, mensual):**
-- La racha aumenta **+1 por cada día** que haces progreso
-- Solo actualiza **UNA VEZ por día** (evita duplicados)
+Para todos los tipos de hábitos (diario, semanal, mensual):
+- La racha aumenta en una unidad por cada día que haces progreso.
+- Solo actualiza una vez por día (evita duplicados).
 
-### 2. Verificación al Final del Período
+### 2. Verificación al final del período
 
-**Diario:**
-- Cada día verifica: ¿Completaste `meta_repeticion`?
-  - ✅ SÍ → Racha +1
-  - ❌ NO → Racha se PIERDE
+Diario:
+- Cada día verifica: ¿completaste `meta_repeticion`?
+  - Sí → la racha aumenta en una unidad.
+  - No → la racha se pierde.
 
-**Semanal:**
-- Al final de la semana verifica: ¿Completaste `meta_repeticion` de la semana?
-  - ✅ SÍ → Racha continúa acumulando
-  - ❌ NO → Racha se PIERDE (toda la acumulada)
+Semanal:
+- Al final de la semana verifica: ¿completaste `meta_repeticion` de la semana?
+  - Sí → la racha continúa acumulando.
+  - No → la racha se pierde (toda la acumulada).
 
-**Mensual:**
-- Al final del mes verifica: ¿Completaste `meta_repeticion` del mes?
-  - ✅ SÍ → Racha continúa acumulando
-  - ❌ NO → Racha se PIERDE (toda la acumulada)
+Mensual:
+- Al final del mes verifica: ¿completaste `meta_repeticion` del mes?
+  - Sí → la racha continúa acumulando.
+  - No → la racha se pierde (toda la acumulada).
 
-### 3. Sistema de Protectores
+### 3. Sistema de protectores
 
 Si tienes protectores asignados:
-- Se usan **automáticamente** cuando la racha está por perderse
-- Salvaguarda tu racha acumulada
-- Te notifica cuando se usa un protector
+- Se usan automáticamente cuando la racha está por perderse.
+- Protegen tu racha acumulada.
+- Se notifica al usuario cuando se usa un protector.
 
-## 📁 Archivos Modificados
+## Archivos modificados
 
-### Nuevos Archivos
+### Nuevos archivos
 
-- `src/services/habito/autoProgressService.ts` - Servicio de verificación automática
+- `src/services/habito/autoProgressService.ts`: servicio de verificación automática.
 
-### Archivos Modificados
+### Archivos modificados
 
-- `src/services/habito/progressService.ts` - Simplificado, solo registra progreso
-- `src/pages/dashboard.tsx` - Integra verificación automática
+- `src/services/habito/progressService.ts`: simplificado, solo registra progreso.
+- `src/pages/dashboard.tsx`: integra la verificación automática.
 
-## 🔍 Funciones Principales
+## Funciones principales
 
 ### `checkAndUpdateAutoProgress(idPerfil)`
 
-Verifica todos los hábitos activos del usuario:
+Verifica todos los hábitos activos del usuario y devuelve:
 
 ```typescript
 {
@@ -128,112 +128,112 @@ Verifica todos los hábitos activos del usuario:
 
 Verifica un hábito específico:
 
-1. Cuenta progreso del período actual
-2. Verifica si cambió el período sin completar meta → Pierde racha
-3. Verifica si ya actualizó hoy → No duplica
-4. Si alcanzó meta y no actualizó → Actualiza racha
-5. Usa protectores automáticamente si están asignados
+1. Cuenta el progreso del período actual.
+2. Verifica si cambió el período sin completar la meta (en ese caso, se pierde la racha).
+3. Verifica si ya se actualizó hoy (para no duplicar).
+4. Si se alcanzó la meta y no se ha actualizado aún, actualiza la racha.
+5. Usa protectores automáticamente si están asignados.
 
-## 🎯 Ejemplos de Uso
+## Ejemplos de uso
 
-### Ejemplo 1: Hábito Diario (3 veces al día)
+### Ejemplo 1: hábito diario (3 veces al día)
 
-**Lunes:**
-- Click 1: Progreso 1/3 ✅
-- Click 2: Progreso 2/3 ✅
-- Click 3: Progreso 3/3 ✅ → **Racha: 1 día**
+Lunes:
+- Clic 1: progreso 1/3
+- Clic 2: progreso 2/3
+- Clic 3: progreso 3/3 → racha: 1 día
 
-**Martes:**
-- Click 1: Progreso 1/3 ✅
-- Click 2: Progreso 2/3 ✅
-- Click 3: Progreso 3/3 ✅ → **Racha: 2 días**
+Martes:
+- Clic 1: progreso 1/3
+- Clic 2: progreso 2/3
+- Clic 3: progreso 3/3 → racha: 2 días
 
-**Miércoles (no completa):**
-- Click 1: Progreso 1/3 ✅
-- Click 2: Progreso 2/3 ✅
-- Fin del día → **Racha: 0 días** (se pierde porque no completó 3/3)
+Miércoles (no completa):
+- Clic 1: progreso 1/3
+- Clic 2: progreso 2/3
+- Fin del día → racha: 0 días (se pierde porque no completó 3/3)
 
-**Jueves:**
-- Click 1: Progreso 1/3 ✅
-- Click 2: Progreso 2/3 ✅
-- Click 3: Progreso 3/3 ✅ → **Racha: 1 día** (nueva racha)
+Jueves:
+- Clic 1: progreso 1/3
+- Clic 2: progreso 2/3
+- Clic 3: progreso 3/3 → racha: 1 día (nueva racha)
 
-### Ejemplo 2: Hábito Semanal (5 veces a la semana)
+### Ejemplo 2: hábito semanal (5 veces a la semana)
 
-**Semana 1:**
-- Lunes: 1 click → Racha: 1 día
-- Martes: 1 click → Racha: 2 días
-- Miércoles: 1 click → Racha: 3 días
-- Jueves: 1 click → Racha: 4 días
-- Viernes: 1 click → Racha: 5 días
-- **Fin de semana:** Completó 5/5 → ✅ **Racha continúa (5 días acumulados)**
+Semana 1:
+- Lunes: 1 clic → racha: 1 día
+- Martes: 1 clic → racha: 2 días
+- Miércoles: 1 clic → racha: 3 días
+- Jueves: 1 clic → racha: 4 días
+- Viernes: 1 clic → racha: 5 días
+- Fin de semana: completó 5/5 → la racha continúa (5 días acumulados).
 
-**Semana 2:**
-- Lunes: 1 click → Racha: 6 días
-- Martes: 1 click → Racha: 7 días
-- Miércoles: 1 click → Racha: 8 días
-- Jueves: (sin click)
-- Viernes: (sin click)
-- **Fin de semana:** Solo 3/5 → ❌ **Racha se pierde** (pierde los 8 días)
+Semana 2:
+- Lunes: 1 clic → racha: 6 días
+- Martes: 1 clic → racha: 7 días
+- Miércoles: 1 clic → racha: 8 días
+- Jueves: sin clic
+- Viernes: sin clic
+- Fin de semana: solo 3/5 → la racha se pierde (pierde los 8 días).
 
-### Ejemplo 3: Hábito Mensual (20 veces al mes)
+### Ejemplo 3: hábito mensual (20 veces al mes)
 
-**Enero:**
-- Días 1-20: Hace 1 click cada día → Racha: 20 días
-- Días 21-31: Sin progreso
-- **Fin de mes:** Completó 20/20 → ✅ **Racha continúa (20 días acumulados)**
+Enero:
+- Días 1-20: hace 1 clic cada día → racha: 20 días.
+- Días 21-31: sin progreso.
+- Fin de mes: completó 20/20 → la racha continúa (20 días acumulados).
 
-**Febrero:**
-- Días 1-15: Hace 1 click cada día → Racha: 35 días (20 + 15)
-- Días 16-28: Sin progreso
-- **Fin de mes:** Solo 15/20 → ❌ **Racha se pierde** (pierde los 35 días)
+Febrero:
+- Días 1-15: hace 1 clic cada día → racha: 35 días (20 + 15).
+- Días 16-28: sin progreso.
+- Fin de mes: solo 15/20 → la racha se pierde (pierde los 35 días).
 
-### Ejemplo 4: Hábito Semanal con Protector
+### Ejemplo 4: hábito semanal con protector
 
-**Semana 1:** 
-- Lunes-Viernes: 5 clicks → Completó 5/5 → Racha: 5 días ✅
+Semana 1: 
+- Lunes-viernes: 5 clics → completó 5/5 → racha: 5 días.
 
-**Semana 2:** 
-- Lunes-Jueves: 4 clicks → Solo 4/5
-- Fin de semana → **Protector se usa automáticamente** 🛡️
-- Racha salvada: 9 días (5 de semana 1 + 4 de semana 2)
+Semana 2: 
+- Lunes-jueves: 4 clics → solo 4/5.
+- Fin de semana → el protector se usa automáticamente.
+- Racha salvada: 9 días (5 de la semana 1 + 4 de la semana 2).
 
-**Semana 3:**
-- Lunes-Viernes: 5 clicks → Completó 5/5 → Racha: 14 días ✅
+Semana 3:
+- Lunes-viernes: 5 clics → completó 5/5 → racha: 14 días.
 
-## 🛠️ Configuración
+## Configuración
 
 No requiere configuración adicional. El sistema funciona automáticamente al:
 
-1. Hacer `npm install`
-2. Iniciar la app con `npm run dev`
-3. Iniciar sesión en el dashboard
+1. Ejecutar `npm install`.
+2. Iniciar la aplicación con `npm run dev`.
+3. Iniciar sesión en el dashboard.
 
-## 📊 Monitoreo
+## Monitoreo
 
-El sistema imprime logs en consola para debugging:
+El sistema imprime logs en consola para depuración, por ejemplo:
 
 ```
-🔄 Iniciando verificación automática de progreso...
-📊 Hábito Ejercicio: 3/3
-🔥 Hábito Ejercicio: Meta alcanzada - Actualizando racha...
-✅ Racha actualizada para Ejercicio: 5 días
-✅ Verificación completa. 1 rachas actualizadas.
+[RACHAS] Iniciando verificación automática de progreso...
+[RACHAS] Hábito Ejercicio: 3/3
+[RACHAS] Hábito Ejercicio: meta alcanzada - actualizando racha...
+[RACHAS] Racha actualizada para Ejercicio: 5 días
+[RACHAS] Verificación completa. 1 racha actualizada.
 ```
 
-## ⚡ Beneficios
+## Beneficios
 
-1. **Automático** - No necesitas pensar en actualizar rachas
-2. **Justo** - Si no completas la meta, pierdes la racha
-3. **Protegido** - Los protectores se usan automáticamente
-4. **Eficiente** - Solo actualiza una vez por día
-5. **Inmediato** - Verifica después de cada progreso
+1. Automático: no necesitas pensar en actualizar rachas.
+2. Justo: si no completas la meta, pierdes la racha.
+3. Protegido: los protectores se usan automáticamente.
+4. Eficiente: solo actualiza una vez por día.
+5. Inmediato: verifica después de cada progreso.
 
-## 🔄 Migración desde Sistema Anterior
+## Migración desde el sistema anterior
 
 El sistema anterior requería hacer clic en "Avanzar" para actualizar rachas. Ahora:
 
-- ✅ **Antes:** Click → Progreso → Click adicional → Racha
-- ✅ **Ahora:** Click → Progreso → **Racha automática**
+- Antes: clic → progreso → clic adicional → racha.
+- Ahora: clic → progreso → racha automática.
 
 No se requiere migración de datos. El sistema funciona con la base de datos actual.

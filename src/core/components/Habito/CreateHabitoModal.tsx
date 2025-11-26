@@ -93,7 +93,7 @@ export default function CreateHabitoModal({ userId, open, onClose, onCreated, ha
                 {!puedeCrearMas ? (
                     <div className="form">
                         <div className="errorMsg">
-                            <strong>⚠️ Límite alcanzado</strong>
+                            <strong>Límite alcanzado</strong>
                             <p>Solo puedes tener un máximo de {LIMITE_HABITOS} hábitos (3 filas × 3 columnas).</p>
                             <p>Elimina un hábito existente para crear uno nuevo.</p>
                         </div>

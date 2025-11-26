@@ -35,7 +35,7 @@ export async function recordHabitProgress(
         success: false,
         newProgress: currentProgress,
         pointsAdded: 0,
-        message: `Ya completaste este hábito para este período. ¡Buen trabajo! 💪`,
+        message: `Ya completaste este hábito para este período. Buen trabajo.`,
         isComplete: true,
       };
     }
@@ -61,12 +61,12 @@ export async function recordHabitProgress(
     // NOTA: La actualización de racha ahora es AUTOMÁTICA
     // El servicio autoProgressService verificará y actualizará la racha
     // cuando detecte que se alcanzó meta_repeticion
-    console.log("✅ Progreso registrado. La racha se actualizará automáticamente.");
+    console.log("Progreso registrado. La racha se actualizará automáticamente.");
 
     // Creamos el mensaje para mostrar al usuario
     const mensaje = habitoCompletado
-      ? `¡Felicidades! Completaste tu hábito y ganaste ${puntosADar} puntos 🎉`
-      : `¡Buen progreso! Ganaste ${puntosADar} puntos (${newProgress}/${metaRepeticion})`;
+      ? `Has completado tu hábito y ganaste ${puntosADar} puntos.`
+      : `Buen progreso. Ganaste ${puntosADar} puntos (${newProgress}/${metaRepeticion}).`;
 
     return {
       success: true,
@@ -105,7 +105,7 @@ export async function getHabitCurrentProgress(
     }
 
     const progresoActual = registro?.progreso || 0;
-    console.log(`Progreso actual del hábito ${idHabito}: ${progresoActual} (del campo progreso)`);
+    console.log(`Progreso actual del hábito ${idHabito}: ${progresoActual} (del campo progreso).`);
     return progresoActual;
 
   } catch (error: any) {
@@ -150,7 +150,7 @@ async function obtenerProgresoActual(idHabito: string, _intervaloMeta: string) {
   // El progreso actual viene del campo progreso del registro único
   const currentProgress = registro?.progreso || 0;
 
-  console.log(`Progreso actual en obtenerProgresoActual: ${currentProgress} (del campo progreso)`);
+  console.log(`Progreso actual en obtenerProgresoActual: ${currentProgress} (del campo progreso).`);
   return { currentProgress, lastRegistro: registro };
 }
 
@@ -173,7 +173,7 @@ async function guardarRegistroProgreso(
   const hoy = new Date();
   hoy.setUTCHours(0, 0, 0, 0);
 
-  console.log("🔍 Intentando actualizar registro:", { 
+  console.log("Intentando actualizar registro:", { 
     idHabito, 
     progreso: newProgress, 
     cumplido: habitoCompletado 
@@ -187,7 +187,7 @@ async function guardarRegistroProgreso(
     .maybeSingle();
 
   if (errorBusqueda && errorBusqueda.code !== 'PGRST116') { // PGRST116 = no rows returned
-    console.error("❌ Error al buscar registro:", errorBusqueda);
+    console.error("Error al buscar registro:", errorBusqueda);
     throw new Error(`Error al buscar registro: ${errorBusqueda.message}`);
   }
 
@@ -207,7 +207,7 @@ async function guardarRegistroProgreso(
       .single();
 
     if (errorUpdate) {
-      console.error("❌ Error al actualizar registro:", errorUpdate);
+      console.error("Error al actualizar registro:", errorUpdate);
       throw new Error(`Error al actualizar registro: ${errorUpdate.message}`);
     }
 
@@ -216,7 +216,7 @@ async function guardarRegistroProgreso(
     }
 
     registroId = registroActualizado.id_registro;
-    console.log("✅ Registro actualizado:", registroId);
+    console.log("Registro actualizado:", registroId);
   } else {
     // Crear el registro si no existe (no debería pasar si se creó correctamente con el hábito)
     const { data: nuevoRegistro, error: errorInsert } = await supabase
@@ -232,7 +232,7 @@ async function guardarRegistroProgreso(
       .single();
 
     if (errorInsert) {
-      console.error("❌ Error al crear registro:", errorInsert);
+      console.error("Error al crear registro:", errorInsert);
       throw new Error(`Error al crear registro: ${errorInsert.message}`);
     }
 
@@ -241,7 +241,7 @@ async function guardarRegistroProgreso(
     }
 
     registroId = nuevoRegistro.id_registro;
-    console.log("✅ Nuevo registro creado:", registroId);
+    console.log("Nuevo registro creado:", registroId);
   }
 
   return registroId;

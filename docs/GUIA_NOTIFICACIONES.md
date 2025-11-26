@@ -1,81 +1,81 @@
-# 🔔 Guía de Notificaciones - HabitTrack
+# Guía de notificaciones - HabitTrack
 
-## 📱 Tipos de Notificaciones
+## Tipos de notificaciones
 
-### 1. **Notificaciones Dentro de la App** (Funcionan ahora)
-- ✅ Requiere: Página abierta en el navegador
-- ✅ Funciona en: localhost y producción
-- ✅ API: Notification API del navegador
-- 🔧 Configuración: Banner automático solicita permisos
+### 1. Notificaciones dentro de la aplicación (funcionan actualmente)
+- Requiere: página abierta en el navegador
+- Funciona en: localhost y producción
+- API: Notification API del navegador
+- Configuración: banner automático que solicita permisos
 
-### 2. **Notificaciones Fuera de la App** (Requiere configuración)
-- ❌ Requiere: HTTPS + Push API + Suscripción
-- ❌ NO funciona en localhost
-- ✅ Funciona en: Vercel (https://habittrack.vercel.app)
-- 🔧 Configuración: Supabase Edge Functions + Web Push
+### 2. Notificaciones fuera de la aplicación (requiere configuración adicional)
+- Requiere: HTTPS + Push API + suscripción del usuario
+- No funciona en localhost
+- Funciona en: Vercel (`https://habittrack.vercel.app`)
+- Configuración: Supabase Edge Functions + Web Push
 
 ---
 
-## 🧪 Debug y Pruebas
+## Debug y pruebas
 
-### Panel de Debug (Solo localhost)
+### Panel de debug (solo localhost)
 Aparece en la esquina inferior derecha con dos botones:
 
-1. **🔔 Probar Notificación**
+1. **Probar notificación**
    - Envía notificación inmediata de prueba
    - Usa dos métodos: API directa + Service Worker
    - Muestra errores si algo falla
 
-2. **📊 Ver Estado**
+2. **Ver estado**
    - Muestra permiso actual (`granted`, `denied`, `default`)
    - Verifica si Service Worker está activo
    - Confirma soporte de Notification API
 
-### Consola del Navegador
+### Consola del navegador
 Buscar logs con prefijos:
-- `🎯 [BANNER]` - Estado del banner de permisos
-- `🚀 [NOTIF]` - Inicio de programación de notificaciones
-- `⏰ [NOTIF]` - Verificación cada minuto
-- `📋 [NOTIF]` - Recordatorios encontrados
-- `🔍 [NOTIF]` - Evaluación de cada recordatorio
-- `🔔 [NOTIF]` - Notificación enviada
-- `❌ [NOTIF]` - Error en notificación
+- `[BANNER]` - Estado del banner de permisos
+- `[NOTIF]` - Inicio de programación de notificaciones
+- `[NOTIF]` - Verificación periódica
+- `[NOTIF]` - Recordatorios encontrados
+- `[NOTIF]` - Evaluación de cada recordatorio
+- `[NOTIF]` - Notificación enviada
+- `[NOTIF]` - Error en notificación
 
 ---
 
-## 🔧 Solución de Problemas
+## Solución de problemas
 
-### ❓ El banner no aparece
-**Posibles causas:**
+### El banner no aparece
+Posibles causas:
 1. Permiso ya otorgado/denegado → Ir a `chrome://settings/content/notifications` y resetear
 2. Banner ya cerrado esta sesión → Recargar página (F5)
 3. sessionStorage bloqueando → Abrir consola: `sessionStorage.clear()`
 
-**Verificar:**
+Verificar:
 ```javascript
 // En consola del navegador
 console.log("Permiso:", Notification.permission);
 console.log("Banner cerrado:", sessionStorage.getItem('notificacion-banner-cerrado'));
 ```
 
-### ❓ No recibo notificaciones (página abierta)
-**Checklist:**
-1. ✅ Permiso otorgado?
+### No recibo notificaciones (página abierta)
+Checklist:
+1. ¿Permiso otorgado?
    ```javascript
    Notification.permission === 'granted'
    ```
-2. ✅ Service Worker activo?
+2. ¿Service Worker activo?
    ```javascript
    navigator.serviceWorker.controller // No debe ser null
    ```
-3. ✅ Recordatorio configurado?
+3. ¿Recordatorio configurado?
    - Ir a "Gestionar Recordatorios" en dashboard
    - Verificar hora y que esté activo
-4. ✅ Hora correcta?
+4. ¿Hora correcta?
    - Hora se guarda en UTC
    - Se convierte a hora local al verificar
 
-**Forzar notificación de prueba:**
+Forzar notificación de prueba:
 ```javascript
 // En consola del navegador
 new Notification("Prueba", {
@@ -84,14 +84,14 @@ new Notification("Prueba", {
 });
 ```
 
-### ❓ No recibo notificaciones (página cerrada)
-**Esto es NORMAL en localhost.** Requiere:
+### No recibo notificaciones (página cerrada)
+Esto es el comportamiento esperado en localhost. Requiere:
 
 1. **HTTPS**: Localhost usa HTTP, Web Push requiere HTTPS
 2. **Push Subscription**: Usuario debe suscribirse a notificaciones push
 3. **Backend Push Service**: Supabase Edge Function que envíe push
 
-**Para habilitar:**
+Para habilitar:
 1. Desplegar en Vercel (ya configurado)
 2. Crear Edge Function en Supabase:
    ```typescript
@@ -105,7 +105,7 @@ new Notification("Prueba", {
 
 ---
 
-## 📂 Archivos Importantes
+## Archivos importantes
 
 ### Frontend (React)
 - `src/components/PermisosNotificacion.tsx` - Banner de permisos
@@ -123,7 +123,7 @@ new Notification("Prueba", {
 
 ---
 
-## 🚀 Flujo de Notificaciones Actuales
+## Flujo de notificaciones actuales
 
 ```mermaid
 graph TD
@@ -153,7 +153,7 @@ graph TD
 
 ---
 
-## 📝 Configurar Recordatorios
+## Configurar recordatorios
 
 1. En el dashboard, clic en "Gestionar Recordatorios"
 2. Seleccionar hábito
@@ -162,27 +162,27 @@ graph TD
 5. Activar recordatorio
 6. **Importante:** La verificación ocurre cada 60 segundos
 
-**Ejemplo:**
+Ejemplo:
 - Hora actual: 21:30
 - Recordatorio configurado: 21:31
 - Resultado: Notificación entre 21:31:00 y 21:31:59
 
 ---
 
-## 🌐 Notificaciones en Producción (Vercel)
+## Notificaciones en producción (Vercel)
 
-### Actualmente Funcionan:
-- ✅ Notificaciones mientras la página está abierta
-- ✅ PWA instalable en Brave/Chrome
-- ✅ Iconos desde CDN (flaticon)
-- ✅ Service Worker activo
+### Actualmente funcionan
+- Notificaciones mientras la página está abierta
+- PWA instalable en Brave/Chrome
+- Iconos desde CDN (flaticon)
+- Service Worker activo
 
-### Pendientes (Notificaciones Push):
-- ❌ Notificaciones cuando la app está cerrada
-- ❌ Web Push API subscription
-- ❌ Backend push notification service
+### Pendiente (notificaciones push avanzadas)
+- Notificaciones cuando la aplicación está cerrada
+- Suscripción Web Push API
+- Servicio backend de notificaciones push
 
-### Para Habilitar Push Notifications:
+### Para habilitar notificaciones push
 
 1. **Generar VAPID Keys:**
    ```bash
@@ -248,7 +248,7 @@ graph TD
 
 ---
 
-## 📚 Referencias
+## Referencias
 
 - [Notification API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API)
 - [Service Worker API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)
@@ -258,9 +258,9 @@ graph TD
 
 ---
 
-## 🎯 Checklist de Implementación
+## Checklist de implementación
 
-### ✅ Completado:
+### Completado
 - [x] Banner de permisos con diseño atractivo
 - [x] Panel de debug para desarrollo
 - [x] Logs detallados en consola
@@ -271,12 +271,12 @@ graph TD
 - [x] Iconos desde CDN
 - [x] PWA instalable
 
-### 🔄 En Progreso:
+### En progreso
 - [ ] Documentar proceso completo
 - [ ] Mejorar UX de recordatorios
 - [ ] Agregar sonidos a notificaciones
 
-### 📋 Pendiente:
+### Pendiente
 - [ ] Web Push API (notificaciones fuera de app)
 - [ ] VAPID keys y suscripciones
 - [ ] Edge Function para push
@@ -286,4 +286,4 @@ graph TD
 
 ---
 
-**Última actualización:** ${new Date().toISOString()}
+**Última actualización:** consultar el historial de commits del repositorio para la fecha más reciente.

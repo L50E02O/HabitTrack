@@ -104,7 +104,7 @@ export default function RankUpModal({ nuevoRango, rangoAnterior, isOpen, onClose
                             ¡Felicidades! Has alcanzado el rango <strong style={{ color: nuevoRango.color }}>{nuevoRango.nombre}</strong>
                         </p>
                         <p className="mensaje-secundario">
-                            Sigue así y alcanza nuevos niveles 🚀
+                            Sigue así y alcanza nuevos niveles.
                         </p>
                     </div>
 

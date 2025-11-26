@@ -31,7 +31,7 @@ export async function usarProtectorRacha(
     if (!perfil || perfil.protectores_racha <= 0) {
       return {
         success: false,
-        mensaje: "No tienes protectores de racha disponibles 😢",
+        mensaje: "No tienes protectores de racha disponibles.",
         protectoresRestantes: 0,
       };
     }
@@ -75,12 +75,12 @@ export async function usarProtectorRacha(
 
     if (updatePerfilError) throw updatePerfilError;
 
-    console.log(`🛡️ Protector usado para racha ${idRacha}`);
+    console.log(`Protector usado para racha ${idRacha}`);
     console.log(`   Protectores restantes: ${nuevosProtectores}`);
 
     return {
       success: true,
-      mensaje: `¡Tu racha ha sido protegida! 🛡️ Protectores restantes: ${nuevosProtectores}`,
+      mensaje: `Tu racha ha sido protegida. Protectores restantes: ${nuevosProtectores}`,
       protectoresRestantes: nuevosProtectores,
     };
   } catch (error: any) {

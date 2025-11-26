@@ -199,8 +199,8 @@ function marcarComoEnviado(idPerfil: string, idRecordatorio: string, hora: numbe
  * @returns ID del intervalo para poder cancelarlo
  */
 export function programarNotificacionesDiarias(idPerfil: string): ReturnType<typeof setInterval> {
-    console.log("🚀 [NOTIF] programarNotificacionesDiarias iniciado para perfil:", idPerfil);
-    console.log("🚀 [NOTIF] Permiso de notificaciones:", Notification.permission);
+    console.log("[NOTIF] programarNotificacionesDiarias iniciado para perfil:", idPerfil);
+    console.log("[NOTIF] Permiso de notificaciones:", Notification.permission);
     
     const intervalId = setInterval(async () => {
         try {
@@ -212,10 +212,10 @@ export function programarNotificacionesDiarias(idPerfil: string): ReturnType<typ
             const horasActuales = horaActual.getHours();
             const minutosActuales = horaActual.getMinutes();
 
-            console.log(`⏰ [NOTIF] Verificando ${recordatorios.length} recordatorios a las ${horasActuales}:${minutosActuales.toString().padStart(2, '0')}`);
+            console.log(`[NOTIF] Verificando ${recordatorios.length} recordatorios a las ${horasActuales}:${minutosActuales.toString().padStart(2, '0')}`);
             
             if (recordatorios.length > 0) {
-                console.log("📋 [NOTIF] Recordatorios encontrados:", recordatorios.map(r => ({
+                console.log("[NOTIF] Recordatorios encontrados:", recordatorios.map(r => ({
                     id: r.id_recordatorio,
                     hora: r.intervalo_recordar,
                     activo: r.activo,
@@ -226,7 +226,7 @@ export function programarNotificacionesDiarias(idPerfil: string): ReturnType<typ
             for (const recordatorio of recordatorios) {
                 const debeActivarse = debeActivarseRecordatorio(recordatorio, horaActual);
                 
-                console.log(`🔍 [NOTIF] Recordatorio ${recordatorio.id_recordatorio}:`, {
+                console.log(`[NOTIF] Recordatorio ${recordatorio.id_recordatorio}:`, {
                     intervalo_recordar: recordatorio.intervalo_recordar,
                     horaActual: `${horasActuales}:${minutosActuales}`,
                     debeActivarse
@@ -235,14 +235,14 @@ export function programarNotificacionesDiarias(idPerfil: string): ReturnType<typ
                 if (debeActivarse) {
                     // Verificar si ya se envió en este minuto para evitar duplicados
                     if (yaFueEnviado(idPerfil, recordatorio.id_recordatorio, horasActuales, minutosActuales)) {
-                        console.log(`⏭️ [NOTIF] Recordatorio ${recordatorio.id_recordatorio} ya fue enviado en este minuto, omitiendo...`);
+                        console.log(`[NOTIF] Recordatorio ${recordatorio.id_recordatorio} ya fue enviado en este minuto, omitiendo...`);
                         continue;
                     }
 
                     // Marcar como enviado antes de enviar
                     marcarComoEnviado(idPerfil, recordatorio.id_recordatorio, horasActuales, minutosActuales);
 
-                    console.log(`🔔 [NOTIF] *** ENVIANDO NOTIFICACIÓN *** Recordatorio ${recordatorio.id_recordatorio} a las ${horasActuales}:${minutosActuales.toString().padStart(2, '0')}`);
+                    console.log(`[NOTIF] Enviando notificación. Recordatorio ${recordatorio.id_recordatorio} a las ${horasActuales}:${minutosActuales.toString().padStart(2, '0')}`);
 
                     // Enviar notificación push (PWA)
                     enviarNotificacion(
@@ -257,7 +257,7 @@ export function programarNotificacionesDiarias(idPerfil: string): ReturnType<typ
                             }
                         }
                     ).catch((error) => {
-                        console.error("❌ [NOTIF] Error enviando notificación push:", error);
+                        console.error("[NOTIF] Error enviando notificación push:", error);
                     });
 
                     // Enviar email usando Supabase (si está configurado)
@@ -318,9 +318,9 @@ async function enviarEmailConHabito(email: string, recordatorio: IRecordatorio):
     );
 
     if (resultado.success) {
-        console.log(`✅ Email enviado exitosamente a ${email}`);
+        console.log(`Email enviado exitosamente a ${email}`);
     } else {
-        console.warn(`⚠️ Error enviando email a ${email}:`, resultado.error);
+        console.warn(`Error enviando email a ${email}:`, resultado.error);
     }
 }
 

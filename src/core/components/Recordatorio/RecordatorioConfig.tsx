@@ -37,8 +37,8 @@ export default function RecordatorioConfig({ habitoId, nombreHabito, onClose }: 
             // Obtener la hora en UTC
             const horaUTC = fechaLocal.toISOString().substring(11, 19); // HH:MM:SS en UTC
 
-            console.log(`📍 Hora local seleccionada: ${hora}:00`);
-            console.log(`🌍 Hora UTC a guardar: ${horaUTC}`);
+            console.log(`Hora local seleccionada: ${hora}:00`);
+            console.log(`Hora UTC a guardar: ${horaUTC}`);
 
             // Crear recordatorio usando la estructura REAL de la base de datos
             const { data, error } = await supabase
@@ -58,34 +58,34 @@ export default function RecordatorioConfig({ habitoId, nombreHabito, onClose }: 
                 throw error;
             }
 
-            console.log('✅ Recordatorio creado:', data);
+            console.log('Recordatorio creado:', data);
             
             // Solicitar permisos de notificaciones si no los tiene
             try {
                 const permiso = await solicitarPermisoNotificaciones();
                 if (permiso === 'granted') {
-                    console.log('✅ Permisos de notificaciones otorgados');
+                    console.log('Permisos de notificaciones otorgados');
                 } else if (permiso === 'denied') {
-                    console.warn('⚠️ Permisos de notificaciones denegados');
+                    console.warn('Permisos de notificaciones denegados');
                     setMensaje({ 
-                        texto: `✅ Recordatorio guardado, pero las notificaciones están deshabilitadas. Actívalas en la configuración del navegador.`, 
+                        texto: `Recordatorio guardado, pero las notificaciones están deshabilitadas. Actívalas en la configuración del navegador.`, 
                         tipo: 'success' 
                     });
                 }
             } catch (error) {
-                console.warn('⚠️ Error solicitando permisos de notificaciones:', error);
+                console.warn('Error solicitando permisos de notificaciones:', error);
             }
 
-            setMensaje({ texto: `✅ Recordatorio guardado para las ${hora} (hora local)`, tipo: 'success' });
-            console.log(`✅ Recordatorio configurado para ${nombreHabito} a las ${hora} (hora local) / ${horaUTC} (UTC)`);
+            setMensaje({ texto: `Recordatorio guardado para las ${hora} (hora local)`, tipo: 'success' });
+            console.log(`Recordatorio configurado para ${nombreHabito} a las ${hora} (hora local) / ${horaUTC} (UTC)`);
 
             setTimeout(() => {
                 onClose();
             }, 2000);
         } catch (error: any) {
-            console.error('❌ Error al guardar recordatorio:', error);
+            console.error('Error al guardar recordatorio:', error);
             setMensaje({
-                texto: `❌ Error: ${error.message || 'Error al guardar recordatorio'}`,
+                texto: `Error: ${error.message || 'Error al guardar recordatorio'}`,
                 tipo: 'error'
             });
         } finally {
