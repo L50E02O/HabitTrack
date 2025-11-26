@@ -1,8 +1,8 @@
 # HabitTrack
 
-Proyecto modelado siguiendo metodologías ágiles (Kanban y XP).
+Proyecto modelado siguiendo metodologías ágiles (Kanban y XP), centrado en la construcción de una aplicación moderna de seguimiento de hábitos.
 
-## 📖 Descripción
+## Descripción
 
 HabitTrack es una aplicación React (Vite + TypeScript) para seguimiento de hábitos con funcionalidades avanzadas como:
 - Sistema de puntos y logros
@@ -11,7 +11,7 @@ HabitTrack es una aplicación React (Vite + TypeScript) para seguimiento de háb
 - Sistema de protectores de racha
 - Recordatorios programados
 
-## 🚀 Inicio Rápido
+## Inicio rápido
 
 ### Requisitos Previos
 - Node.js (recomendado >= 18)
@@ -43,7 +43,7 @@ VITE_SUPABASE_ANON_KEY=tu-anon-key
 npm run dev
 ```
 
-## 📚 Scripts Disponibles
+## Scripts disponibles
 
 - `npm run dev` - Servidor de desarrollo (Vite)
 - `npm run build` - Compila la aplicación
@@ -53,7 +53,7 @@ npm run dev
 - `npm run dev:api` - Servidor API local (requiere variables de entorno)
 - `npm run generate-icons` - Genera iconos PWA
 
-## 🧪 Testing
+## Testing
 
 El proyecto incluye tests completos con Vitest:
 
@@ -70,7 +70,7 @@ npm test -- --coverage
 
 Ver [docs/TESTS_README.md](./docs/TESTS_README.md) para más detalles.
 
-## PWA en HabitTrack (explicación sencilla)
+## PWA en HabitTrack (explicación resumida)
 
 HabitTrack funciona como una **PWA (Progressive Web App)**, es decir, se puede **instalar como app** en el móvil o en el ordenador y seguir funcionando aunque cierres la pestaña del navegador.
 
@@ -96,17 +96,20 @@ HabitTrack funciona como una **PWA (Progressive Web App)**, es decir, se puede *
 
 Para una explicación más completa y técnica puedes ver `docs/PWA_SETUP.md`.
 
-## 📋 Documentación
+## Documentación
 
 Toda la documentación está en la carpeta `docs/`:
 
-- **[docs/README.md](./docs/README.md)** - Índice de documentación
-- **[docs/PWA_SETUP.md](./docs/PWA_SETUP.md)** - Configuración PWA y notificaciones
-- **[docs/RANKING_FIX.md](./docs/RANKING_FIX.md)** - Sistema de ranking
-- **[docs/TESTS_README.md](./docs/TESTS_README.md)** - Guía completa de testing
-- **[docs/BACKEND_VERIFICATION.md](./docs/BACKEND_VERIFICATION.md)** - Verificación del backend
+- `docs/BACKEND_VERIFICATION.md` - Verificación del backend y modelo de datos
+- `docs/PWA_SETUP.md` - Configuración PWA y comportamiento de instalación/offline
+- `docs/GUIA_NOTIFICACIONES.md` - Arquitectura de notificaciones y flujo actual
+- `docs/PROBAR_NOTIFICACIONES.md` - Guía práctica para probar notificaciones
+- `docs/SISTEMA_RACHAS_AUTOMATICO.md` - Lógica del sistema de rachas automático
+- `docs/RACHA_TESTING_GUIDE.md` - Guía de testing específico de rachas
+- `docs/TESTS_README.md` - Guía completa de testing del proyecto
+- `docs/REFACTORING_SUMMARY.md` - Resumen de refactorización y organización del código
 
-## 🛠️ Tecnologías
+## Tecnologías
 
 ### Dependencias Principales
 - **React** ^19.1.1
@@ -121,7 +124,7 @@ Toda la documentación está en la carpeta `docs/`:
 - **Testing Library** ^16.3.0
 - **Vite PWA Plugin** ^1.1.0
 
-## 📁 Estructura del Proyecto
+## Estructura del proyecto
 
 ```
 HabitTrack/
@@ -138,24 +141,24 @@ HabitTrack/
 └── database/         # Migraciones SQL
 ```
 
-## ✅ Funcionalidades
+## Funcionalidades principales
 
-- ✅ Sistema de hábitos con categorías y dificultades
-- ✅ Sistema de puntos y logros automáticos
-- ✅ Ranking de usuarios (máximo 100)
-- ✅ PWA instalable con notificaciones
-- ✅ Sistema de protectores de racha
-- ✅ Recordatorios programados
-- ✅ Tema oscuro/claro
-- ✅ Responsive design
+- Sistema de hábitos con categorías y dificultades
+- Sistema de puntos y logros automáticos
+- Ranking de usuarios (máximo 100)
+- PWA instalable con notificaciones
+- Sistema de protectores de racha
+- Recordatorios programados
+- Tema oscuro/claro
+- Diseño responsive
 
-## 🔒 Seguridad
+## Seguridad
 
 - Variables de entorno para credenciales
 - RLS (Row Level Security) en Supabase
 - Validación de datos en frontend y backend
 
-## 🤝 Contribuir
+## Contribuir
 
 1. Fork el proyecto
 2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
@@ -163,11 +166,11 @@ HabitTrack/
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
-## 📝 Licencia
+## Licencia
 
 Este proyecto es privado.
 
-## 🔗 Recursos
+## Recursos
 
 - [Vite](https://vitejs.dev/)
 - [React Router](https://reactrouter.com/)
@@ -178,3 +181,36 @@ Este proyecto es privado.
 ---
 
 Para más información, consulta la [documentación completa](./docs/README.md).
+
+## Arquitectura general
+
+HabitTrack está organizado en capas claras:
+
+- `src/core`: componentes y lógica central reutilizable (hábitos, rachas, protectores, logros, recordatorios).
+- `src/pages`: páginas de la aplicación (dashboard, ranking, configuración, etc.).
+- `src/services`: servicios que encapsulan la lógica de negocio (ranking, rachas, notificaciones, protectores, logros, etc.).
+- `src/config`: configuración de Supabase y otros servicios externos.
+- `src/utils`: utilidades transversales (PWA, helpers de tiempo, inicialización de notificaciones, etc.).
+
+La persistencia de datos se realiza en Supabase (PostgreSQL) con políticas RLS para garantizar la seguridad, y el frontend se comunica directamente con Supabase o, en algunos casos, mediante funciones Edge.
+
+## Flujo principal de la aplicación
+
+1. El usuario inicia sesión y accede al dashboard.
+2. Desde el dashboard puede:
+   - Crear y gestionar hábitos (diarios, semanales, mensuales).
+   - Configurar recordatorios con notificaciones.
+   - Ver su racha actual y sus protectores.
+   - Consultar sus logros y progreso.
+3. El sistema actualiza automáticamente las rachas según el progreso registrado (ver `docs/SISTEMA_RACHAS_AUTOMATICO.md`).
+4. El sistema de notificaciones programa recordatorios y, según la configuración, dispara notificaciones en el navegador y correos electrónicos (ver `docs/GUIA_NOTIFICACIONES.md` y `docs/PROBAR_NOTIFICACIONES.md`).
+5. El ranking global muestra la posición del usuario frente al resto de perfiles (ver `docs/BACKEND_VERIFICATION.md` para el modelo de datos y políticas RLS necesarias).
+
+## Calidad y pruebas
+
+El proyecto cuenta con una batería de tests (unitarios, de integración y de componentes) escritos con Vitest y Testing Library, que cubren:
+
+- Servicios de negocio clave (ranking, rachas, protectores, logros, notificaciones).
+- Componentes de interfaz críticos (tienda de protectores, modales de logros, paneles de notificaciones).
+
+Para detalles completos y estrategias de testing, revisar `docs/TESTS_README.md` y `docs/RACHA_TESTING_GUIDE.md`.

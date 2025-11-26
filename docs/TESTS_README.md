@@ -1,112 +1,112 @@
-# 🧪 TESTS FUNCIONALES - SISTEMA COMPLETO
+# Tests funcionales - sistema completo
 
-## ✅ TESTS CREADOS
+## Tests creados
 
-Se han creado tests funcionales completos para todos los componentes nuevos del sistema de logros y protectores.
+Se han creado tests funcionales completos para los componentes nuevos del sistema de logros y protectores.
 
 ---
 
-## 📦 ARCHIVOS DE TEST
+## Archivos de test
 
-### 1. protectorService.test.ts
+### 1. `protectorService.test.ts`
 **Ubicación**: `src/services/protector/protectorService.test.ts`
 
-**Cobertura**: 8 grupos de tests, 20+ casos de prueba
+**Cobertura**: 8 grupos de tests, más de 20 casos de prueba.
 
-#### Funciones Testeadas:
-- ✅ `calcularProtectoresPorRacha()` - 4 tests
+#### Funciones testeadas
+- `calcularProtectoresPorRacha()` - 4 tests
   - Rachas menores a 7 días
   - Cálculo de 1 protector cada 7 días
   - Múltiples protectores
   - Números negativos
 
-- ✅ `getProtectoresActuales()` - 3 tests
+- `getProtectoresActuales()` - 3 tests
   - Retornar protectores correctos
   - Manejo de errores
   - Valores null
 
-- ✅ `getPuntosActuales()` - 2 tests
+- `getPuntosActuales()` - 2 tests
   - Retornar puntos correctos
   - Manejo de errores
 
-- ✅ `puedeComprarProtectorEstaSemana()` - 3 tests
+- `puedeComprarProtectorEstaSemana()` - 3 tests
   - Verificación exitosa (puede comprar)
   - Verificación negativa (no puede comprar)
   - Fallback a verificación manual
 
-- ✅ `comprarProtector()` - 3 tests
+- `comprarProtector()` - 3 tests
   - Compra exitosa
   - Límite semanal alcanzado
   - Puntos insuficientes
 
-- ✅ `usarProtector()` - 2 tests
+- `usarProtector()` - 2 tests
   - Uso exitoso
   - Sin protectores disponibles
 
-- ✅ `sincronizarProtectoresPorRacha()` - 2 tests
+- `sincronizarProtectoresPorRacha()` - 2 tests
   - Actualización cuando aumenta racha
   - No actualizar si ya tiene suficientes
 
 ---
 
-### 2. TiendaProtectores.test.tsx
+### 2. `TiendaProtectores.test.tsx`
 **Ubicación**: `src/core/components/Protector/TiendaProtectores.test.tsx`
 
 **Cobertura**: 15 casos de prueba
 
-#### Casos Testeados:
-- ✅ Renderizado del modal (isOpen true/false)
-- ✅ Mostrar saldo actual (puntos y protectores)
-- ✅ Cerrar modal con botón X
-- ✅ Deshabilitar compra sin puntos suficientes
-- ✅ Deshabilitar compra si ya compró esta semana
-- ✅ Compra exitosa de protector
-- ✅ Mensaje de error en compra fallida
-- ✅ Spinner mientras carga
-- ✅ Llamar callback onCompraExitosa
-- ✅ Cerrar al click en overlay
-- ✅ No cerrar al click en contenido
-- ✅ Mostrar precio correcto (250 puntos)
-- ✅ Actualizar saldo después de comprar
+#### Casos testeados
+- Renderizado del modal (isOpen true/false).
+- Mostrar saldo actual (puntos y protectores).
+- Cerrar el modal con botón de cierre.
+- Deshabilitar compra sin puntos suficientes.
+- Deshabilitar compra si ya se compró esa semana.
+- Compra exitosa de protector.
+- Mensaje de error en compra fallida.
+- Indicador de carga mientras se procesa la compra.
+- Llamada al callback `onCompraExitosa`.
+- Cerrar al hacer clic en el overlay.
+- No cerrar al hacer clic en el contenido.
+- Mostrar precio correcto (250 puntos).
+- Actualizar saldo después de comprar.
 
 ---
 
-### 3. LogrosModal.test.tsx
+### 3. `LogrosModal.test.tsx`
 **Ubicación**: `src/core/components/Logro/LogrosModal.test.tsx`
 
 **Cobertura**: 10 casos de prueba
 
-#### Casos Testeados:
-- ✅ Renderizado del modal (isOpen true/false)
-- ✅ Mostrar racha máxima del usuario
-- ✅ Mostrar logros desbloqueados
-- ✅ Mostrar logros bloqueados
-- ✅ Calcular porcentaje de progreso
-- ✅ Cerrar modal con botón X
-- ✅ Cerrar al click en overlay
-- ✅ Spinner mientras carga
-- ✅ Mostrar días faltantes para logros bloqueados
+#### Casos testeados
+- Renderizado del modal (isOpen true/false).
+- Mostrar racha máxima del usuario.
+- Mostrar logros desbloqueados.
+- Mostrar logros bloqueados.
+- Calcular porcentaje de progreso.
+- Cerrar el modal con botón de cierre.
+- Cerrar al hacer clic en el overlay.
+- Mostrar indicador de carga mientras se obtienen datos.
+- Mostrar días faltantes para logros bloqueados.
 
 ---
 
-## 🚀 CÓMO EJECUTAR LOS TESTS
+## Cómo ejecutar los tests
 
-### Ejecutar Todos los Tests
+### Ejecutar todos los tests
 ```bash
 npm test
 ```
 
-### Ejecutar Tests en Watch Mode
+### Ejecutar tests en modo watch
 ```bash
 npm test -- --watch
 ```
 
-### Ejecutar Tests con Cobertura
+### Ejecutar tests con cobertura
 ```bash
 npm test -- --coverage
 ```
 
-### Ejecutar Tests Específicos
+### Ejecutar tests específicos
 ```bash
 # Solo tests de protectorService
 npm test protectorService.test
@@ -120,31 +120,31 @@ npm test LogrosModal.test
 
 ---
 
-## 📊 COBERTURA ESPERADA
+## Cobertura esperada
 
-### Por Archivo
+### Por archivo
 
-#### protectorService.ts
-- **Funciones**: 10/10 (100%)
-- **Líneas**: ~95%
-- **Branches**: ~90%
+#### `protectorService.ts`
+- Funciones: 10/10 (100 %).
+- Líneas: ~95 %.
+- Branches: ~90 %.
 
-#### TiendaProtectores.tsx
-- **Componente**: 100%
-- **Interacciones**: 100%
-- **Estados**: 100%
+#### `TiendaProtectores.tsx`
+- Componente: 100 %.
+- Interacciones: 100 %.
+- Estados: 100 %.
 
-#### LogrosModal.tsx
-- **Componente**: 100%
-- **Interacciones**: 100%
-- **Estados**: 100%
+#### `LogrosModal.tsx`
+- Componente: 100 %.
+- Interacciones: 100 %.
+- Estados: 100 %.
 
 ---
 
-## 🧪 TIPOS DE TESTS
+## Tipos de tests
 
-### 1. Tests Unitarios
-**Servicios y funciones puras**
+### 1. Tests unitarios
+Servicios y funciones puras.
 
 ```typescript
 // Ejemplo: calcularProtectoresPorRacha
@@ -155,8 +155,8 @@ it('debe retornar 1 protector cada 7 días', () => {
 });
 ```
 
-### 2. Tests de Integración
-**Servicios con Supabase**
+### 2. Tests de integración
+Servicios con Supabase.
 
 ```typescript
 // Ejemplo: getProtectoresActuales
@@ -170,8 +170,8 @@ it('debe retornar los protectores del usuario', async () => {
 });
 ```
 
-### 3. Tests de Componentes
-**React components con interacciones**
+### 3. Tests de componentes
+Componentes de React con interacciones.
 
 ```typescript
 // Ejemplo: TiendaProtectores
@@ -189,66 +189,66 @@ it('debe comprar un protector exitosamente', async () => {
 
 ---
 
-## 🔍 CASOS EDGE TESTEADOS
+## Casos edge testeados
 
-### Protector Service
+### Servicio de protectores
 
-#### Cálculo de Protectores
-- ✅ Racha 0 días → 0 protectores
-- ✅ Racha 6 días → 0 protectores
-- ✅ Racha 7 días → 1 protector
-- ✅ Racha 365 días → 52 protectores
-- ✅ Números negativos (edge case matemático)
+#### Cálculo de protectores
+- Racha 0 días → 0 protectores.
+- Racha 6 días → 0 protectores.
+- Racha 7 días → 1 protector.
+- Racha 365 días → 52 protectores.
+- Números negativos (caso límite matemático).
 
-#### Compra de Protectores
-- ✅ Puntos exactos (250)
-- ✅ Puntos insuficientes (< 250)
-- ✅ Puntos sobrados (> 250)
-- ✅ Primera compra de la semana
-- ✅ Segunda compra de la semana (rechazada)
+#### Compra de protectores
+- Puntos exactos (250).
+- Puntos insuficientes (< 250).
+- Puntos sobrados (> 250).
+- Primera compra de la semana.
+- Segunda compra de la semana (rechazada).
 
-#### Uso de Protectores
-- ✅ Con protectores disponibles
-- ✅ Sin protectores (0)
-- ✅ Último protector
+#### Uso de protectores
+- Con protectores disponibles.
+- Sin protectores (0).
+- Último protector.
 
-### Tienda Protectores
+### Tienda de protectores
 
-#### Estados del Modal
-- ✅ Abierto (isOpen=true)
-- ✅ Cerrado (isOpen=false)
-- ✅ Cargando datos
-- ✅ Error al cargar
+#### Estados del modal
+- Abierto (`isOpen=true`).
+- Cerrado (`isOpen=false`).
+- Cargando datos.
+- Error al cargar.
 
 #### Interacciones
-- ✅ Click en botón comprar
-- ✅ Click en botón cerrar (X)
-- ✅ Click en overlay (fondo)
-- ✅ Click en contenido (no cierra)
+- Clic en botón comprar.
+- Clic en botón cerrar.
+- Clic en overlay (fondo).
+- Clic en contenido (no cierra).
 
 #### Validaciones
-- ✅ Botón activo (puede comprar)
-- ✅ Botón deshabilitado (sin puntos)
-- ✅ Botón deshabilitado (límite semanal)
-- ✅ Actualización de saldo en tiempo real
+- Botón activo (puede comprar).
+- Botón deshabilitado (sin puntos).
+- Botón deshabilitado (límite semanal).
+- Actualización de saldo en tiempo real.
 
-### Logros Modal
+### Modal de logros
 
 #### Datos
-- ✅ Sin logros desbloqueados
-- ✅ Algunos logros desbloqueados
-- ✅ Todos los logros desbloqueados
-- ✅ Racha máxima 0
-- ✅ Racha máxima alta (100+)
+- Sin logros desbloqueados.
+- Algunos logros desbloqueados.
+- Todos los logros desbloqueados.
+- Racha máxima 0.
+- Racha máxima alta (100+).
 
 #### Progreso
-- ✅ Cálculo de porcentaje (0%, 50%, 100%)
-- ✅ Días faltantes para próximo logro
-- ✅ Barra de progreso visual
+- Cálculo de porcentaje (0 %, 50 %, 100 %).
+- Días faltantes para próximo logro.
+- Barra de progreso visual.
 
 ---
 
-## 🛠️ MOCKS UTILIZADOS
+## Mocks utilizados
 
 ### Supabase
 ```typescript
@@ -283,7 +283,7 @@ vi.mocked(comprarProtector).mockResolvedValue({
 
 ---
 
-## 📝 ASSERTIONS COMUNES
+## Assertions comunes
 
 ### Testing Library
 ```typescript
@@ -320,9 +320,9 @@ expect(array).toContain('item');
 
 ---
 
-## 🐛 DEBUGGING TESTS
+## Debugging de tests
 
-### Mostrar Rendered HTML
+### Mostrar HTML renderizado
 ```typescript
 import { screen, render } from '@testing-library/react';
 
@@ -330,77 +330,77 @@ render(<Component />);
 screen.debug(); // Imprime el DOM en consola
 ```
 
-### Ver Queries Disponibles
+### Ver queries disponibles
 ```typescript
 screen.logTestingPlaygroundURL(); // Genera URL con el DOM
 ```
 
-### Pausar Ejecución
+### Pausar ejecución
 ```typescript
 await screen.findByText('Texto', {}, { timeout: 10000 });
 ```
 
 ---
 
-## ✅ CHECKLIST DE TESTING
+## Checklist de testing
 
-### Antes de Commit
-- [ ] Todos los tests pasan
-- [ ] No hay warnings en consola
-- [ ] Cobertura > 80%
-- [ ] Tests de casos edge incluidos
-- [ ] Mocks correctamente configurados
+### Antes de hacer commit
+- [ ] Todos los tests pasan.
+- [ ] No hay advertencias en consola.
+- [ ] Cobertura superior al 80 %.
+- [ ] Tests de casos edge incluidos.
+- [ ] Mocks correctamente configurados.
 
-### Tests Obligatorios
-- [ ] Happy path (caso exitoso)
-- [ ] Error handling (casos de error)
-- [ ] Loading states (estados de carga)
-- [ ] Edge cases (casos extremos)
-- [ ] Interacciones de usuario
-- [ ] Validaciones de entrada
+### Tests obligatorios
+- [ ] Happy path (caso exitoso).
+- [ ] Manejo de errores.
+- [ ] Estados de carga (`loading states`).
+- [ ] Casos extremos (edge cases).
+- [ ] Interacciones de usuario.
+- [ ] Validaciones de entrada.
 
 ---
 
-## 📈 MÉTRICAS
+## Métricas
 
 ### Totales
-- **Archivos de Test**: 3
-- **Grupos de Tests**: 18
-- **Casos de Prueba**: 45+
-- **Líneas de Código de Test**: ~900
-- **Cobertura Esperada**: 90%+
+- Archivos de test: 3.
+- Grupos de tests: 18.
+- Casos de prueba: más de 45.
+- Líneas de código de test: ~900.
+- Cobertura esperada: superior al 90 %.
 
-### Por Componente
+### Por componente
 | Componente | Tests | Cobertura |
 |------------|-------|-----------|
-| protectorService | 20 | 95% |
-| TiendaProtectores | 15 | 100% |
-| LogrosModal | 10 | 100% |
+| protectorService | 20 | 95 % |
+| TiendaProtectores | 15 | 100 % |
+| LogrosModal | 10 | 100 % |
 
 ---
 
-## 🎯 BENEFICIOS
+## Beneficios
 
-### Confianza en el Código
-- ✅ Detectar bugs antes de producción
-- ✅ Refactorizar sin miedo
-- ✅ Documentación viva del comportamiento
+### Confianza en el código
+- Detectar errores antes de producción.
+- Refactorizar sin miedo.
+- Documentación viva del comportamiento.
 
 ### Mantenibilidad
-- ✅ Tests como especificación
-- ✅ Facilita onboarding de nuevos devs
-- ✅ Previene regresiones
+- Tests como especificación.
+- Facilita el onboarding de nuevos desarrolladores.
+- Previene regresiones.
 
 ### Calidad
-- ✅ Cobertura alta garantiza robustez
-- ✅ Casos edge cubiertos
-- ✅ Comportamiento predecible
+- Una cobertura alta mejora la robustez.
+- Casos edge cubiertos.
+- Comportamiento predecible.
 
 ---
 
-## 🔄 CI/CD Integration
+## Integración con CI/CD
 
-### GitHub Actions Example
+### Ejemplo de GitHub Actions
 ```yaml
 name: Tests
 
@@ -419,31 +419,29 @@ jobs:
 
 ---
 
-## 📚 RECURSOS
+## Recursos
 
 ### Documentación
 - [Vitest](https://vitest.dev/)
 - [Testing Library](https://testing-library.com/)
 - [React Testing Library](https://testing-library.com/react)
 
-### Best Practices
-- Test behavior, not implementation
-- Keep tests simple and focused
-- Mock external dependencies
-- Use descriptive test names
-- Follow AAA pattern (Arrange, Act, Assert)
+### Buenas prácticas
+- Testear comportamiento, no implementación.
+- Mantener los tests simples y enfocados.
+- Mockear dependencias externas.
+- Usar nombres descriptivos para los tests.
+- Seguir el patrón AAA (Arrange, Act, Assert).
 
 ---
 
-## 🎉 RESUMEN
+## Resumen
 
-✅ **3 archivos de test creados**  
-✅ **45+ casos de prueba**  
-✅ **Cobertura 90%+**  
-✅ **Todos los servicios testeados**  
-✅ **Todos los componentes testeados**  
-✅ **Edge cases cubiertos**  
-✅ **Mocks configurados correctamente**  
-✅ **Ready para CI/CD**
+- 3 archivos de test creados.  
+- Más de 45 casos de prueba.  
+- Cobertura superior al 90 %.  
+- Todos los servicios y componentes críticos están testeados.  
+- Casos edge cubiertos y mocks configurados correctamente.  
+- Preparado para integrarse en CI/CD.
 
-**¡Sistema completamente testeado y listo para producción!** 🚀🧪
+El sistema está completamente testeado y listo para evolucionar manteniendo la calidad.
