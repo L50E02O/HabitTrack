@@ -70,6 +70,32 @@ npm test -- --coverage
 
 Ver [docs/TESTS_README.md](./docs/TESTS_README.md) para más detalles.
 
+## PWA en HabitTrack (explicación sencilla)
+
+HabitTrack funciona como una **PWA (Progressive Web App)**, es decir, se puede **instalar como app** en el móvil o en el ordenador y seguir funcionando aunque cierres la pestaña del navegador.
+
+- **Archivos clave**
+  - `public/manifest.json`: describe el nombre, iconos y colores de la app (lo que ve el sistema operativo al instalarla).
+  - `public/sw.js`: Service Worker que permite cache básico y manejo de notificaciones en segundo plano.
+  - `src/utils/initPWA.ts`: inicializa la PWA (revisa Service Worker, manifest y permisos de notificación).
+  - `src/components/InstallPWAButton.tsx`: muestra el botón de “Instalar App” cuando el navegador lo permite.
+  - `src/components/PermisosNotificacion.tsx` y `src/core/components/Recordatorio/RecordatorioConfig.tsx`: gestionan los permisos y la creación de recordatorios con notificaciones.
+
+- **Cómo se instala la app**
+  1. Levanta el proyecto (`npm run dev`) o abre la versión desplegada.
+  2. Abre HabitTrack en un navegador compatible (Chrome, Edge, Safari).
+  3. Verás un botón de **“Instalar App”** en la interfaz (componente `InstallPWAButton`).
+  4. Al aceptar, HabitTrack se añade al dispositivo como si fuera una app nativa (icono en escritorio o pantalla de inicio).
+
+- **Cómo funcionan las notificaciones y recordatorios**
+  - El usuario puede crear recordatorios desde el dashboard; se guardan en la tabla `recordatorio` de Supabase.
+  - El código de `notificacionService` y el Service Worker revisan cada minuto qué recordatorios tocan y disparan:
+    - una **notificación del navegador** (PWA), y
+    - opcionalmente un **email** usando una Edge Function de Supabase.
+  - El banner `PermisosNotificacion` y la pantalla de configuración de recordatorios piden el permiso de notificaciones solo cuando es necesario.
+
+Para una explicación más completa y técnica puedes ver `docs/PWA_SETUP.md`.
+
 ## 📋 Documentación
 
 Toda la documentación está en la carpeta `docs/`:

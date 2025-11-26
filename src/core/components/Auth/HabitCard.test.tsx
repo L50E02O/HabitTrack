@@ -146,7 +146,7 @@ describe("HabitCard - Dificultad Badge", () => {
       />
     );
 
-    const completedButton = screen.getByRole("button", { name: /¡Completado!/i });
+    const completedButton = screen.getByRole("button", { name: /Hábito completado/i });
     expect(completedButton).toBeInTheDocument();
     expect(completedButton).toBeDisabled();
     expect(screen.getByText(/Fácil \(3 pts\)/i)).toBeInTheDocument();
