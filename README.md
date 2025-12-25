@@ -108,6 +108,7 @@ Toda la documentación está en la carpeta `docs/`:
 - `docs/RACHA_TESTING_GUIDE.md` - Guía de testing específico de rachas
 - `docs/TESTS_README.md` - Guía completa de testing del proyecto
 - `docs/REFACTORING_SUMMARY.md` - Resumen de refactorización y organización del código
+- `docs/FUNCIONALIDADES_FUTURAS.md` - Roadmap y planificación de funcionalidades futuras
 
 ## Tecnologías
 
