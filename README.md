@@ -38,7 +38,15 @@ VITE_SUPABASE_URL=https://tu-supabase-url.supabase.co
 VITE_SUPABASE_ANON_KEY=tu-anon-key
 ```
 
-4. Inicia el servidor de desarrollo:
+4. (Opcional) Configura MCP de Supabase para Cursor:
+Si usas Cursor IDE y quieres usar el MCP de Supabase, copia el archivo de ejemplo:
+```bash
+cp .cursor/mcp.json.example .cursor/mcp.json
+```
+Luego edita `.cursor/mcp.json` y reemplaza `TU_PROJECT_REF_AQUI` con tu `project_ref` de Supabase.
+**Nota:** El archivo `.cursor/mcp.json` está en `.gitignore` y no se subirá al repositorio por seguridad.
+
+5. Inicia el servidor de desarrollo:
 ```bash
 npm run dev
 ```
