@@ -77,6 +77,7 @@ ci-cache/
 *.code-workspace
 *.sublime-project
 *.sublime-workspace
+.cursor/
 
 # =========================================
 # 📸 ASSETS / DATA TEMPORAL
