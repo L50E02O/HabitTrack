@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Dumbbell, Ham, GraduationCap, HeartPulse, BriefcaseBusiness, Star } from 'lucide-react';
 import { obtenerDiasFinIntervaloEnRango, type DiaFinIntervalo } from '../../../services/calendario/calendarioService';
-import type { IHabito } from '../../../types/IHabito';
+import HabitoInfoModal from './HabitoInfoModal';
 import './CalendarioWidget.css';
 
 interface CalendarioWidgetProps {
   userId: string;
   darkMode?: boolean;
+  onEditHabito?: (habitoId: string) => void;
 }
 
-export default function CalendarioWidget({ userId, darkMode = false }: CalendarioWidgetProps) {
+export default function CalendarioWidget({ userId, darkMode = false, onEditHabito }: CalendarioWidgetProps) {
   const [fechaActual, setFechaActual] = useState(new Date());
   const [diasFinIntervalo, setDiasFinIntervalo] = useState<Map<string, DiaFinIntervalo>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [habitoSeleccionado, setHabitoSeleccionado] = useState<string | null>(null);
+  const [showHabitoInfo, setShowHabitoInfo] = useState(false);
 
   useEffect(() => {
     const cargarDiasFinIntervalo = async () => {
@@ -215,6 +218,12 @@ export default function CalendarioWidget({ userId, darkMode = false }: Calendari
                             zIndex: 10 - idx,
                             marginLeft: idx > 0 ? '-4px' : '0'
                           }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setHabitoSeleccionado(habito.id_habito);
+                            setShowHabitoInfo(true);
+                          }}
+                          title={habito.nombre_habito}
                         >
                           {pickIcon(habito.categoria)}
                         </div>
@@ -243,6 +252,26 @@ export default function CalendarioWidget({ userId, darkMode = false }: Calendari
           <span>Hoy</span>
         </div>
       </div>
+
+      {/* Modal de información del hábito */}
+      {habitoSeleccionado && (
+        <HabitoInfoModal
+          isOpen={showHabitoInfo}
+          onClose={() => {
+            setShowHabitoInfo(false);
+            setHabitoSeleccionado(null);
+          }}
+          habitoId={habitoSeleccionado}
+          darkMode={darkMode}
+          onEdit={() => {
+            if (onEditHabito) {
+              onEditHabito(habitoSeleccionado);
+            }
+            setShowHabitoInfo(false);
+            setHabitoSeleccionado(null);
+          }}
+        />
+      )}
     </div>
   );
 }

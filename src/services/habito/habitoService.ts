@@ -214,6 +214,18 @@ export async function updateHabito(id: string, habito: UpdateIHabito): Promise<v
         }
     }
 
+    // Obtener el hábito actual para comparar
+    const { data: habitoActual, error: errorGet } = await supabase
+        .from("habito")
+        .select("intervalo_meta")
+        .eq("id_habito", id)
+        .single();
+
+    if (errorGet) {
+        throw new Error(errorGet.message);
+    }
+
+    // Actualizar el hábito
     const { error } = await supabase
         .from("habito")
         .update(habito)
@@ -222,6 +234,88 @@ export async function updateHabito(id: string, habito: UpdateIHabito): Promise<v
 
     if (error) {
         throw new Error(error.message);
+    }
+
+    // Si cambió el intervalo_meta, regenerar los intervalos
+    if (habito.intervalo_meta && habito.intervalo_meta !== habitoActual.intervalo_meta) {
+        await regenerarIntervalosHabito(id, habito.intervalo_meta);
+    }
+}
+
+/**
+ * Regenera todos los intervalos futuros para un hábito
+ * Elimina los intervalos antiguos y crea nuevos según el tipo de intervalo
+ */
+async function regenerarIntervalosHabito(idHabito: string, nuevoIntervalo: string): Promise<void> {
+    try {
+        // Obtener el hábito para saber su id_perfil
+        const { data: habito, error: habitoError } = await supabase
+            .from("habito")
+            .select("id_perfil")
+            .eq("id_habito", idHabito)
+            .single();
+
+        if (habitoError || !habito) {
+            console.error("Error obteniendo hábito para regenerar intervalos:", habitoError);
+            return;
+        }
+
+        // Eliminar todos los registros_intervalo futuros del hábito
+        const hoy = new Date();
+        hoy.setUTCHours(0, 0, 0, 0);
+        const fechaHoyStr = toDateString(hoy);
+
+        const { error: deleteError } = await supabase
+            .from("registro_intervalo")
+            .delete()
+            .eq("id_habito", idHabito)
+            .gte("fecha_inicio_intervalo", fechaHoyStr);
+
+        if (deleteError) {
+            console.error("Error eliminando intervalos antiguos:", deleteError);
+            // Continuar de todas formas para crear los nuevos
+        }
+
+        // Generar nuevos intervalos
+        const periodoInfo = getPeriodDates(nuevoIntervalo);
+        if (!periodoInfo) {
+            console.error("No se pudo calcular el período para regenerar intervalos");
+            return;
+        }
+
+        const intervalosFuturos = generarIntervalosFuturos(
+            nuevoIntervalo,
+            periodoInfo.inicio,
+            6
+        );
+
+        // Crear todos los registros de intervalo
+        const registrosParaInsertar = intervalosFuturos.map(periodo => ({
+            id_habito: idHabito,
+            fecha: toDateString(periodo.inicio),
+            fecha_inicio_intervalo: toDateString(periodo.inicio),
+            fecha_fin_intervalo: toDateString(periodo.fin),
+            cumplido: false,
+            puntos: 0,
+            progreso: 0,
+            cumplido_periodo_anterior: false,
+        }));
+
+        // Insertar todos los registros de intervalo
+        const { error: insertError } = await supabase
+            .from("registro_intervalo")
+            .insert(registrosParaInsertar);
+
+        if (insertError) {
+            console.error("Error creando nuevos intervalos:", insertError);
+            // No lanzamos error para no bloquear la actualización del hábito
+        } else {
+            console.log(`Intervalos regenerados para hábito ${idHabito}: ${registrosParaInsertar.length} intervalos creados`);
+        }
+
+    } catch (error) {
+        console.error("Error en regenerarIntervalosHabito:", error);
+        // No lanzamos error para no bloquear la actualización del hábito
     }
 }
 

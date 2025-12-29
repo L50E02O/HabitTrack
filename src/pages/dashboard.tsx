@@ -556,6 +556,15 @@ export default function Dashboard() {
                                 onClose={() => setOpenCalendario(false)}
                                 userId={user.id}
                                 darkMode={darkMode}
+                                onEditHabito={(habitoId) => {
+                                    // Buscar el hábito y abrir el modal de edición
+                                    const habito = habitos.find(h => h.id_habito === habitoId);
+                                    if (habito) {
+                                        setHabitoEditando(habito);
+                                        setOpenEdit(true);
+                                        setOpenCalendario(false);
+                                    }
+                                }}
                             />
                         )}
 
