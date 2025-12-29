@@ -3,7 +3,7 @@
 /* Botón flotante (bolita) - Estilo unificado */
 .ranking-float-button {
     position: fixed;
-    bottom: 9.5rem;
+    bottom: 14rem;
     right: 2rem;
     width: 56px;
     height: 56px;
@@ -32,24 +32,10 @@
 .ranking-float-button.loading {
     opacity: 0.6;
     cursor: not-allowed;
-    animation: pulse-loading 2s ease-in-out infinite;
 }
-
-@keyframes pulse-loading {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 0.8; }
-}
-
-/* Animación removida - estilo unificado */
 
 .ranking-float-button svg {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-    animation: float-trophy 3s ease-in-out infinite;
-}
-
-@keyframes float-trophy {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-5px) rotate(5deg); }
 }
 
 .position-badge {
@@ -64,12 +50,6 @@
     border-radius: 10px;
     border: 2px solid #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    animation: badge-pulse 2s ease-in-out infinite;
-}
-
-@keyframes badge-pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
 }
 
 /* Panel expandido */
@@ -85,20 +65,8 @@
     overflow: hidden;
     z-index: 1000;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    animation: slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
-}
-
-@keyframes slide-up {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .ranking-header-expanded {
@@ -144,9 +112,7 @@
 
 .skeleton-header,
 .skeleton-content {
-    background: linear-gradient(90deg, #2a2a3e 25%, #3a3a4e 50%, #2a2a3e 75%);
-    background-size: 200% 100%;
-    animation: skeleton-loading 1.5s infinite;
+    background: #2a2a3e;
     border-radius: 8px;
 }
 
@@ -156,11 +122,6 @@
 
 .skeleton-content {
     height: 200px;
-}
-
-@keyframes skeleton-loading {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
 }
 
 /* Scrollbar personalizado */
@@ -263,24 +224,7 @@
 }
 
 .rango-icon-container::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        45deg,
-        transparent,
-        rgba(255, 255, 255, 0.1),
-        transparent
-    );
-    animation: shine 3s infinite;
-}
-
-@keyframes shine {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    display: none;
 }
 
 .rango-info {
@@ -344,24 +288,7 @@
 }
 
 .progreso-fill::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.3),
-        transparent
-    );
-    animation: progress-shine 2s infinite;
-}
-
-@keyframes progress-shine {
-    0% { left: -100%; }
-    100% { left: 200%; }
+    display: none;
 }
 
 .progreso-porcentaje {
@@ -640,14 +567,14 @@
 
 @media (max-width: 480px) {
     .ranking-float-button {
-        bottom: 8.5rem;
+        bottom: 13rem;
         right: 1rem;
         width: 48px;
         height: 48px;
     }
 
     .ranking-widget-expanded {
-        bottom: 8.5rem;
+        bottom: 13rem;
         right: 0.75rem;
         left: 0.75rem;
         max-width: calc(100vw - 1.5rem);

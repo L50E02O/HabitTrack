@@ -228,7 +228,7 @@
 
 /* Posiciones específicas */
 .floating-calendario-button {
-    bottom: 14rem; /* Más arriba que ranking */
+    bottom: 9.5rem; /* Intercambiado con ranking */
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
@@ -269,7 +269,7 @@
     }
 
     .floating-calendario-button {
-        bottom: 13rem;
+        bottom: 8.5rem;
     }
 
     .floating-logros-button {
