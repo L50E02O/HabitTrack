@@ -237,6 +237,35 @@
     width: 52px;
 }
 
+.floating-calendario-button {
+    position: fixed;
+    bottom: 9.5rem; /* Arriba del botón de protectores */
+    right: 2rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    animation: pulse-blue 2s infinite;
+}
+
+.floating-calendario-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 30px rgba(59, 130, 246, 0.6);
+}
+
+.floating-calendario-button:active {
+    transform: scale(0.95);
+}
+
 .floating-protectores-button {
     position: fixed;
     bottom: 5rem; /* Arriba del botón de logros */
@@ -275,6 +304,15 @@
     }
 }
 
+@keyframes pulse-blue {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 30px rgba(59, 130, 246, 0.7);
+    }
+}
+
 @keyframes pulse-green {
     0%, 100% {
         box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
@@ -286,7 +324,8 @@
 
 @media (max-width: 768px) {
     .floating-logros-button,
-    .floating-protectores-button {
+    .floating-protectores-button,
+    .floating-calendario-button {
         width: 48px;
         height: 48px;
         right: 1rem;
@@ -298,6 +337,10 @@
 
     .floating-protectores-button {
         bottom: 5rem;
+    }
+
+    .floating-calendario-button {
+        bottom: 9rem;
     }
 }
 
