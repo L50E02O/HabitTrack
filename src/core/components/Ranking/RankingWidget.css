@@ -1,6 +1,6 @@
 /* RankingWidget.css - Estilo de botón flotante */
 
-/* Botón flotante (bolita) */
+/* Botón flotante (bolita) - Estilo unificado */
 .ranking-float-button {
     position: fixed;
     bottom: 9.5rem;
@@ -10,7 +10,7 @@
     border-radius: 50%;
     background: linear-gradient(135deg, #FFD700, #FFA500);
     border: none;
-    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -18,12 +18,11 @@
     color: #fff;
     transition: all 0.3s ease;
     z-index: 1000;
-    animation: pulse-gold-ranking 2s infinite;
 }
 
 .ranking-float-button:hover {
     transform: scale(1.1);
-    box-shadow: 0 6px 30px rgba(255, 215, 0, 0.6);
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.3);
 }
 
 .ranking-float-button:active {
@@ -41,14 +40,7 @@
     50% { opacity: 0.8; }
 }
 
-@keyframes pulse-gold-ranking {
-    0%, 100% {
-        box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
-    }
-    50% {
-        box-shadow: 0 4px 30px rgba(255, 215, 0, 0.7);
-    }
-}
+/* Animación removida - estilo unificado */
 
 .ranking-float-button svg {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
@@ -578,7 +570,7 @@
 
 @media (max-width: 768px) {
     .ranking-float-button {
-        bottom: 9rem;
+        bottom: 8.5rem;
         right: 1rem;
         width: 48px;
         height: 48px;

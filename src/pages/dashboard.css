@@ -206,17 +206,17 @@
     transform: scale(1.05);
 }
 
-/* Botones Flotantes */
-.floating-logros-button {
+/* Botones Flotantes - Estilos unificados */
+.floating-calendario-button,
+.floating-logros-button,
+.floating-protectores-button {
     position: fixed;
-    bottom: 0.5rem;
     right: 2rem;
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
     border: none;
-    box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -224,111 +224,52 @@
     color: white;
     transition: all 0.3s ease;
     z-index: 1000;
-    animation: pulse-gold 2s infinite;
 }
 
-.floating-logros-button:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 30px rgba(251, 191, 36, 0.6);
-}
-
-.floating-logros-button:active {
-    transform: scale(0.95);
-    width: 52px;
-}
-
+/* Posiciones específicas */
 .floating-calendario-button {
-    position: fixed;
-    bottom: 9.5rem; /* Arriba del botón de protectores */
-    right: 2rem;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
+    bottom: 14rem; /* Más arriba que ranking */
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border: none;
-    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    animation: pulse-blue 2s infinite;
 }
 
-.floating-calendario-button:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 30px rgba(59, 130, 246, 0.6);
-}
-
-.floating-calendario-button:active {
-    transform: scale(0.95);
+.floating-logros-button {
+    bottom: 0.5rem; /* Abajo */
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
 }
 
 .floating-protectores-button {
-    position: fixed;
-    bottom: 5rem; /* Arriba del botón de logros */
-    right: 2rem;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
+    bottom: 5rem; /* Medio */
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border: none;
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    animation: pulse-green 2s infinite;
 }
 
+/* Hover unificado */
+.floating-calendario-button:hover,
+.floating-logros-button:hover,
 .floating-protectores-button:hover {
     transform: scale(1.1);
-    box-shadow: 0 6px 30px rgba(16, 185, 129, 0.6);
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.3);
 }
 
+/* Active unificado */
+.floating-calendario-button:active,
+.floating-logros-button:active,
 .floating-protectores-button:active {
     transform: scale(0.95);
 }
 
-@keyframes pulse-gold {
-    0%, 100% {
-        box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
-    }
-    50% {
-        box-shadow: 0 4px 30px rgba(251, 191, 36, 0.7);
-    }
-}
-
-@keyframes pulse-blue {
-    0%, 100% {
-        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
-    }
-    50% {
-        box-shadow: 0 4px 30px rgba(59, 130, 246, 0.7);
-    }
-}
-
-@keyframes pulse-green {
-    0%, 100% {
-        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-    }
-    50% {
-        box-shadow: 0 4px 30px rgba(16, 185, 129, 0.7);
-    }
-}
+/* Animaciones removidas - todos los botones tienen el mismo estilo */
 
 @media (max-width: 768px) {
+    .floating-calendario-button,
     .floating-logros-button,
-    .floating-protectores-button,
-    .floating-calendario-button {
+    .floating-protectores-button {
         width: 48px;
         height: 48px;
         right: 1rem;
+    }
+
+    .floating-calendario-button {
+        bottom: 13rem;
     }
 
     .floating-logros-button {
@@ -337,10 +278,6 @@
 
     .floating-protectores-button {
         bottom: 5rem;
-    }
-
-    .floating-calendario-button {
-        bottom: 9rem;
     }
 }
 
