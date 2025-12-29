@@ -16,6 +16,9 @@ Thumbs.db
 .env.*.local
 !.env.example
 
+# Claves VAPID para Web Push (muy sensibles)
+.vapid-keys.json
+
 # =========================================
 # ⚛️ REACT FRONTEND
 # =========================================
