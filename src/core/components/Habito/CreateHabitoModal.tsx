@@ -4,6 +4,46 @@ import { createHabito } from '../../../services/habito/habitoService';
 import type { IHabito, CreateIHabito } from '../../../types/IHabito';
 import './CreateHabitoModal.css';
 
+// Definir hábitos predefinidos por categoría con su unidad de medida
+const HABITOS_POR_CATEGORIA: Record<string, Array<{ nombre: string; unidadMedida: string }>> = {
+    salud: [
+        { nombre: 'Tomar vitaminas', unidadMedida: 'dosis' },
+        { nombre: 'Dormir 8 horas', unidadMedida: 'horas' },
+        { nombre: 'Meditar', unidadMedida: 'minutos' },
+        { nombre: 'Cuidado de piel', unidadMedida: 'sesiones' },
+    ],
+    ejercicio: [
+        { nombre: 'Correr', unidadMedida: 'minutos' },
+        { nombre: 'Nadar', unidadMedida: 'minutos' },
+        { nombre: 'Saltar la cuerda', unidadMedida: 'minutos' },
+        { nombre: 'Ciclismo', unidadMedida: 'minutos' },
+        { nombre: 'Pesas', unidadMedida: 'minutos' },
+        { nombre: 'Yoga', unidadMedida: 'minutos' },
+    ],
+    estudio: [
+        { nombre: 'Leer', unidadMedida: 'minutos' },
+        { nombre: 'Hacer tareas', unidadMedida: 'minutos' },
+        { nombre: 'Aprender idioma', unidadMedida: 'minutos' },
+        { nombre: 'Cursos online', unidadMedida: 'minutos' },
+    ],
+    trabajo: [
+        { nombre: 'Trabajar en proyecto', unidadMedida: 'horas' },
+        { nombre: 'Reuniones', unidadMedida: 'horas' },
+        { nombre: 'Productividad', unidadMedida: 'horas' },
+    ],
+    alimentacion: [
+        { nombre: 'Beber agua', unidadMedida: 'litros' },
+        { nombre: 'Comer frutas', unidadMedida: 'porciones' },
+        { nombre: 'Comer verduras', unidadMedida: 'porciones' },
+        { nombre: 'Desayunar saludable', unidadMedida: 'días' },
+    ],
+    otro: [
+        { nombre: 'Lectura personal', unidadMedida: 'minutos' },
+        { nombre: 'Networking', unidadMedida: 'sesiones' },
+        { nombre: 'Hobby personal', unidadMedida: 'horas' },
+    ],
+};
+
 type Props = {
     userId: string;
     open: boolean;
@@ -19,6 +59,7 @@ export default function CreateHabitoModal({ userId, open, onClose, onCreated, ha
     const [intervalo_meta, setIntervalo] = useState<string>('semanal');
     const [meta_repeticion, setMeta] = useState<number>(7);
     const [dificultad, setDificultad] = useState<string>('medio');
+    const [unidadMedida, setUnidadMedida] = useState<string>('minutos');
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -35,6 +76,7 @@ export default function CreateHabitoModal({ userId, open, onClose, onCreated, ha
         setIntervalo('semanal');
         setMeta(7);
         setDificultad('medio');
+        setUnidadMedida('minutos');
         setError(null);
     };
 
@@ -106,6 +148,44 @@ export default function CreateHabitoModal({ userId, open, onClose, onCreated, ha
                 ) : (
                 <form className="form" onSubmit={handleSubmit}>
                     <div className="field">
+                        <label htmlFor="categoria">Categoría</label>
+                        <select id="categoria" title="Categoría" value={categoria} onChange={(e) => setCategoria(e.target.value)}>
+                            <option value="salud">Salud</option>
+                            <option value="ejercicio">Ejercicio</option>
+                            <option value="estudio">Estudio</option>
+                            <option value="trabajo">Trabajo</option>
+                            <option value="alimentacion">Alimentación</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <div className="field">
+                        <label htmlFor="habitoPredefinido">Selecciona un hábito predefinido (opcional)</label>
+                        <select 
+                            id="habitoPredefinido" 
+                            title="Hábito predefinido"
+                            defaultValue=""
+                            onChange={(e) => {
+                                if (e.target.value) {
+                                    const habito = HABITOS_POR_CATEGORIA[categoria]?.find(h => h.nombre === e.target.value);
+                                    if (habito) {
+                                        setNombre(habito.nombre);
+                                        setUnidadMedida(habito.unidadMedida);
+                                        e.target.value = '';
+                                    }
+                                }
+                            }}
+                        >
+                            <option value="">-- Elige un hábito --</option>
+                            {HABITOS_POR_CATEGORIA[categoria]?.map((habito, idx) => (
+                                <option key={idx} value={habito.nombre}>
+                                    {habito.nombre} ({habito.unidadMedida})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="field">
                         <label>Nombre</label>
                         <input
                             type="text"
@@ -128,18 +208,6 @@ export default function CreateHabitoModal({ userId, open, onClose, onCreated, ha
 
                     <div className="row">
                         <div className="field">
-                            <label htmlFor="categoria">Categoría</label>
-                            <select id="categoria" title="Categoría" value={categoria} onChange={(e) => setCategoria(e.target.value)}>
-                                <option value="salud">Salud</option>
-                                <option value="ejercicio">Ejercicio</option>
-                                <option value="estudio">Estudio</option>
-                                <option value="trabajo">Trabajo</option>
-                                <option value="alimentacion">Alimentación</option>
-                                <option value="otro">Otro</option>
-                            </select>
-                        </div>
-
-                        <div className="field">
                             <label htmlFor="intervalo">Intervalo</label>
                             <select id="intervalo" title="Intervalo" value={intervalo_meta} onChange={(e) => setIntervalo(e.target.value)}>
                                 <option value="diario">Diario</option>
@@ -161,6 +229,19 @@ export default function CreateHabitoModal({ userId, open, onClose, onCreated, ha
                                     const value = parseInt(e.target.value || '1', 10);
                                     setMeta(Math.min(365, Math.max(1, value)));
                                 }}
+                                required
+                            />
+                        </div>
+
+                        <div className="field">
+                            <label htmlFor="unidadMedida">Unidad de Medida</label>
+                            <input
+                                id="unidadMedida"
+                                title="Unidad de medida"
+                                type="text"
+                                value={unidadMedida}
+                                onChange={(e) => setUnidadMedida(e.target.value)}
+                                placeholder="Ej. minutos, km, porciones"
                                 required
                             />
                         </div>
