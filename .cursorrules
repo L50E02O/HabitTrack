@@ -1,0 +1,406 @@
+# Reglas de Cursor para HabitTrack
+
+## Contexto del Proyecto
+
+HabitTrack es una aplicación React + TypeScript para seguimiento de hábitos con:
+- Frontend: React 19.1.1, TypeScript 5.9.3, Vite 7.1.7
+- Backend: Supabase (PostgreSQL) con RLS
+- Routing: React Router 7.9.5
+- Testing: Vitest 4.0.5 con Testing Library
+- PWA: Service Workers, notificaciones push, instalación offline
+- UI: Lucide React para iconos
+
+## Arquitectura y Estructura
+
+### Organización de Carpetas
+
+```
+src/
+├── config/          # Configuración (Supabase, etc.)
+├── core/            # Componentes y lógica core reutilizable
+│   ├── components/  # Componentes organizados por dominio
+│   ├── constants/   # Constantes de la aplicación
+│   └── utils/       # Utilidades específicas del core
+├── pages/           # Páginas de la aplicación (routing)
+├── services/        # Servicios y lógica de negocio
+├── types/           # Tipos e interfaces TypeScript
+├── utils/           # Utilidades transversales (PWA, helpers)
+├── hooks/           # Custom hooks de React
+└── components/      # Componentes generales (PWA, etc.)
+```
+
+### Principios de Arquitectura
+
+1. **Separación de Responsabilidades:**
+   - `services/`: Lógica de negocio y comunicación con Supabase
+   - `core/components/`: Componentes reutilizables organizados por dominio
+   - `pages/`: Páginas que orquestan componentes y servicios
+   - `types/`: Definiciones de tipos TypeScript
+   - `utils/`: Funciones auxiliares sin dependencias de negocio
+
+2. **Patrón de Servicios:**
+   - Cada dominio tiene su servicio en `services/[dominio]/[dominio]Service.ts`
+   - Los servicios exportan funciones puras (no clases)
+   - Cada servicio tiene su archivo de test: `[dominio]Service.test.ts`
+   - Los servicios manejan validación, transformación y comunicación con Supabase
+
+3. **Componentes:**
+   - Componentes funcionales con hooks
+   - Props tipadas con TypeScript
+   - CSS modules para estilos (`.module.css` o `.css` separado)
+   - Componentes reutilizables en `core/components/`
+   - Componentes específicos de página en `pages/`
+
+## Convenciones de Código
+
+### Nomenclatura
+
+- **Archivos:**
+  - Componentes: PascalCase (`CreateHabitoModal.tsx`)
+  - Servicios: camelCase (`habitoService.ts`)
+  - Tipos: PascalCase con prefijo `I` (`IHabito.ts`)
+  - Tests: `[archivo].test.ts` o `[archivo].test.tsx`
+  - CSS: `[componente].css` o `[componente].module.css`
+
+- **Variables y Funciones:**
+  - camelCase para variables y funciones (`getAllHabitos`, `nombreHabito`)
+  - PascalCase para componentes y tipos (`CreateHabitoModal`, `IHabito`)
+  - UPPER_SNAKE_CASE para constantes (`LIMITE_HABITOS`)
+  - Español para nombres de variables, funciones y comentarios (el proyecto usa español)
+
+- **Interfaces TypeScript:**
+  - Prefijo `I` para interfaces principales (`IHabito`, `IPerfil`)
+  - `CreateI[Entidad]` para datos de creación (`CreateIHabito`)
+  - `UpdateI[Entidad]` para datos de actualización (`UpdateIHabito`)
+
+### TypeScript
+
+- **Configuración Estricta:**
+  - Usar tipos explícitos para todas las variables y parámetros
+  - No usar `any` (usar `unknown` si es necesario)
+  - Interfaces para estructuras de datos
+  - Tipos para funciones y callbacks
+
+- **Ejemplo de Servicio:**
+```typescript
+import { supabase } from "../../config/supabase";
+import type { IHabito, CreateIHabito } from "../../types/IHabito";
+
+export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito> {
+  // Validación
+  if (nuevoHabito.meta_repeticion < 1) {
+    throw new Error("meta_repeticion debe ser mayor a 0");
+  }
+  
+  // Lógica de negocio
+  const { data, error } = await supabase
+    .from('habito')
+    .insert(nuevoHabito)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+```
+
+- **Ejemplo de Componente:**
+```typescript
+import { useState } from 'react';
+import type { IHabito } from '../../../types/IHabito';
+import './Componente.css';
+
+type Props = {
+  userId: string;
+  onClose: () => void;
+  onCreated: (habito: IHabito) => void;
+};
+
+export default function Componente({ userId, onClose, onCreated }: Props) {
+  const [loading, setLoading] = useState(false);
+  // ...
+}
+```
+
+### React
+
+- **Hooks:**
+  - Usar hooks funcionales (`useState`, `useEffect`, `useCallback`, `useMemo`)
+  - Custom hooks en `hooks/` cuando la lógica es reutilizable
+  - Evitar efectos innecesarios, usar dependencias correctas
+
+- **Componentes:**
+  - Componentes funcionales (no clases)
+  - Props tipadas con `type Props` o interfaces
+  - Export default para componentes
+  - Export named para utilidades y tipos
+
+- **Estado:**
+  - `useState` para estado local
+  - Context API solo si es necesario compartir estado global
+  - Evitar prop drilling excesivo
+
+### Estilos
+
+- **CSS Modules o CSS Separado:**
+  - CSS modules para componentes que necesitan scoping
+  - CSS separado para estilos globales o específicos de página
+  - Nombres descriptivos en español o inglés según el contexto
+  - Usar variables CSS para temas y colores
+
+- **Ejemplo:**
+```typescript
+import './CreateHabitoModal.css';
+// o
+import styles from './Componente.module.css';
+```
+
+### Supabase
+
+- **Patrón de Consultas:**
+  - Siempre usar tipos TypeScript con las respuestas
+  - Manejar errores explícitamente
+  - Usar `.select()` explícitamente
+  - Validar datos antes de insertar/actualizar
+
+- **Ejemplo:**
+```typescript
+const { data, error } = await supabase
+  .from('habito')
+  .select('*')
+  .eq('id_perfil', userId)
+  .order('fecha_creacion', { ascending: false });
+
+if (error) {
+  throw new Error(`Error al obtener hábitos: ${error.message}`);
+}
+
+return data || [];
+```
+
+### Manejo de Errores
+
+- **En Servicios:**
+  - Lanzar errores descriptivos con `throw new Error()`
+  - Incluir mensajes de error claros en español
+  - No silenciar errores, siempre manejarlos
+
+- **En Componentes:**
+  - Usar estado para errores (`const [error, setError] = useState<string | null>(null)`)
+  - Mostrar mensajes de error al usuario
+  - Manejar estados de carga (`loading`, `submitting`)
+
+### Validación
+
+- **Validar en el Servicio:**
+  - Validar datos de entrada antes de enviar a Supabase
+  - Validar tipos, rangos y formatos
+  - Lanzar errores descriptivos si la validación falla
+
+- **Ejemplo:**
+```typescript
+if (nuevoHabito.meta_repeticion < 1 || nuevoHabito.meta_repeticion > 365) {
+  throw new Error("meta_repeticion debe estar entre 1 y 365");
+}
+```
+
+## Testing
+
+### Configuración
+
+- Framework: Vitest con jsdom
+- Testing Library para componentes React
+- Mocks de Supabase en `src/tests/setupSupabaseMocks.ts`
+
+### Convenciones de Tests
+
+- **Estructura:**
+  - Un archivo de test por archivo de código: `[archivo].test.ts`
+  - Usar `describe` para agrupar tests relacionados
+  - Usar `it` o `test` para casos individuales
+  - Nombres descriptivos en español
+
+- **Ejemplo:**
+```typescript
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createHabito } from "./habitoService";
+
+describe("HabitoService", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("debería crear un hábito correctamente", async () => {
+    // Arrange
+    const nuevoHabito = { /* ... */ };
+    
+    // Act
+    const result = await createHabito(nuevoHabito);
+    
+    // Assert
+    expect(result).toBeDefined();
+    expect(result.nombre_habito).toBe(nuevoHabito.nombre_habito);
+  });
+});
+```
+
+- **Cobertura:**
+  - Tests para todos los servicios
+  - Tests para componentes críticos
+  - Tests de integración para flujos importantes
+  - Mockear Supabase en todos los tests
+
+## PWA y Service Workers
+
+- **Service Workers:**
+  - Configurados con Vite PWA Plugin
+  - Estrategia: NetworkFirst para Supabase, CacheFirst para assets
+  - Registro automático en `src/utils/initPWA.ts`
+
+- **Notificaciones:**
+  - Usar `pwaService.ts` para notificaciones
+  - Verificar permisos antes de enviar
+  - Fallback a API directa si SW no está disponible
+
+## Comentarios y Documentación
+
+- **Comentarios:**
+  - Comentarios en español
+  - Explicar "por qué" no "qué" (el código ya lo dice)
+  - Comentarios para lógica compleja o decisiones de diseño
+
+- **Documentación:**
+  - JSDoc para funciones públicas complejas
+  - README en `docs/` para funcionalidades importantes
+  - Mantener documentación actualizada
+
+## Imports
+
+- **Orden de Imports:**
+  1. Imports de librerías externas (React, Supabase, etc.)
+  2. Imports de componentes internos
+  3. Imports de servicios
+  4. Imports de tipos
+  5. Imports de estilos
+
+- **Ejemplo:**
+```typescript
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../config/supabase';
+import { Plus, X } from 'lucide-react';
+import HabitCard from '../core/components/Auth/HabitCard';
+import { createHabito } from '../services/habito/habitoService';
+import type { IHabito } from '../types/IHabito';
+import './Componente.css';
+```
+
+## Git y Commits
+
+- **Commits:**
+  - Mensajes descriptivos en español
+  - Formato: `tipo: descripción breve`
+  - Tipos: `feat`, `fix`, `refactor`, `test`, `docs`, `style`
+
+## Reglas Específicas del Proyecto
+
+### Límites y Validaciones
+
+- **Límite de Hábitos:** Máximo 9 hábitos por usuario
+- **Validaciones:**
+  - `meta_repeticion`: entre 1 y 365
+  - `categoria`: valores específicos ("ejercicio", "alimentacion", etc.)
+  - `intervalo_meta`: "diario", "semanal", "mensual"
+  - `dificultad`: "facil", "medio", "dificil"
+
+### Sistema de Rachas
+
+- Las rachas se calculan automáticamente en el backend (Edge Function)
+- No modificar lógica de rachas en el frontend
+- Usar `rachaAutoService.ts` para consultas de rachas
+
+### Sistema de Protectores
+
+- Costo: 250 puntos por protector
+- Límite: 1 compra por semana
+- Asignación por hábito específico
+- Usar `protectorService.ts` para todas las operaciones
+
+### Ranking
+
+- Máximo 100 usuarios en el ranking
+- Ordenado por puntos descendente
+- Usar `rankingService.ts` para consultas
+
+## Patrones de Diseño a Seguir
+
+1. **Service Layer Pattern:**
+   - Encapsular lógica de negocio en servicios
+   - Servicios como capa entre componentes y Supabase
+
+2. **Repository Pattern (implícito):**
+   - Supabase actúa como repositorio
+   - Servicios abstraen las consultas
+
+3. **Component Pattern:**
+   - Componentes reutilizables y composables
+   - Separar presentación de lógica
+
+4. **Custom Hooks Pattern:**
+   - Extraer lógica reutilizable a hooks
+   - Ejemplo: `useRankDetection.ts`
+
+5. **Error Boundary Pattern:**
+   - Manejar errores en cada capa
+   - No dejar errores sin manejar
+
+## Buenas Prácticas Generales
+
+1. **Código Limpio:**
+   - Funciones pequeñas y con una sola responsabilidad
+   - Nombres descriptivos
+   - Evitar código duplicado (DRY)
+   - Comentarios solo cuando sea necesario
+
+2. **Performance:**
+   - Usar `useMemo` y `useCallback` cuando sea necesario
+   - Evitar re-renders innecesarios
+   - Lazy loading para componentes pesados
+
+3. **Seguridad:**
+   - Nunca exponer claves de API en el código
+   - Usar variables de entorno
+   - Validar datos del usuario
+   - Respetar RLS de Supabase
+
+4. **Accesibilidad:**
+   - Usar semántica HTML correcta
+   - Labels para inputs
+   - ARIA cuando sea necesario
+
+5. **Responsive:**
+   - Diseño mobile-first
+   - Probar en diferentes tamaños de pantalla
+
+## Comandos Importantes
+
+- `npm run dev` - Servidor de desarrollo
+- `npm run dev:api` - Servidor API local (puerto 4000)
+- `npm run build` - Build de producción
+- `npm test` - Ejecutar tests
+- `npm run lint` - Linter
+
+## Variables de Entorno
+
+- `VITE_SUPABASE_URL` - URL del proyecto Supabase
+- `VITE_SUPABASE_ANON_KEY` - Clave anónima de Supabase
+- `SUPABASE_SERVICE_ROLE_KEY` - Clave de servicio (solo backend)
+
+## Notas Finales
+
+- Siempre seguir estas reglas al generar código
+- Mantener consistencia con el código existente
+- Consultar `docs/` para funcionalidades específicas
+- Priorizar claridad sobre optimización prematura
+- Escribir código que sea fácil de mantener y entender
+

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
-import { Moon, Sun, Plus, LogOut, ChevronRight, ShoppingCart, Sprout } from 'lucide-react';
+import { Moon, Sun, Plus, LogOut, ChevronRight, ShoppingCart, Sprout, Calendar } from 'lucide-react';
 import HabitCard from '../core/components/Auth/HabitCard';
 import type { IHabito } from '../types/IHabito';
 import { getAllHabitos, deleteHabito } from '../services/habito/habitoService';
@@ -26,6 +26,7 @@ import LogrosModal from '../core/components/Logro/LogrosModal';
 import TiendaProtectores from '../core/components/Protector/TiendaProtectores';
 import RankingWidget from '../core/components/Ranking/RankingWidget';
 import RankUpModal from '../core/components/Ranking/RankUpModal';
+import CalendarioModal from '../core/components/Calendario/CalendarioModal';
 import { useRankDetection } from '../hooks/useRankDetection';
 import { getPuntosActuales } from '../services/protector/protectorService';
 import { PermisosNotificacion } from '../components/PermisosNotificacion';
@@ -53,6 +54,7 @@ export default function Dashboard() {
     const [habitoParaRecordatorio, setHabitoParaRecordatorio] = useState<IHabito | null>(null);
     const [openLogros, setOpenLogros] = useState(false);
     const [openTienda, setOpenTienda] = useState(false);
+    const [openCalendario, setOpenCalendario] = useState(false);
     const [puntosUsuario, setPuntosUsuario] = useState(0);
     const notificacionesIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -368,6 +370,14 @@ export default function Dashboard() {
 
             {/* Botones flotantes */}
             <button 
+                className="floating-calendario-button"
+                onClick={() => setOpenCalendario(true)}
+                title="Ver calendario de rachas"
+            >
+                <Calendar size={24} />
+            </button>
+
+            <button 
                 className="floating-protectores-button"
                 onClick={() => setOpenTienda(true)}
                 title="Tienda de Protectores"
@@ -535,6 +545,25 @@ export default function Dashboard() {
                                     // Recargar protectores disponibles
                                     const protectoresDisp = await getProtectoresActuales(user.id);
                                     setProtectoresDisponibles(protectoresDisp);
+                                }}
+                            />
+                        )}
+
+                        {/* Modal de Calendario */}
+                        {openCalendario && user && (
+                            <CalendarioModal
+                                isOpen={openCalendario}
+                                onClose={() => setOpenCalendario(false)}
+                                userId={user.id}
+                                darkMode={darkMode}
+                                onEditHabito={(habitoId) => {
+                                    // Buscar el hábito y abrir el modal de edición
+                                    const habito = habitos.find(h => h.id_habito === habitoId);
+                                    if (habito) {
+                                        setHabitoEditando(habito);
+                                        setOpenEdit(true);
+                                        setOpenCalendario(false);
+                                    }
                                 }}
                             />
                         )}

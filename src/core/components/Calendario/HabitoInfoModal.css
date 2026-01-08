@@ -1,0 +1,327 @@
+/* HabitoInfoModal.css - Estilo del modal de información de hábito */
+
+.habito-info-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.habito-info-modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease-out;
+  overflow: hidden;
+}
+
+.habito-info-modal-overlay.dark .habito-info-modal-content {
+  background: #1a1a1a;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.habito-info-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+.habito-info-modal-overlay.dark .habito-info-modal-header {
+  border-bottom-color: #374151;
+  background: linear-gradient(135deg, #262626 0%, #1f2937 100%);
+}
+
+.habito-info-modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.habito-info-modal-overlay.dark .habito-info-modal-title {
+  color: #f3f4f6;
+}
+
+.habito-info-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.habito-info-modal-close:hover {
+  background-color: #f3f4f6;
+  color: #1a1a1a;
+}
+
+.habito-info-modal-overlay.dark .habito-info-modal-close {
+  color: #9ca3af;
+}
+
+.habito-info-modal-overlay.dark .habito-info-modal-close:hover {
+  background-color: #374151;
+  color: #fff;
+}
+
+.habito-info-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.habito-info-modal-loading,
+.habito-info-modal-error {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+}
+
+.habito-info-modal-overlay.dark .habito-info-modal-loading,
+.habito-info-modal-overlay.dark .habito-info-modal-error {
+  color: #9ca3af;
+}
+
+.habito-info-icon-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.habito-info-modal-overlay.dark .habito-info-icon-section {
+  border-bottom-color: #374151;
+}
+
+.habito-info-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.habito-info-icon.ejercicio {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.habito-info-icon.alimentacion {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.habito-info-icon.estudio {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.habito-info-icon.salud {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.habito-info-icon.trabajo {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.habito-info-icon.otro {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+}
+
+.habito-info-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.habito-info-nombre {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.25rem 0;
+}
+
+.habito-info-modal-overlay.dark .habito-info-nombre {
+  color: #f3f4f6;
+}
+
+.habito-info-categoria {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.habito-info-modal-overlay.dark .habito-info-categoria {
+  color: #9ca3af;
+}
+
+.habito-info-section {
+  margin-bottom: 1.5rem;
+}
+
+.habito-info-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.habito-info-modal-overlay.dark .habito-info-label {
+  color: #9ca3af;
+}
+
+.habito-info-text {
+  font-size: 0.9375rem;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.habito-info-modal-overlay.dark .habito-info-text {
+  color: #e5e7eb;
+}
+
+.habito-info-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.habito-info-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.habito-info-modal-overlay.dark .habito-info-stat {
+  background: #1f2937;
+}
+
+.habito-info-stat-label {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.habito-info-modal-overlay.dark .habito-info-stat-label {
+  color: #9ca3af;
+}
+
+.habito-info-stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.habito-info-modal-overlay.dark .habito-info-stat-value {
+  color: #f3f4f6;
+}
+
+.habito-info-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.habito-info-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.habito-info-btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+.habito-info-btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.habito-info-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .habito-info-modal-content {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .habito-info-modal-header {
+    padding: 1rem;
+  }
+
+  .habito-info-modal-body {
+    padding: 1rem;
+  }
+
+  .habito-info-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
