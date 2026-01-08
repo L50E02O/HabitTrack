@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Activity, Heart, Battery, Zap, ZapOff, RefreshCw, AlertCircle } from 'lucide-react';
+import { Activity, Heart, Footprints, Zap, ZapOff, RefreshCw, AlertCircle, Flame, Moon } from 'lucide-react';
 import { 
-  conectarSmartwatch, 
-  desconectarSmartwatch, 
+  inicializarHealthConnect,
   obtenerDatosTiempoReal,
-  guardarDatosSalud,
-  obtenerDatosSaludPorFecha,
-  obtenerEstadoConexion
+  sincronizarDatos,
+  obtenerEstadoConexion,
+  verificarPermisos,
+  solicitarPermisos
 } from '../../../services/smartwatch/smartwatchService';
-import type { EstadoConexion } from '../../../types/ISmartwatch';
+import type { EstadoConexion, TipoDatoHealthConnect } from '../../../types/ISmartwatch';
 import type { DatosSmartwatchTiempoReal } from '../../../types/ISmartwatch';
 import './SmartwatchConnection.css';
 
@@ -18,79 +18,71 @@ interface SmartwatchConnectionProps {
 }
 
 export default function SmartwatchConnection({ userId, darkMode = false }: SmartwatchConnectionProps) {
-  const [device, setDevice] = useState<BluetoothDevice | null>(null);
   const [estado, setEstado] = useState<EstadoConexion>({
     conectado: false,
     conectando: false,
     error: null,
-    dispositivoNombre: null,
+    aplicacionOrigen: null,
     ultimaSincronizacion: null,
+    permisosOtorgados: false,
   });
   const [datosTiempoReal, setDatosTiempoReal] = useState<DatosSmartwatchTiempoReal | null>(null);
   const [sincronizando, setSincronizando] = useState(false);
   const [mensaje, setMensaje] = useState<{ texto: string; tipo: 'success' | 'error' | 'info' } | null>(null);
 
-  // Actualizar estado cuando cambia el dispositivo
+  // Verificar estado de Health Connect al montar
   useEffect(() => {
-    if (device) {
-      const nuevoEstado = obtenerEstadoConexion(device);
-      setEstado((prev: EstadoConexion) => ({
-        ...prev,
-        ...nuevoEstado,
-        dispositivoNombre: device.name || 'Smartwatch S100',
-      }));
-    }
-  }, [device]);
-
-  // Escuchar eventos de desconexión
-  useEffect(() => {
-    if (!device) return;
-
-    const handleDisconnect = () => {
-      setDevice(null);
-      setEstado({
-        conectado: false,
-        conectando: false,
-        error: null,
-        dispositivoNombre: null,
-        ultimaSincronizacion: null,
-      });
-      setDatosTiempoReal(null);
-      setMensaje({
-        texto: 'Smartwatch desconectado',
-        tipo: 'info',
-      });
+    const verificarEstado = async () => {
+      try {
+        const estadoActual = await obtenerEstadoConexion();
+        setEstado(estadoActual);
+      } catch (error: any) {
+        console.error('Error al verificar estado:', error);
+      }
     };
-
-    device.addEventListener('gattserverdisconnected', handleDisconnect);
-
-    return () => {
-      device.removeEventListener('gattserverdisconnected', handleDisconnect);
-    };
-  }, [device]);
+    
+    verificarEstado();
+  }, []);
 
   const handleConectar = useCallback(async () => {
     try {
       setEstado((prev: EstadoConexion) => ({ ...prev, conectando: true, error: null }));
       setMensaje(null);
 
-      const nuevoDevice = await conectarSmartwatch();
-      setDevice(nuevoDevice);
+      // Inicializar Health Connect
+      await inicializarHealthConnect();
+
+      // Solicitar permisos necesarios
+      const tiposDatos: TipoDatoHealthConnect[] = [
+        TipoDatoHealthConnect.PASOS,
+        TipoDatoHealthConnect.FRECUENCIA_CARDIACA,
+        TipoDatoHealthConnect.CALORIAS,
+        TipoDatoHealthConnect.DISTANCIA,
+        TipoDatoHealthConnect.SUENO,
+        TipoDatoHealthConnect.EJERCICIO,
+        TipoDatoHealthConnect.OXIGENO
+      ];
+
+      await solicitarPermisos(tiposDatos);
+
+      // Verificar permisos
+      const permisos = await verificarPermisos();
+
+      // Obtener estado actualizado
+      const estadoActualizado = await obtenerEstadoConexion();
 
       // Obtener datos iniciales
-      const datos = await obtenerDatosTiempoReal(nuevoDevice);
+      const datos = await obtenerDatosTiempoReal();
       setDatosTiempoReal(datos);
 
       setEstado({
-        conectado: true,
+        ...estadoActualizado,
         conectando: false,
-        error: null,
-        dispositivoNombre: nuevoDevice.name || 'Smartwatch S100',
-        ultimaSincronizacion: new Date(),
+        permisosOtorgados: true,
       });
 
       setMensaje({
-        texto: 'Smartwatch conectado exitosamente',
+        texto: 'Conectado a Health Connect exitosamente',
         tipo: 'success',
       });
     } catch (error: any) {
@@ -100,26 +92,26 @@ export default function SmartwatchConnection({ userId, darkMode = false }: Smart
         error: error.message,
       }));
       setMensaje({
-        texto: error.message || 'Error al conectar el smartwatch',
+        texto: error.message || 'Error al conectar con Health Connect',
         tipo: 'error',
       });
     }
   }, []);
 
+
   const handleDesconectar = useCallback(async () => {
     try {
-      await desconectarSmartwatch(device);
-      setDevice(null);
       setDatosTiempoReal(null);
       setEstado({
         conectado: false,
         conectando: false,
         error: null,
-        dispositivoNombre: null,
+        aplicacionOrigen: null,
         ultimaSincronizacion: null,
+        permisosOtorgados: false,
       });
       setMensaje({
-        texto: 'Smartwatch desconectado',
+        texto: 'Desconectado de Health Connect',
         tipo: 'info',
       });
     } catch (error: any) {
@@ -128,12 +120,12 @@ export default function SmartwatchConnection({ userId, darkMode = false }: Smart
         tipo: 'error',
       });
     }
-  }, [device]);
+  }, []);
 
   const handleSincronizar = useCallback(async () => {
-    if (!device || !estado.conectado) {
+    if (!estado.conectado) {
       setMensaje({
-        texto: 'Primero debes conectar el smartwatch',
+        texto: 'Primero debes conectar con Health Connect',
         tipo: 'error',
       });
       return;
@@ -143,29 +135,12 @@ export default function SmartwatchConnection({ userId, darkMode = false }: Smart
       setSincronizando(true);
       setMensaje(null);
 
-      // Obtener datos del smartwatch
-      const datos = await obtenerDatosTiempoReal(device);
+      // Sincronizar datos desde Health Connect a la base de datos
+      const datosSincronizados = await sincronizarDatos(userId);
+
+      // Actualizar datos en tiempo real
+      const datos = await obtenerDatosTiempoReal();
       setDatosTiempoReal(datos);
-
-      // Obtener fecha actual
-      const hoy = new Date().toISOString().split('T')[0];
-
-      // Verificar si ya hay datos para hoy
-      const datosExistentes = await obtenerDatosSaludPorFecha(userId, hoy);
-
-      // Preparar datos para guardar
-      const datosParaGuardar = {
-        id_perfil: userId,
-        fecha: hoy,
-        pasos: datos.pasos || 0,
-        frecuencia_cardiaca: datos.frecuenciaCardiaca || null,
-        calorias_quemadas: datos.caloriasQuemadas || null,
-        distancia_km: datos.distanciaKm || null,
-        horas_sueno: datos.horasSueno || null,
-      };
-
-      // Si ya existen datos, actualizar; si no, crear nuevo
-      await guardarDatosSalud(datosParaGuardar);
 
       setEstado((prev: EstadoConexion) => ({
         ...prev,
@@ -173,9 +148,7 @@ export default function SmartwatchConnection({ userId, darkMode = false }: Smart
       }));
 
       setMensaje({
-        texto: datosExistentes 
-          ? 'Datos actualizados exitosamente' 
-          : 'Datos sincronizados exitosamente',
+        texto: 'Datos sincronizados exitosamente',
         tipo: 'success',
       });
     } catch (error: any) {
@@ -186,7 +159,7 @@ export default function SmartwatchConnection({ userId, darkMode = false }: Smart
     } finally {
       setSincronizando(false);
     }
-  }, [device, estado.conectado, userId]);
+  }, [estado.conectado, userId]);
 
   // Limpiar mensaje después de 5 segundos
   useEffect(() => {
@@ -203,7 +176,7 @@ export default function SmartwatchConnection({ userId, darkMode = false }: Smart
       <div className="smartwatch-header">
         <div className="smartwatch-title">
           <Activity size={24} />
-          <h3>Smartwatch S100</h3>
+          <h3>Health Connect</h3>
         </div>
         {estado.conectado && (
           <div className={`smartwatch-status ${estado.conectado ? 'connected' : ''}`}>
@@ -242,13 +215,13 @@ export default function SmartwatchConnection({ userId, darkMode = false }: Smart
             ) : (
               <>
                 <Zap size={18} />
-                Conectar Smartwatch
+                Conectar Health Connect
               </>
             )}
           </button>
           <p className="smartwatch-hint">
-            Asegúrate de que el smartwatch esté encendido y cerca de tu dispositivo.
-            Requiere navegador compatible con Web Bluetooth (Chrome, Edge).
+            Sincroniza datos de salud desde aplicaciones como "Mi Smartwatch", FitCloudPro, Google Fit y más.
+            Requiere Android 13+ con Health Connect instalado.
           </p>
         </div>
       ) : (
@@ -256,7 +229,7 @@ export default function SmartwatchConnection({ userId, darkMode = false }: Smart
           {datosTiempoReal && (
             <div className="smartwatch-datos">
               <div className="dato-item">
-                <Activity size={20} />
+                <Footprints size={20} />
                 <div className="dato-info">
                   <span className="dato-label">Pasos</span>
                   <span className="dato-value">{datosTiempoReal.pasos.toLocaleString()}</span>
@@ -273,22 +246,52 @@ export default function SmartwatchConnection({ userId, darkMode = false }: Smart
                 </div>
               )}
 
-              {datosTiempoReal.bateria !== undefined && (
+              {datosTiempoReal.caloriasQuemadas && (
                 <div className="dato-item">
-                  <Battery size={20} />
+                  <Flame size={20} />
                   <div className="dato-info">
-                    <span className="dato-label">Batería</span>
-                    <span className="dato-value">{datosTiempoReal.bateria}%</span>
+                    <span className="dato-label">Calorías</span>
+                    <span className="dato-value">{datosTiempoReal.caloriasQuemadas.toFixed(0)} kcal</span>
                   </div>
                 </div>
               )}
 
-              {datosTiempoReal.caloriasQuemadas && (
+              {datosTiempoReal.distanciaKm && (
                 <div className="dato-item">
                   <Activity size={20} />
                   <div className="dato-info">
-                    <span className="dato-label">Calorías</span>
-                    <span className="dato-value">{datosTiempoReal.caloriasQuemadas.toFixed(0)} kcal</span>
+                    <span className="dato-label">Distancia</span>
+                    <span className="dato-value">{datosTiempoReal.distanciaKm.toFixed(2)} km</span>
+                  </div>
+                </div>
+              )}
+
+              {datosTiempoReal.horasSueno && (
+                <div className="dato-item">
+                  <Moon size={20} />
+                  <div className="dato-info">
+                    <span className="dato-label">Sueño</span>
+                    <span className="dato-value">{datosTiempoReal.horasSueno.toFixed(1)} hrs</span>
+                  </div>
+                </div>
+              )}
+
+              {datosTiempoReal.minutosEjercicio && (
+                <div className="dato-item">
+                  <Activity size={20} />
+                  <div className="dato-info">
+                    <span className="dato-label">Ejercicio</span>
+                    <span className="dato-value">{datosTiempoReal.minutosEjercicio} min</span>
+                  </div>
+                </div>
+              )}
+
+              {datosTiempoReal.nivelOxigeno && (
+                <div className="dato-item">
+                  <Heart size={20} />
+                  <div className="dato-info">
+                    <span className="dato-label">Oxígeno</span>
+                    <span className="dato-value">{datosTiempoReal.nivelOxigeno}%</span>
                   </div>
                 </div>
               )}
