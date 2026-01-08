@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "vite preview",
     "dev:api": "node scripts/dev-api.js",
     "prebuild": "node scripts/generate-icons.js",
     "build": "tsc -b && vite build",

@@ -27,6 +27,7 @@ import TiendaProtectores from '../core/components/Protector/TiendaProtectores';
 import RankingWidget from '../core/components/Ranking/RankingWidget';
 import RankUpModal from '../core/components/Ranking/RankUpModal';
 import CalendarioModal from '../core/components/Calendario/CalendarioModal';
+import SmartwatchConnection from '../core/components/Smartwatch/SmartwatchConnection';
 import { useRankDetection } from '../hooks/useRankDetection';
 import { getPuntosActuales } from '../services/protector/protectorService';
 import { PermisosNotificacion } from '../components/PermisosNotificacion';
@@ -453,6 +454,11 @@ export default function Dashboard() {
                                 Crear Nuevo Hábito
                             </button>
                         </div>
+
+                        {/* Conexión Smartwatch */}
+                        {user && (
+                            <SmartwatchConnection userId={user.id} darkMode={darkMode} />
+                        )}
 
                         {/* Grid de Hábitos */}
                         <div className="habitsGrid">

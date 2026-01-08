@@ -161,12 +161,13 @@ export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito>
 
     // Crear racha inicial
     if (registroInicial) {
+        const fechaInicioRacha = toDateString(periodoInfo.inicio);
         const { error: errorRacha } = await supabase
             .from("racha")
             .insert({
                 id_registro_intervalo: registroInicial.id_registro,
-                inicio_racha: fechaInicio,
-                fin_racha: fechaInicio,
+                inicio_racha: fechaInicioRacha,
+                fin_racha: fechaInicioRacha,
                 dias_consecutivos: 0,
                 racha_activa: false,
                 protectores_asignados: 0,

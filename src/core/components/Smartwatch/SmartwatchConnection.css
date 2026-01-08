@@ -1,0 +1,302 @@
+/* SmartwatchConnection.css - Estilos para el componente de conexión del smartwatch */
+
+.smartwatch-connection {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.smartwatch-connection.dark {
+  background: #1a1a1a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.smartwatch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.smartwatch-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.smartwatch-title h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.smartwatch-connection.dark .smartwatch-title h3 {
+  color: #f3f4f6;
+}
+
+.smartwatch-title svg {
+  color: #3b82f6;
+}
+
+.smartwatch-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.smartwatch-connection.dark .smartwatch-status {
+  color: #9ca3af;
+}
+
+.smartwatch-status.connected {
+  color: #10b981;
+}
+
+.smartwatch-connection.dark .smartwatch-status.connected {
+  color: #34d399;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9ca3af;
+  animation: pulse 2s infinite;
+}
+
+.smartwatch-status.connected .status-dot {
+  background: #10b981;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.smartwatch-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.smartwatch-message.success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.smartwatch-connection.dark .smartwatch-message.success {
+  background: #064e3b;
+  color: #6ee7b7;
+}
+
+.smartwatch-message.error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.smartwatch-connection.dark .smartwatch-message.error {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+
+.smartwatch-message.info {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.smartwatch-connection.dark .smartwatch-message.info {
+  background: #1e3a8a;
+  color: #93c5fd;
+}
+
+.smartwatch-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.smartwatch-connection.dark .smartwatch-error {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+
+.smartwatch-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.smartwatch-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.smartwatch-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.smartwatch-btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+.smartwatch-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.smartwatch-btn-secondary {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.smartwatch-btn-secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.smartwatch-btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.smartwatch-btn-danger:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.smartwatch-hint {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+.smartwatch-connection.dark .smartwatch-hint {
+  color: #9ca3af;
+}
+
+.smartwatch-datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.smartwatch-connection.dark .smartwatch-datos {
+  background: #1f2937;
+}
+
+.dato-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dato-item svg {
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+
+.dato-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dato-label {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.smartwatch-connection.dark .dato-label {
+  color: #9ca3af;
+}
+
+.dato-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.smartwatch-connection.dark .dato-value {
+  color: #f3f4f6;
+}
+
+.smartwatch-last-sync {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: #666;
+  text-align: center;
+}
+
+.smartwatch-connection.dark .smartwatch-last-sync {
+  color: #9ca3af;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .smartwatch-connection {
+    padding: 1rem;
+  }
+
+  .smartwatch-actions {
+    flex-direction: column;
+  }
+
+  .smartwatch-datos {
+    grid-template-columns: 1fr;
+  }
+}
+
