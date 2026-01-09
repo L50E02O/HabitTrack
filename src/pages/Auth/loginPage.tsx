@@ -1,5 +1,5 @@
 import { useState } from "react";
-import FormularioLogin from "../../core/components/Auth/fomularioLogin";
+import FormularioLogin from "../../core/components/Auth/formularioLogin/fomularioLogin";
 import { signIn } from "../../services/auth/authService";
 import { useNavigate } from "react-router-dom";
 import styles from "./loginPage.module.css";

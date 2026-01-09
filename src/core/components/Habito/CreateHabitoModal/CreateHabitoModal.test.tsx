@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import CreateHabitoModal from "./CreateHabitoModal";
-import * as habitoService from "../../../services/habito/habitoService";
+import CreateHabitoModal from "./CreateHabitoModal.tsx";
+import * as habitoService from "../../../../services/habito/habitoService";
 
-vi.mock("../../../services/habito/habitoService", () => ({
+vi.mock("../../../../services/habito/habitoService", () => ({
   createHabito: vi.fn(),
 }));
 
@@ -95,6 +95,7 @@ describe("CreateHabitoModal - Dificultad", () => {
       activo: true,
       dificultad: "facil",
       puntos: 3,
+      unidad_medida: "minutos",
     };
 
     vi.mocked(habitoService.createHabito).mockResolvedValue(mockHabito);
@@ -127,6 +128,7 @@ describe("CreateHabitoModal - Dificultad", () => {
           nombre_habito: "Leer",
           dificultad: "facil",
           puntos: 3,
+          unidad_medida: expect.any(String),
         })
       );
     });
@@ -145,6 +147,7 @@ describe("CreateHabitoModal - Dificultad", () => {
       activo: true,
       dificultad: "dificil",
       puntos: 8,
+      unidad_medida: "minutos",
     };
 
     vi.mocked(habitoService.createHabito).mockResolvedValue(mockHabito);
@@ -177,6 +180,7 @@ describe("CreateHabitoModal - Dificultad", () => {
           nombre_habito: "Entrenar",
           dificultad: "dificil",
           puntos: 8,
+          unidad_medida: expect.any(String),
         })
       );
     });
@@ -227,5 +231,30 @@ describe("CreateHabitoModal - Dificultad", () => {
     // Verificar que está en default (medio)
     const dificultadSelectNew = screen.getByTitle("Dificultad") as HTMLSelectElement;
     expect(dificultadSelectNew.value).toBe("medio");
+  });
+  it("deberia actualizar nombre y unidad al seleccionar un hábito predefinido", () => {
+    const mockOnCreated = vi.fn();
+    const mockOnClose = vi.fn();
+
+    render(
+      <CreateHabitoModal
+        userId="user1"
+        open={true}
+        onClose={mockOnClose}
+        onCreated={mockOnCreated}
+      />
+    );
+
+    // Seleccionamos categoría salud
+    const categoriaSelect = screen.getByTitle("Categoría") as HTMLSelectElement;
+    fireEvent.change(categoriaSelect, { target: { value: "salud" } });
+
+    // Seleccionamos "Tomar vitaminas" (unidad: dosis)
+    const predefinedSelect = screen.getByTitle("Hábito predefinido") as HTMLSelectElement;
+    fireEvent.change(predefinedSelect, { target: { value: "Tomar vitaminas" } });
+
+    expect(screen.getByDisplayValue("Tomar vitaminas")).toBeInTheDocument();
+    const unidadSelect = screen.getByTitle("Unidad de medida") as HTMLSelectElement;
+    expect(unidadSelect.value).toBe("dosis");
   });
 });

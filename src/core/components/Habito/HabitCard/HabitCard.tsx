@@ -1,13 +1,13 @@
 import './HabitCard.css';
 import React, { useState } from 'react';
-import { 
-    Flame, 
-    MoreVertical, 
-    Trash2, 
-    Edit2, 
-    CheckCircle, 
-    Bell, 
-    Shield, 
+import {
+    Flame,
+    MoreVertical,
+    Trash2,
+    Edit2,
+    CheckCircle,
+    Bell,
+    Shield,
     ShieldOff,
     HeartPulse,
     Ham,
@@ -16,7 +16,7 @@ import {
     Dumbbell,
     Star
 } from 'lucide-react';
-import type { IHabito } from '../../../types/IHabito';
+import type { IHabito } from '../../../../types/IHabito';
 
 type Props = {
     habito: IHabito;
@@ -32,15 +32,15 @@ type Props = {
     onQuitarProtector?: () => void;
 };
 
-export default function HabitCard({ 
-    habito, 
-    weeklyCount = 0, 
-    streakDays = 0, 
+export default function HabitCard({
+    habito,
+    weeklyCount = 0,
+    streakDays = 0,
     protectoresAsignados = 0,
-    onDelete, 
-    onEdit, 
-    onAdvance, 
-    isAdvancing = false, 
+    onDelete,
+    onEdit,
+    onAdvance,
+    isAdvancing = false,
     onConfigureReminder,
     onAsignarProtector,
     onQuitarProtector
@@ -122,9 +122,9 @@ export default function HabitCard({
                                     Asignar Protector
                                 </button>
                             ) : (
-                                <button 
-                                    className="dropdownItem protector-item" 
-                                    disabled 
+                                <button
+                                    className="dropdownItem protector-item"
+                                    disabled
                                     title="Necesitas tener una racha activa para asignar un protector"
                                 >
                                     <Shield size={16} />
@@ -177,7 +177,9 @@ export default function HabitCard({
             <div className="habitProgress">
                 <div className="progressTop">
                     <span>Progreso</span>
-                    <span>{progress}/{goal}</span>
+                    <span>
+                        {progress}/{goal} {formatUnidad(goal, habito.unidad_medida || '')}
+                    </span>
                 </div>
                 <div className="progressBar">
                     <div className={`progressFill ${isComplete ? 'complete' : ''} pct-${pctBucket}`} />
@@ -230,7 +232,7 @@ function formatInterval(intervalo: IHabito['intervalo_meta']) {
 function pickIcon(categoria: IHabito['categoria']) {
     const key = typeof categoria === 'string' ? categoria : 'otro';
     const iconSize = 20;
-    
+
     const iconMap: Record<string, React.ReactElement> = {
         ejercicio: <Dumbbell size={iconSize} />,
         alimentacion: <Ham size={iconSize} />,
@@ -239,11 +241,53 @@ function pickIcon(categoria: IHabito['categoria']) {
         trabajo: <BriefcaseBusiness size={iconSize} />,
         otro: <Star size={iconSize} />,
     };
-    
+
     return iconMap[key] || iconMap['otro'];
 }
 
 function categoriaClass(categoria: IHabito['categoria']) {
     const key = typeof categoria === 'string' ? categoria : 'otro';
     return `cat-${key}`;
+}
+
+function formatUnidad(count: number, unidad: string) {
+    if (!unidad) return '';
+    const isPlural = count !== 1;
+    const u = unidad.toLowerCase();
+
+    const mapping: Record<string, { singular: string; plural: string }> = {
+        'minuto': { singular: 'minuto', plural: 'minutos' },
+        'minutos': { singular: 'minuto', plural: 'minutos' },
+        'hora': { singular: 'hora', plural: 'horas' },
+        'horas': { singular: 'hora', plural: 'horas' },
+        'litro': { singular: 'litro', plural: 'litros' },
+        'litros': { singular: 'litro', plural: 'litros' },
+        'dosis': { singular: 'dosis', plural: 'dosis' },
+        'sesion': { singular: 'sesión', plural: 'sesiones' },
+        'sesión': { singular: 'sesión', plural: 'sesiones' },
+        'sesiones': { singular: 'sesión', plural: 'sesiones' },
+        'porcion': { singular: 'porción', plural: 'porciones' },
+        'porción': { singular: 'porción', plural: 'porciones' },
+        'porciones': { singular: 'porción', plural: 'porciones' },
+        'dia': { singular: 'día', plural: 'días' },
+        'día': { singular: 'día', plural: 'días' },
+        'días': { singular: 'día', plural: 'días' },
+        'repeticion': { singular: 'repetición', plural: 'repeticiones' },
+        'repetición': { singular: 'repetición', plural: 'repeticiones' },
+        'repeticiones': { singular: 'repetición', plural: 'repeticiones' },
+    };
+
+    const entry = mapping[u];
+    if (entry) {
+        return isPlural ? entry.plural : entry.singular;
+    }
+
+    // Fallback
+    if (isPlural) {
+        if (u.endsWith('s')) return u;
+        return u + 's';
+    } else {
+        if (u.endsWith('s') && u !== 'dosis') return u.slice(0, -1);
+        return u;
+    }
 }

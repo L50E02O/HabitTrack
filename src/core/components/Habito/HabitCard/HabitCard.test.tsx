@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import HabitCard from "./HabitCard";
-import type { IHabito } from "../../../types/IHabito";
+import HabitCard from "./HabitCard.tsx";
+import type { IHabito } from "../../../../types/IHabito";
 
 describe("HabitCard - Dificultad Badge", () => {
   const mockHabitoFacil: IHabito = {
@@ -16,6 +16,7 @@ describe("HabitCard - Dificultad Badge", () => {
     activo: true,
     dificultad: "facil",
     puntos: 3,
+    unidad_medida: "minutos",
   };
 
   const mockHabitoMedio: IHabito = {
@@ -30,6 +31,7 @@ describe("HabitCard - Dificultad Badge", () => {
     activo: true,
     dificultad: "medio",
     puntos: 5,
+    unidad_medida: "minutos",
   };
 
   const mockHabitoDificil: IHabito = {
@@ -44,6 +46,7 @@ describe("HabitCard - Dificultad Badge", () => {
     activo: true,
     dificultad: "dificil",
     puntos: 8,
+    unidad_medida: "minutos",
   };
 
   beforeEach(() => {
@@ -109,17 +112,17 @@ describe("HabitCard - Dificultad Badge", () => {
     expect(screen.getByText(/Fácil \(3 pts\)/i)).toBeInTheDocument();
   });
 
-  it("deberia mostrar progreso (0/1) para hábito sin completar", () => {
+  it("deberia mostrar progreso (0/1 minuto) para hábito sin completar", () => {
     render(<HabitCard habito={mockHabitoFacil} weeklyCount={0} />);
 
-    expect(screen.getByText("0/1")).toBeInTheDocument();
+    expect(screen.getByText("0/1 minuto")).toBeInTheDocument();
     expect(screen.getByText(/Fácil \(3 pts\)/i)).toBeInTheDocument();
   });
 
-  it("deberia mostrar progreso (5/5) para hábito completado", () => {
+  it("deberia mostrar progreso (5/5 minutos) para hábito completado", () => {
     render(<HabitCard habito={mockHabitoMedio} weeklyCount={5} />);
 
-    expect(screen.getByText("5/5")).toBeInTheDocument();
+    expect(screen.getByText("5/5 minutos")).toBeInTheDocument();
     expect(screen.getByText(/Medio \(5 pts\)/i)).toBeInTheDocument();
   });
 

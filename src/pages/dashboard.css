@@ -116,7 +116,8 @@
 @media (max-width: 768px) {
     .main {
         padding: 1rem;
-        padding-bottom: 120px; /* Espacio para botones flotantes */
+        padding-bottom: 120px;
+        /* Espacio para botones flotantes */
     }
 }
 
@@ -209,7 +210,8 @@
 /* Botones Flotantes - Estilos unificados */
 .floating-calendario-button,
 .floating-logros-button,
-.floating-protectores-button {
+.floating-protectores-button,
+.floating-ranking-button {
     position: fixed;
     right: 2rem;
     width: 56px;
@@ -227,25 +229,46 @@
 }
 
 /* Posiciones específicas */
+.floating-ranking-button {
+    bottom: 14rem;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+}
+
 .floating-calendario-button {
-    bottom: 9.5rem; /* Intercambiado con ranking */
+    bottom: 9.5rem;
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
 .floating-logros-button {
-    bottom: 0.5rem; /* Abajo */
+    bottom: 0.5rem;
     background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
 }
 
 .floating-protectores-button {
-    bottom: 5rem; /* Medio */
+    bottom: 5rem;
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* Badge de posición */
+.position-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff4444;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Hover unificado */
 .floating-calendario-button:hover,
 .floating-logros-button:hover,
-.floating-protectores-button:hover {
+.floating-protectores-button:hover,
+.floating-ranking-button:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 30px rgba(0, 0, 0, 0.3);
 }
@@ -253,19 +276,24 @@
 /* Active unificado */
 .floating-calendario-button:active,
 .floating-logros-button:active,
-.floating-protectores-button:active {
+.floating-protectores-button:active,
+.floating-ranking-button:active {
     transform: scale(0.95);
 }
 
-/* Animaciones removidas - todos los botones tienen el mismo estilo */
-
 @media (max-width: 768px) {
+
     .floating-calendario-button,
     .floating-logros-button,
-    .floating-protectores-button {
+    .floating-protectores-button,
+    .floating-ranking-button {
         width: 48px;
         height: 48px;
         right: 1rem;
+    }
+
+    .floating-ranking-button {
+        bottom: 12rem;
     }
 
     .floating-calendario-button {
@@ -330,7 +358,7 @@
     transform: translateY(0);
 }
 
-/* Grid de Hábitos - Exactamente 3 columnas en desktop */
+/* Grid de Hábitos */
 .habitsGrid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -339,21 +367,19 @@
     margin: 0 auto;
 }
 
-/* Tablet: 2 columnas */
 @media (max-width: 1024px) {
     .habitsGrid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
-/* Móvil: 1 columna */
 @media (max-width: 768px) {
     .habitsGrid {
         grid-template-columns: 1fr;
     }
 }
 
-/* Sección de Recordatorios */
+/* Recordatorios */
 .recordatorios-section {
     margin-top: 3rem;
     padding-top: 2rem;
@@ -364,7 +390,7 @@
     border-top-color: #374151;
 }
 
-/* Estado Vacío */
+/* Empty State */
 .emptyState {
     grid-column: 1 / -1;
     text-align: center;
@@ -400,7 +426,7 @@
     font-size: 1.1rem;
 }
 
-/* Notificaciones */
+/* Notifications */
 .notification {
     position: fixed;
     top: 80px;
@@ -427,7 +453,6 @@
     border-left: 4px solid #ef4444;
 }
 
-/* Notificaciones en modo oscuro */
 .dashboard.dark .notification-success {
     background-color: #064e3b;
     color: #a7f3d0;
@@ -449,50 +474,5 @@
     to {
         transform: translateX(0);
         opacity: 1;
-    }
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-
-    to {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .notification {
-        right: 10px;
-        left: 10px;
-        max-width: none;
-    }
-}
-
-@media (max-width: 768px) {
-    .titleSection {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .createButton {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .habitsGrid {
-        grid-template-columns: 1fr;
-    }
-
-    .header {
-        padding: 1rem;
-    }
-
-    .logoText {
-        font-size: 1.2rem;
     }
 }

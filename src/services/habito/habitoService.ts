@@ -3,100 +3,100 @@ import type { IHabito, CreateIHabito, UpdateIHabito } from "../../types/IHabito"
 
 // Helpers para calcular fechas de períodos
 function toDateString(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
 }
 
 function getPeriodDates(intervaloMeta: string | null, fechaBase?: Date): { inicio: Date; fin: Date } | null {
-  const fecha = fechaBase || new Date();
-  fecha.setHours(0, 0, 0, 0);
+    const fecha = fechaBase || new Date();
+    fecha.setHours(0, 0, 0, 0);
 
-  if (intervaloMeta === "semanal") {
-    // Inicio: Lunes de la semana actual
-    const inicio = new Date(fecha);
-    const diaSemana = inicio.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
-    const diasDesdeLunes = diaSemana === 0 ? 6 : diaSemana - 1; // Si es domingo, retroceder 6 días
-    inicio.setDate(inicio.getDate() - diasDesdeLunes);
-    
-    // Fin: Domingo de la misma semana (6 días después del lunes)
-    const fin = new Date(inicio);
-    fin.setDate(fin.getDate() + 6);
-    fin.setHours(23, 59, 59, 999);
-    return { inicio, fin };
-  }
+    if (intervaloMeta === "semanal") {
+        // Inicio: Lunes de la semana actual
+        const inicio = new Date(fecha);
+        const diaSemana = inicio.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+        const diasDesdeLunes = diaSemana === 0 ? 6 : diaSemana - 1; // Si es domingo, retroceder 6 días
+        inicio.setDate(inicio.getDate() - diasDesdeLunes);
 
-  if (intervaloMeta === "mensual") {
-    // Inicio: Primer día del mes actual
-    const inicio = new Date(fecha);
-    inicio.setDate(1);
-    
-    // Fin: Último día del mes actual
-    const fin = new Date(inicio);
-    fin.setMonth(fin.getMonth() + 1);
-    fin.setDate(0); // Último día del mes anterior (que es el último día del mes actual)
-    fin.setHours(23, 59, 59, 999);
-    return { inicio, fin };
-  }
+        // Fin: Domingo de la misma semana (6 días después del lunes)
+        const fin = new Date(inicio);
+        fin.setDate(fin.getDate() + 6);
+        fin.setHours(23, 59, 59, 999);
+        return { inicio, fin };
+    }
 
-  // diario
-  if (intervaloMeta === "diario") {
-    const inicio = new Date(fecha);
-    const fin = new Date(fecha);
-    fin.setHours(23, 59, 59, 999);
-    return { inicio, fin };
-  }
+    if (intervaloMeta === "mensual") {
+        // Inicio: Primer día del mes actual
+        const inicio = new Date(fecha);
+        inicio.setDate(1);
 
-  return null;
+        // Fin: Último día del mes actual
+        const fin = new Date(inicio);
+        fin.setMonth(fin.getMonth() + 1);
+        fin.setDate(0); // Último día del mes anterior (que es el último día del mes actual)
+        fin.setHours(23, 59, 59, 999);
+        return { inicio, fin };
+    }
+
+    // diario
+    if (intervaloMeta === "diario") {
+        const inicio = new Date(fecha);
+        const fin = new Date(fecha);
+        fin.setHours(23, 59, 59, 999);
+        return { inicio, fin };
+    }
+
+    return null;
 }
 
 /**
  * Genera todos los intervalos futuros para un hábito
  */
 function generarIntervalosFuturos(
-  intervaloMeta: string,
-  fechaInicio: Date,
-  cantidadMeses: number = 6
+    intervaloMeta: string,
+    fechaInicio: Date,
+    cantidadMeses: number = 6
 ): Array<{ inicio: Date; fin: Date }> {
-  const intervalos: Array<{ inicio: Date; fin: Date }> = [];
-  const fechaActual = new Date(fechaInicio);
-  fechaActual.setHours(0, 0, 0, 0);
+    const intervalos: Array<{ inicio: Date; fin: Date }> = [];
+    const fechaActual = new Date(fechaInicio);
+    fechaActual.setHours(0, 0, 0, 0);
 
-  if (intervaloMeta === "diario") {
-    // Para hábitos diarios, generar los próximos 90 días
-    for (let i = 0; i < 90; i++) {
-      const periodo = getPeriodDates(intervaloMeta, fechaActual);
-      if (periodo) {
-        intervalos.push(periodo);
-        fechaActual.setDate(fechaActual.getDate() + 1);
-      }
+    if (intervaloMeta === "diario") {
+        // Para hábitos diarios, generar los próximos 90 días
+        for (let i = 0; i < 90; i++) {
+            const periodo = getPeriodDates(intervaloMeta, fechaActual);
+            if (periodo) {
+                intervalos.push(periodo);
+                fechaActual.setDate(fechaActual.getDate() + 1);
+            }
+        }
+    } else if (intervaloMeta === "semanal") {
+        // Para hábitos semanales, generar las próximas semanas (aproximadamente 6 meses = 26 semanas)
+        const semanasTotales = cantidadMeses * 4;
+        for (let i = 0; i < semanasTotales; i++) {
+            const periodo = getPeriodDates(intervaloMeta, fechaActual);
+            if (periodo) {
+                intervalos.push(periodo);
+                // Avanzar al siguiente lunes
+                fechaActual.setDate(fechaActual.getDate() + 7);
+            }
+        }
+    } else if (intervaloMeta === "mensual") {
+        // Para hábitos mensuales, generar los próximos meses
+        for (let i = 0; i < cantidadMeses; i++) {
+            const periodo = getPeriodDates(intervaloMeta, fechaActual);
+            if (periodo) {
+                intervalos.push(periodo);
+                // Avanzar al siguiente mes
+                fechaActual.setMonth(fechaActual.getMonth() + 1);
+                fechaActual.setDate(1);
+            }
+        }
     }
-  } else if (intervaloMeta === "semanal") {
-    // Para hábitos semanales, generar las próximas semanas (aproximadamente 6 meses = 26 semanas)
-    const semanasTotales = cantidadMeses * 4;
-    for (let i = 0; i < semanasTotales; i++) {
-      const periodo = getPeriodDates(intervaloMeta, fechaActual);
-      if (periodo) {
-        intervalos.push(periodo);
-        // Avanzar al siguiente lunes
-        fechaActual.setDate(fechaActual.getDate() + 7);
-      }
-    }
-  } else if (intervaloMeta === "mensual") {
-    // Para hábitos mensuales, generar los próximos meses
-    for (let i = 0; i < cantidadMeses; i++) {
-      const periodo = getPeriodDates(intervaloMeta, fechaActual);
-      if (periodo) {
-        intervalos.push(periodo);
-        // Avanzar al siguiente mes
-        fechaActual.setMonth(fechaActual.getMonth() + 1);
-        fechaActual.setDate(1);
-      }
-    }
-  }
 
-  return intervalos;
+    return intervalos;
 }
 
 export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito> {
@@ -108,7 +108,10 @@ export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito>
     // Crear el hábito
     const { data: habitoCreado, error: errorHabito } = await supabase
         .from("habito")
-        .insert(nuevoHabito)
+        .insert({
+            ...nuevoHabito,
+            unidad_medida: nuevoHabito.unidad_medida
+        })
         .select()
         .single();
 
@@ -118,9 +121,6 @@ export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito>
 
     // Obtener fechas del período según el tipo de hábito
     const periodoInfo = getPeriodDates(habitoCreado.intervalo_meta);
-    const hoy = new Date();
-    hoy.setUTCHours(0, 0, 0, 0);
-    
     if (!periodoInfo) {
         console.error("No se pudo calcular el período para el hábito");
         return habitoCreado;
@@ -153,7 +153,6 @@ export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito>
 
     if (errorRegistro) {
         console.error("Error creando registros de intervalo:", errorRegistro);
-        // No lanzamos error para no bloquear la creación del hábito
     }
 
     // Usar el primer registro para la racha inicial
@@ -165,8 +164,8 @@ export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito>
             .from("racha")
             .insert({
                 id_registro_intervalo: registroInicial.id_registro,
-                inicio_racha: fechaInicio,
-                fin_racha: fechaInicio,
+                inicio_racha: toDateString(new Date()),
+                fin_racha: toDateString(new Date()),
                 dias_consecutivos: 0,
                 racha_activa: false,
                 protectores_asignados: 0,
@@ -174,7 +173,6 @@ export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito>
 
         if (errorRacha) {
             console.error("Error creando racha inicial:", errorRacha);
-            // No lanzamos error para no bloquear la creación del hábito
         }
     }
 
@@ -242,13 +240,8 @@ export async function updateHabito(id: string, habito: UpdateIHabito): Promise<v
     }
 }
 
-/**
- * Regenera todos los intervalos futuros para un hábito
- * Elimina los intervalos antiguos y crea nuevos según el tipo de intervalo
- */
 async function regenerarIntervalosHabito(idHabito: string, nuevoIntervalo: string): Promise<void> {
     try {
-        // Obtener el hábito para saber su id_perfil
         const { data: habito, error: habitoError } = await supabase
             .from("habito")
             .select("id_perfil")
@@ -260,7 +253,6 @@ async function regenerarIntervalosHabito(idHabito: string, nuevoIntervalo: strin
             return;
         }
 
-        // Eliminar todos los registros_intervalo futuros del hábito
         const hoy = new Date();
         hoy.setUTCHours(0, 0, 0, 0);
         const fechaHoyStr = toDateString(hoy);
@@ -273,10 +265,8 @@ async function regenerarIntervalosHabito(idHabito: string, nuevoIntervalo: strin
 
         if (deleteError) {
             console.error("Error eliminando intervalos antiguos:", deleteError);
-            // Continuar de todas formas para crear los nuevos
         }
 
-        // Generar nuevos intervalos
         const periodoInfo = getPeriodDates(nuevoIntervalo);
         if (!periodoInfo) {
             console.error("No se pudo calcular el período para regenerar intervalos");
@@ -289,7 +279,6 @@ async function regenerarIntervalosHabito(idHabito: string, nuevoIntervalo: strin
             6
         );
 
-        // Crear todos los registros de intervalo
         const registrosParaInsertar = intervalosFuturos.map(periodo => ({
             id_habito: idHabito,
             fecha: toDateString(periodo.inicio),
@@ -301,21 +290,18 @@ async function regenerarIntervalosHabito(idHabito: string, nuevoIntervalo: strin
             cumplido_periodo_anterior: false,
         }));
 
-        // Insertar todos los registros de intervalo
         const { error: insertError } = await supabase
             .from("registro_intervalo")
             .insert(registrosParaInsertar);
 
         if (insertError) {
             console.error("Error creando nuevos intervalos:", insertError);
-            // No lanzamos error para no bloquear la actualización del hábito
         } else {
             console.log(`Intervalos regenerados para hábito ${idHabito}: ${registrosParaInsertar.length} intervalos creados`);
         }
 
     } catch (error) {
         console.error("Error en regenerarIntervalosHabito:", error);
-        // No lanzamos error para no bloquear la actualización del hábito
     }
 }
 
@@ -329,37 +315,3 @@ export async function deleteHabito(id: string): Promise<void> {
         throw new Error(error.message);
     }
 }
-
-
-// function startOfWeekLocal(date: Date): Date {
-//   // Lunes como inicio
-//   const d = new Date(date);
-//   const day = d.getDay(); // 0 dom .. 6 sab
-//   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-//   d.setDate(diff);
-//   d.setHours(0, 0, 0, 0);
-//   return d;
-// }
-
-// function endOfWeekLocal(date: Date): Date {
-//   const s = startOfWeekLocal(date);
-//   const e = new Date(s);
-//   e.setDate(s.getDate() + 6);
-//   e.setHours(23, 59, 59, 999);
-//   return e;
-// }
-
-// function startOfMonthLocal(date: Date): Date {
-//   const d = new Date(date);
-//   d.setDate(1);
-//   d.setHours(0, 0, 0, 0);
-//   return d;
-// }
-
-// function endOfMonthLocal(date: Date): Date {
-//   const d = new Date(date);
-//   d.setMonth(d.getMonth() + 1);
-//   d.setDate(0);
-//   d.setHours(23, 59, 59, 999);
-//   return d;
-// }
