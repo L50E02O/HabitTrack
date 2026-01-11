@@ -160,6 +160,7 @@ export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito>
 
     // Crear racha inicial
     if (registroInicial) {
+        const fechaInicioRacha = toDateString(periodoInfo.inicio);
         const { error: errorRacha } = await supabase
             .from("racha")
             .insert({
