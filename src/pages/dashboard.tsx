@@ -200,7 +200,7 @@ export default function Dashboard() {
         setOpenRecordatorio(true);
     };
 
-    const handleAdvanceHabito = async (habito: IHabito) => {
+    const handleAdvanceHabito = async (habito: IHabito, cantidad: number = 1) => {
         setAdvancingHabitId(habito.id_habito);
         try {
             const result = await recordHabitProgress(
@@ -208,7 +208,8 @@ export default function Dashboard() {
                 user.id,
                 habito.intervalo_meta,
                 habito.meta_repeticion,
-                habito.dificultad
+                habito.dificultad,
+                cantidad
             );
 
             if (!result.success) {
@@ -409,6 +410,7 @@ export default function Dashboard() {
                                         onDelete={() => handleDeleteHabito(h.id_habito)}
                                         onEdit={() => handleEditHabito(h)}
                                         onAdvance={() => handleAdvanceHabito(h)}
+                                        onAdvanceWithAmount={(cantidad) => handleAdvanceHabito(h, cantidad)}
                                         isAdvancing={advancingHabitId === h.id_habito}
                                         onConfigureReminder={() => handleConfigureReminder(h)}
                                         onAsignarProtector={() => handleAsignarProtector(h)}

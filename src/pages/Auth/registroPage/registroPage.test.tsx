@@ -6,8 +6,8 @@ vi.mock('react-router-dom', () => ({
   useNavigate: vi.fn(),
 }));
 import RegistroPage from "./registroPage";
-import { signUp } from "../../services/auth/authService";
-import { createPerfil } from "../../services/perfil/perfilService";
+import { signUp } from "../../../services/auth/authService";
+import { createPerfil } from "../../../services/perfil/perfilService";
 
 // Mocks de servicios
 vi.mock("../../services/auth/authService", () => ({

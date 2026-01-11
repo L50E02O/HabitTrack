@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import LoginPage from "./loginPage";
 import { useNavigate } from "react-router-dom";
-import { signIn } from "../../services/auth/authService";
+import { signIn } from "../../../services/auth/authService";
 
 // Mock de react-router-dom
 vi.mock("react-router-dom", () => ({

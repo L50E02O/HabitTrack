@@ -20,14 +20,15 @@ export async function recordHabitProgress(
   idPerfil: string,
   intervaloMeta: string,
   metaRepeticion: number,
-  dificultad: string = 'medio'
+  dificultad: string = 'medio',
+  cantidad: number = 1
 ): Promise<ProgressResponse> {
   try {
     // Primero vemos cuál es el progreso actual del usuario
     const { currentProgress, lastRegistro } = await obtenerProgresoActual(idHabito, intervaloMeta);
 
     // Calculamos el nuevo progreso
-    const newProgress = currentProgress + 1;
+    const newProgress = currentProgress + cantidad;
 
     // Verificamos si ya completó el hábito para este período
     if (newProgress > metaRepeticion) {

@@ -14,9 +14,13 @@ import {
     GraduationCap,
     BriefcaseBusiness,
     Dumbbell,
-    Star
+    Star,
+    Edit3
 } from 'lucide-react';
 import type { IHabito } from '../../../../types/IHabito';
+import { getHabitType } from '../../../../utils/habitTypeUtils';
+import RegistroProgresoModal from '../RegistroProgresoModal/RegistroProgresoModal';
+import RegistroDuracionModal from '../RegistroDuracionModal/RegistroDuracionModal';
 
 type Props = {
     habito: IHabito;
@@ -26,6 +30,7 @@ type Props = {
     onDelete?: () => void;
     onEdit?: () => void;
     onAdvance?: () => void;
+    onAdvanceWithAmount?: (cantidad: number) => void; // NUEVO: registro con cantidad específica
     isAdvancing?: boolean;
     onConfigureReminder?: () => void;
     onAsignarProtector?: () => void;
@@ -40,6 +45,7 @@ export default function HabitCard({
     onDelete,
     onEdit,
     onAdvance,
+    onAdvanceWithAmount,
     isAdvancing = false,
     onConfigureReminder,
     onAsignarProtector,
@@ -47,6 +53,7 @@ export default function HabitCard({
 }: Props) {
     const { nombre_habito, descripcion, intervalo_meta, categoria, meta_repeticion } = habito;
     const [menuOpen, setMenuOpen] = useState(false);
+    const [openRegistroModal, setOpenRegistroModal] = useState(false);
 
     // Usamos la meta del hábito si existe; si no, un objetivo razonable por intervalo
     const fallbackGoal = intervalo_meta === 'diario' ? 1 : intervalo_meta === 'mensual' ? 30 : 7;
@@ -178,7 +185,7 @@ export default function HabitCard({
                 <div className="progressTop">
                     <span>Progreso</span>
                     <span>
-                        {progress}/{goal} {formatUnidad(goal, habito.unidad_medida || '')}
+                        {progress % 1 === 0 ? progress : progress.toFixed(2)}/{goal % 1 === 0 ? goal : goal.toFixed(2)} {formatUnidad(goal, habito.unidad_medida || '')}
                     </span>
                 </div>
                 <div className="progressBar">
@@ -192,15 +199,25 @@ export default function HabitCard({
             </div>
 
             {!isComplete && (
-                <button
-                    className="advanceButton"
-                    onClick={onAdvance}
-                    disabled={isAdvancing}
-                    title="Registrar un avance en este hábito"
-                >
-                    <CheckCircle size={18} />
-                    {isAdvancing ? 'Registrando...' : 'Avanzar'}
-                </button>
+                <div className="habitActions">
+                    <button
+                        className="advanceButton"
+                        onClick={onAdvance}
+                        disabled={isAdvancing}
+                        title="Registrar +1"
+                    >
+                        <CheckCircle size={18} />
+                        {isAdvancing ? 'Registrando...' : 'Avanzar'}
+                    </button>
+                    <button
+                        className="manualButton"
+                        onClick={() => setOpenRegistroModal(true)}
+                        disabled={isAdvancing}
+                        title="Registro manual"
+                    >
+                        <Edit3 size={18} />
+                    </button>
+                </div>
             )}
             {isComplete && (
                 <button
@@ -211,6 +228,37 @@ export default function HabitCard({
                     <CheckCircle size={18} />
                     Hábito completado
                 </button>
+            )}
+
+            {/* Modal de registro según tipo de hábito */}
+            {getHabitType(habito.unidad_medida) === 'accumulation' && (
+                <RegistroProgresoModal
+                    isOpen={openRegistroModal}
+                    onClose={() => setOpenRegistroModal(false)}
+                    onSubmit={(cantidad) => {
+                        onAdvanceWithAmount?.(cantidad);
+                        setOpenRegistroModal(false);
+                    }}
+                    metaTotal={meta_repeticion}
+                    progresoActual={progress}
+                    unidadMedida={habito.unidad_medida}
+                    nombreHabito={nombre_habito}
+                />
+            )}
+
+            {getHabitType(habito.unidad_medida) === 'duration' && (
+                <RegistroDuracionModal
+                    isOpen={openRegistroModal}
+                    onClose={() => setOpenRegistroModal(false)}
+                    onSubmit={(cantidad) => {
+                        onAdvanceWithAmount?.(cantidad);
+                        setOpenRegistroModal(false);
+                    }}
+                    metaTotal={meta_repeticion}
+                    progresoActual={progress}
+                    unidadMedida={habito.unidad_medida as 'minutos' | 'horas'}
+                    nombreHabito={nombre_habito}
+                />
             )}
         </div>
     );

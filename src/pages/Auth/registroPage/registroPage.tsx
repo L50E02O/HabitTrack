@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import FormularioRegistro from "../../core/components/Auth/formularioRegistro/formularioRegistro";
-import { signUp } from "../../services/auth/authService";
-import { createPerfil } from "../../services/perfil/perfilService";
+import FormularioRegistro from "../../../core/components/Auth/formularioRegistro/formularioRegistro";
+import { signUp } from "../../../services/auth/authService";
+import { createPerfil } from "../../../services/perfil/perfilService";
 import styles from "./registroPage.module.css";
 import { ArrowLeft } from "lucide-react";
  
