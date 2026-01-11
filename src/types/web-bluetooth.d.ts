@@ -72,3 +72,4 @@ interface Navigator {
 type BluetoothServiceUUID = number | string;
 type BluetoothCharacteristicUUID = number | string;
 
+
