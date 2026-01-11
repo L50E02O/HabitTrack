@@ -1,22 +1,26 @@
 import './HabitCard.css';
 import React, { useState } from 'react';
-import { 
-    Flame, 
-    MoreVertical, 
-    Trash2, 
-    Edit2, 
-    CheckCircle, 
-    Bell, 
-    Shield, 
+import {
+    Flame,
+    MoreVertical,
+    Trash2,
+    Edit2,
+    CheckCircle,
+    Bell,
+    Shield,
     ShieldOff,
     HeartPulse,
     Ham,
     GraduationCap,
     BriefcaseBusiness,
     Dumbbell,
-    Star
+    Star,
+    Edit3
 } from 'lucide-react';
-import type { IHabito } from '../../../types/IHabito';
+import type { IHabito } from '../../../../types/IHabito';
+import { getHabitType } from '../../../../utils/habitTypeUtils';
+import RegistroProgresoModal from '../RegistroProgresoModal/RegistroProgresoModal';
+import RegistroDuracionModal from '../RegistroDuracionModal/RegistroDuracionModal';
 
 type Props = {
     habito: IHabito;
@@ -26,27 +30,30 @@ type Props = {
     onDelete?: () => void;
     onEdit?: () => void;
     onAdvance?: () => void;
+    onAdvanceWithAmount?: (cantidad: number) => void; // NUEVO: registro con cantidad específica
     isAdvancing?: boolean;
     onConfigureReminder?: () => void;
     onAsignarProtector?: () => void;
     onQuitarProtector?: () => void;
 };
 
-export default function HabitCard({ 
-    habito, 
-    weeklyCount = 0, 
-    streakDays = 0, 
+export default function HabitCard({
+    habito,
+    weeklyCount = 0,
+    streakDays = 0,
     protectoresAsignados = 0,
-    onDelete, 
-    onEdit, 
-    onAdvance, 
-    isAdvancing = false, 
+    onDelete,
+    onEdit,
+    onAdvance,
+    onAdvanceWithAmount,
+    isAdvancing = false,
     onConfigureReminder,
     onAsignarProtector,
     onQuitarProtector
 }: Props) {
     const { nombre_habito, descripcion, intervalo_meta, categoria, meta_repeticion } = habito;
     const [menuOpen, setMenuOpen] = useState(false);
+    const [openRegistroModal, setOpenRegistroModal] = useState(false);
 
     // Usamos la meta del hábito si existe; si no, un objetivo razonable por intervalo
     const fallbackGoal = intervalo_meta === 'diario' ? 1 : intervalo_meta === 'mensual' ? 30 : 7;
@@ -122,9 +129,9 @@ export default function HabitCard({
                                     Asignar Protector
                                 </button>
                             ) : (
-                                <button 
-                                    className="dropdownItem protector-item" 
-                                    disabled 
+                                <button
+                                    className="dropdownItem protector-item"
+                                    disabled
                                     title="Necesitas tener una racha activa para asignar un protector"
                                 >
                                     <Shield size={16} />
@@ -177,7 +184,9 @@ export default function HabitCard({
             <div className="habitProgress">
                 <div className="progressTop">
                     <span>Progreso</span>
-                    <span>{progress}/{goal}</span>
+                    <span>
+                        {progress % 1 === 0 ? progress : progress.toFixed(2)}/{goal % 1 === 0 ? goal : goal.toFixed(2)} {formatUnidad(goal, habito.unidad_medida || '')}
+                    </span>
                 </div>
                 <div className="progressBar">
                     <div className={`progressFill ${isComplete ? 'complete' : ''} pct-${pctBucket}`} />
@@ -190,15 +199,25 @@ export default function HabitCard({
             </div>
 
             {!isComplete && (
-                <button
-                    className="advanceButton"
-                    onClick={onAdvance}
-                    disabled={isAdvancing}
-                    title="Registrar un avance en este hábito"
-                >
-                    <CheckCircle size={18} />
-                    {isAdvancing ? 'Registrando...' : 'Avanzar'}
-                </button>
+                <div className="habitActions">
+                    <button
+                        className="advanceButton"
+                        onClick={onAdvance}
+                        disabled={isAdvancing}
+                        title="Registrar +1"
+                    >
+                        <CheckCircle size={18} />
+                        {isAdvancing ? 'Registrando...' : 'Avanzar'}
+                    </button>
+                    <button
+                        className="manualButton"
+                        onClick={() => setOpenRegistroModal(true)}
+                        disabled={isAdvancing}
+                        title="Registro manual"
+                    >
+                        <Edit3 size={18} />
+                    </button>
+                </div>
             )}
             {isComplete && (
                 <button
@@ -209,6 +228,37 @@ export default function HabitCard({
                     <CheckCircle size={18} />
                     Hábito completado
                 </button>
+            )}
+
+            {/* Modal de registro según tipo de hábito */}
+            {getHabitType(habito.unidad_medida) === 'accumulation' && (
+                <RegistroProgresoModal
+                    isOpen={openRegistroModal}
+                    onClose={() => setOpenRegistroModal(false)}
+                    onSubmit={(cantidad) => {
+                        onAdvanceWithAmount?.(cantidad);
+                        setOpenRegistroModal(false);
+                    }}
+                    metaTotal={meta_repeticion}
+                    progresoActual={progress}
+                    unidadMedida={habito.unidad_medida}
+                    nombreHabito={nombre_habito}
+                />
+            )}
+
+            {getHabitType(habito.unidad_medida) === 'duration' && (
+                <RegistroDuracionModal
+                    isOpen={openRegistroModal}
+                    onClose={() => setOpenRegistroModal(false)}
+                    onSubmit={(cantidad) => {
+                        onAdvanceWithAmount?.(cantidad);
+                        setOpenRegistroModal(false);
+                    }}
+                    metaTotal={meta_repeticion}
+                    progresoActual={progress}
+                    unidadMedida={habito.unidad_medida as 'minutos' | 'horas'}
+                    nombreHabito={nombre_habito}
+                />
             )}
         </div>
     );
@@ -230,7 +280,7 @@ function formatInterval(intervalo: IHabito['intervalo_meta']) {
 function pickIcon(categoria: IHabito['categoria']) {
     const key = typeof categoria === 'string' ? categoria : 'otro';
     const iconSize = 20;
-    
+
     const iconMap: Record<string, React.ReactElement> = {
         ejercicio: <Dumbbell size={iconSize} />,
         alimentacion: <Ham size={iconSize} />,
@@ -239,11 +289,53 @@ function pickIcon(categoria: IHabito['categoria']) {
         trabajo: <BriefcaseBusiness size={iconSize} />,
         otro: <Star size={iconSize} />,
     };
-    
+
     return iconMap[key] || iconMap['otro'];
 }
 
 function categoriaClass(categoria: IHabito['categoria']) {
     const key = typeof categoria === 'string' ? categoria : 'otro';
     return `cat-${key}`;
+}
+
+function formatUnidad(count: number, unidad: string) {
+    if (!unidad) return '';
+    const isPlural = count !== 1;
+    const u = unidad.toLowerCase();
+
+    const mapping: Record<string, { singular: string; plural: string }> = {
+        'minuto': { singular: 'minuto', plural: 'minutos' },
+        'minutos': { singular: 'minuto', plural: 'minutos' },
+        'hora': { singular: 'hora', plural: 'horas' },
+        'horas': { singular: 'hora', plural: 'horas' },
+        'litro': { singular: 'litro', plural: 'litros' },
+        'litros': { singular: 'litro', plural: 'litros' },
+        'dosis': { singular: 'dosis', plural: 'dosis' },
+        'sesion': { singular: 'sesión', plural: 'sesiones' },
+        'sesión': { singular: 'sesión', plural: 'sesiones' },
+        'sesiones': { singular: 'sesión', plural: 'sesiones' },
+        'porcion': { singular: 'porción', plural: 'porciones' },
+        'porción': { singular: 'porción', plural: 'porciones' },
+        'porciones': { singular: 'porción', plural: 'porciones' },
+        'dia': { singular: 'día', plural: 'días' },
+        'día': { singular: 'día', plural: 'días' },
+        'días': { singular: 'día', plural: 'días' },
+        'repeticion': { singular: 'repetición', plural: 'repeticiones' },
+        'repetición': { singular: 'repetición', plural: 'repeticiones' },
+        'repeticiones': { singular: 'repetición', plural: 'repeticiones' },
+    };
+
+    const entry = mapping[u];
+    if (entry) {
+        return isPlural ? entry.plural : entry.singular;
+    }
+
+    // Fallback
+    if (isPlural) {
+        if (u.endsWith('s')) return u;
+        return u + 's';
+    } else {
+        if (u.endsWith('s') && u !== 'dosis') return u.slice(0, -1);
+        return u;
+    }
 }

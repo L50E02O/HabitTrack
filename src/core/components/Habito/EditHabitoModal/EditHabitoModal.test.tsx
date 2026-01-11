@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import EditHabitoModal from "./EditHabitoModal";
-import * as habitoService from "../../../services/habito/habitoService";
-import type { IHabito } from "../../../types/IHabito";
+import EditHabitoModal from "./EditHabitoModal.tsx";
+import * as habitoService from "../../../../services/habito/habitoService";
+import type { IHabito } from "../../../../types/IHabito";
 
-vi.mock("../../../services/habito/habitoService", () => ({
+vi.mock("../../../../services/habito/habitoService", () => ({
   updateHabito: vi.fn(),
 }));
 
@@ -21,6 +21,7 @@ describe("EditHabitoModal - Dificultad", () => {
     activo: true,
     dificultad: "medio",
     puntos: 5,
+    unidad_medida: "minutos",
   };
 
   beforeEach(() => {
@@ -245,5 +246,31 @@ describe("EditHabitoModal - Dificultad", () => {
         })
       );
     });
+  });
+
+  it("deberia actualizar nombre y unidad al seleccionar un hábito predefinido", () => {
+    const mockOnUpdated = vi.fn();
+    const mockOnClose = vi.fn();
+
+    render(
+      <EditHabitoModal
+        habito={mockHabito}
+        open={true}
+        onClose={mockOnClose}
+        onUpdated={mockOnUpdated}
+      />
+    );
+
+    // Cambiamos a categoría salud para tener hábitos con diferentes unidades
+    const categoriaSelect = screen.getByTitle("Categoría") as HTMLSelectElement;
+    fireEvent.change(categoriaSelect, { target: { value: "salud" } });
+
+    // Seleccionamos "Tomar vitaminas" (unidad: dosis)
+    const predefinedSelect = screen.getByTitle("Hábito predefinido") as HTMLSelectElement;
+    fireEvent.change(predefinedSelect, { target: { value: "Tomar vitaminas" } });
+
+    expect(screen.getByDisplayValue("Tomar vitaminas")).toBeInTheDocument();
+    const unidadSelect = screen.getByTitle("Unidad de medida") as HTMLSelectElement;
+    expect(unidadSelect.value).toBe("dosis");
   });
 });

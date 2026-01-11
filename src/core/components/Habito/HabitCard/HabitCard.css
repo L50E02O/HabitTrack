@@ -29,9 +29,12 @@
 }
 
 @keyframes pulse-shield {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
     }
+
     50% {
         box-shadow: 0 2px 12px rgba(16, 185, 129, 0.5);
     }
@@ -304,8 +307,18 @@
     color: #991b1b;
 }
 
-.advanceButton {
+.habitActions {
     margin-top: 12px;
+    display: flex;
+    gap: 8px;
+}
+
+.habitActions .advanceButton {
+    flex: 1;
+    margin-top: 0;
+}
+
+.advanceButton {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -339,9 +352,41 @@
 
 .advanceButton.completeButton {
     background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    margin-top: 12px;
 }
 
 .advanceButton.completeButton:disabled {
     opacity: 0.8;
     cursor: default;
+}
+
+.manualButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    min-width: 48px;
+}
+
+.manualButton:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.manualButton:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.manualButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }

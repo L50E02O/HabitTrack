@@ -20,14 +20,15 @@ export async function recordHabitProgress(
   idPerfil: string,
   intervaloMeta: string,
   metaRepeticion: number,
-  dificultad: string = 'medio'
+  dificultad: string = 'medio',
+  cantidad: number = 1
 ): Promise<ProgressResponse> {
   try {
     // Primero vemos cuál es el progreso actual del usuario
     const { currentProgress, lastRegistro } = await obtenerProgresoActual(idHabito, intervaloMeta);
 
     // Calculamos el nuevo progreso
-    const newProgress = currentProgress + 1;
+    const newProgress = currentProgress + cantidad;
 
     // Verificamos si ya completó el hábito para este período
     if (newProgress > metaRepeticion) {
@@ -93,10 +94,13 @@ export async function getHabitCurrentProgress(
 ): Promise<number> {
   try {
     // Buscar el registro único del hábito y usar el campo progreso
+    const hoy = new Date().toISOString().split('T')[0];
     const { data: registro, error } = await supabase
       .from("registro_intervalo")
       .select("progreso")
       .eq("id_habito", idHabito)
+      .lte("fecha_inicio_intervalo", hoy)
+      .gte("fecha_fin_intervalo", hoy)
       .maybeSingle();
 
     if (error) {
@@ -139,10 +143,13 @@ export async function getHabitCurrentProgress(
 
 async function obtenerProgresoActual(idHabito: string, _intervaloMeta: string) {
   // Buscar el registro único del hábito
+  const hoy = new Date().toISOString().split('T')[0];
   const { data: registro, error } = await supabase
     .from("registro_intervalo")
     .select("*")
     .eq("id_habito", idHabito)
+    .lte("fecha_inicio_intervalo", hoy)
+    .gte("fecha_fin_intervalo", hoy)
     .maybeSingle();
 
   if (error) throw error;
@@ -173,17 +180,20 @@ async function guardarRegistroProgreso(
   const hoy = new Date();
   hoy.setUTCHours(0, 0, 0, 0);
 
-  console.log("Intentando actualizar registro:", { 
-    idHabito, 
-    progreso: newProgress, 
-    cumplido: habitoCompletado 
+  console.log("Intentando actualizar registro:", {
+    idHabito,
+    progreso: newProgress,
+    cumplido: habitoCompletado
   });
 
   // Buscar el registro único del hábito
+  const hoyStr = hoy.toISOString().split('T')[0];
   const { data: registroExistente, error: errorBusqueda } = await supabase
     .from("registro_intervalo")
     .select("*")
     .eq("id_habito", idHabito)
+    .lte("fecha_inicio_intervalo", hoyStr)
+    .gte("fecha_fin_intervalo", hoyStr)
     .maybeSingle();
 
   if (errorBusqueda && errorBusqueda.code !== 'PGRST116') { // PGRST116 = no rows returned

@@ -1,0 +1,265 @@
+/* Estilos para modales de registro de progreso (acumulación y duración) */
+/* Prefijo: rpm (Registro Progreso Modal) */
+
+.rpm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: rpm-fade-in 0.2s ease;
+}
+
+@keyframes rpm-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.rpm-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: rpm-scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes rpm-scale-in {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.rpm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.rpm-header-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #3b82f6;
+}
+
+.rpm-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.rpm-close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.rpm-close-btn:hover {
+    background: #f3f4f6;
+    color: #1f2937;
+}
+
+.rpm-habit-name {
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.rpm-form {
+    padding: 24px;
+}
+
+.rpm-field {
+    margin-bottom: 20px;
+}
+
+.rpm-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.rpm-field input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.rpm-field input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.rpm-hint {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.rpm-progress-info {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.rpm-progress-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+}
+
+.rpm-progress-row.rpm-new {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.rpm-label {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.rpm-value {
+    font-size: 14px;
+    color: #374151;
+    font-weight: 600;
+}
+
+.rpm-value.rpm-highlight {
+    color: #10b981;
+    font-size: 15px;
+}
+
+.rpm-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.rpm-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.rpm-btn-ghost {
+    padding: 10px 20px;
+    background: none;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.rpm-btn-ghost:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    color: #374151;
+}
+
+.rpm-btn-primary {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.rpm-btn-primary:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.rpm-btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .rpm-card {
+        width: 95%;
+        max-width: none;
+    }
+
+    .rpm-header {
+        padding: 16px 20px;
+    }
+
+    .rpm-habit-name {
+        padding: 12px 20px;
+        font-size: 15px;
+    }
+
+    .rpm-form {
+        padding: 20px;
+    }
+
+    .rpm-actions {
+        flex-direction: column-reverse;
+    }
+
+    .rpm-btn-ghost,
+    .rpm-btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+}

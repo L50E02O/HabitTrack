@@ -2,29 +2,29 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import LoginPage from "./loginPage";
 import { useNavigate } from "react-router-dom";
-import { signIn } from "../../services/auth/authService";
+import { signIn } from "../../../services/auth/authService";
 
 // Mock de react-router-dom
 vi.mock("react-router-dom", () => ({
-  useNavigate: vi.fn(),
+	useNavigate: vi.fn(),
 }));
 
 // Mock del servicio de autenticación
 vi.mock("../../services/auth/authService", () => ({
-  signIn: vi.fn(),
+	signIn: vi.fn(),
 }));
 
 // Mock del formulario de login para disparar onSubmit fácilmente
 const mockFormTestId = "mock-formulario-login";
-vi.mock("../../core/components/Auth/fomularioLogin", () => ({
-  __esModule: true,
-  default: ({ onSubmit }: { onSubmit: (email: string, password: string) => void }) => (
-    <div data-testid={mockFormTestId}>
-      <button onClick={() => onSubmit("test@example.com", "password123")}>
-        Enviar login (mock)
-      </button>
-    </div>
-  ),
+vi.mock("../../core/components/Auth/formularioLogin/fomularioLogin", () => ({
+	__esModule: true,
+	default: ({ onSubmit }: { onSubmit: (email: string, password: string) => void }) => (
+		<div data-testid={mockFormTestId}>
+			<button onClick={() => onSubmit("test@example.com", "password123")}>
+				Enviar login (mock)
+			</button>
+		</div>
+	),
 }));
 
 const signInMock = signIn as unknown as Mock;
@@ -45,11 +45,11 @@ describe("LoginPage", () => {
 		expect(screen.getByText(/inicia sesión para continuar tu progreso\./i)).toBeInTheDocument();
 		expect(screen.getByTestId(mockFormTestId)).toBeInTheDocument();
 
-	// El componente ahora usa un <a> sin href y navega por onClick
-	const footerLink = screen.getByText(/regístrate aquí/i);
-	// Simular click y verificar que se llamó a navigate
-	fireEvent.click(footerLink);
-	expect(mockNavigate).toHaveBeenCalledWith("/registro");
+		// El componente ahora usa un <a> sin href y navega por onClick
+		const footerLink = screen.getByText(/regístrate aquí/i);
+		// Simular click y verificar que se llamó a navigate
+		fireEvent.click(footerLink);
+		expect(mockNavigate).toHaveBeenCalledWith("/registro");
 	});
 
 	it("flujo exitoso: inicia sesión y navega a la página principal", async () => {
@@ -60,7 +60,7 @@ describe("LoginPage", () => {
 		fireEvent.click(screen.getByText(/enviar login \(mock\)/i));
 
 		await waitFor(() => {
-		expect(signInMock).toHaveBeenCalledWith("test@example.com", "password123");
+			expect(signInMock).toHaveBeenCalledWith("test@example.com", "password123");
 		});
 
 		expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
@@ -83,8 +83,8 @@ describe("LoginPage", () => {
 		resolveSignIn({ user: { id: "uid_loading" } });
 
 		await waitFor(() => {
-		// El formulario vuelve a mostrarse
-		expect(screen.getByTestId(mockFormTestId)).toBeInTheDocument();
+			// El formulario vuelve a mostrarse
+			expect(screen.getByTestId(mockFormTestId)).toBeInTheDocument();
 		});
 	});
 
@@ -136,7 +136,7 @@ describe("LoginPage", () => {
 
 		// El error debería desaparecer durante el loading
 		await waitFor(() => {
-		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+			expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 		});
 	});
 

@@ -1,25 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
-import { Moon, Sun, Plus, LogOut, ChevronRight, ShoppingCart, Sprout, Calendar } from 'lucide-react';
-import HabitCard from '../core/components/Auth/HabitCard';
+import { Moon, Sun, Plus, LogOut, ChevronRight, ShoppingCart, Sprout, Calendar, Trophy } from 'lucide-react';
+import HabitCard from '../core/components/Habito/HabitCard/HabitCard.tsx';
 import type { IHabito } from '../types/IHabito';
 import { getAllHabitos, deleteHabito } from '../services/habito/habitoService';
 import { recordHabitProgress, getHabitCurrentProgress } from '../services/habito/progressService';
-// La lógica de rachas ahora la maneja el backend (bright-processor Edge Function)
-// import { checkAndUpdateAutoProgress } from '../services/habito/autoProgressService';
 import { recalcularRachaMaxima } from '../services/racha/rachaAutoService';
 import { getRachasMultiplesHabitos } from '../services/racha/rachaAutoService';
 import { programarNotificacionesDiarias, cancelarProgramacionNotificaciones } from '../services/recordatorio/notificacionService';
-import { 
-    asignarProtectorAHabito, 
-    quitarProtectorDeHabito, 
+import {
+    asignarProtectorAHabito,
+    quitarProtectorDeHabito,
     getProtectoresPorHabito,
-    getProtectoresActuales
+    getProtectoresActuales,
+    getPuntosActuales
 } from '../services/protector/protectorService';
+import { obtenerEstadisticasUsuario } from '../services/ranking/rankingService';
 import './dashboard.css';
-import CreateHabitoModal from '../core/components/Habito/CreateHabitoModal';
-import EditHabitoModal from '../core/components/Habito/EditHabitoModal';
+import CreateHabitoModal from '../core/components/Habito/CreateHabitoModal/CreateHabitoModal.tsx';
+import EditHabitoModal from '../core/components/Habito/EditHabitoModal/EditHabitoModal.tsx';
 import RecordatorioConfig from '../core/components/Recordatorio/RecordatorioConfig';
 import RecordatorioList from '../core/components/Recordatorio/RecordatorioList';
 import LogrosModal from '../core/components/Logro/LogrosModal';
@@ -29,7 +29,6 @@ import RankUpModal from '../core/components/Ranking/RankUpModal';
 import CalendarioModal from '../core/components/Calendario/CalendarioModal';
 import SmartwatchConnection from '../core/components/Smartwatch/SmartwatchConnection';
 import { useRankDetection } from '../hooks/useRankDetection';
-import { getPuntosActuales } from '../services/protector/protectorService';
 import { PermisosNotificacion } from '../components/PermisosNotificacion';
 import { InstallPWAButton } from '../components/InstallPWAButton';
 
@@ -56,6 +55,8 @@ export default function Dashboard() {
     const [openLogros, setOpenLogros] = useState(false);
     const [openTienda, setOpenTienda] = useState(false);
     const [openCalendario, setOpenCalendario] = useState(false);
+    const [openRanking, setOpenRanking] = useState(false);
+    const [tuPosicion, setTuPosicion] = useState<number | null>(null);
     const [puntosUsuario, setPuntosUsuario] = useState(0);
     const notificacionesIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -94,6 +95,7 @@ export default function Dashboard() {
                 // Cargar rachas de todos los hábitos
                 const habitoIds = mine.map(h => h.id_habito);
                 const rachasMapNuevo = await getRachasMultiplesHabitos(habitoIds);
+                setHabitosRachas(rachasMapNuevo);
 
                 // Cargar protectores asignados a cada hábito
                 const protectoresMap: Record<string, number> = {};
@@ -111,42 +113,25 @@ export default function Dashboard() {
                 const puntosActuales = await getPuntosActuales(session.user.id);
                 setPuntosUsuario(puntosActuales);
 
+                // Cargar posición en el ranking
+                const stats = await obtenerEstadisticasUsuario(session.user.id);
+                setTuPosicion(stats.tuPosicion);
+
                 // Inicializar notificaciones programadas
                 const intervalId = programarNotificacionesDiarias(session.user.id);
                 notificacionesIntervalRef.current = intervalId;
 
-                // NOTA: La lógica de rachas ahora la maneja el backend (bright-processor Edge Function)
-                // que se ejecuta todos los días a las 00:00 UTC
-                console.log('Las rachas se actualizan automáticamente por el backend');
-
                 // Recalcular racha máxima del usuario al entrar al dashboard
                 await recalcularRachaMaxima(session.user.id);
-
-                // Detectar si alguna racha se rompió (comparar con el estado anterior)
-                Object.keys(rachasMapNuevo).forEach(habitoId => {
-                    const rachaAnterior = habitosRachas[habitoId] || 0;
-                    const rachaNueva = rachasMapNuevo[habitoId] || 0;
-
-                    // Si la racha anterior era > 0 y la nueva es 0, se rompió
-                    if (rachaAnterior > 0 && rachaNueva === 0) {
-                        const habito = mine.find(h => h.id_habito === habitoId);
-                        setNotification({
-                            message: `Has perdido tu racha de ${rachaAnterior} día${rachaAnterior > 1 ? 's' : ''} en "${habito?.nombre_habito || 'un hábito'}". Vuelve a empezar.`,
-                            type: 'error',
-                        });
-                        setTimeout(() => setNotification(null), 5000);
-                    }
-                });
-
-                setHabitosRachas(rachasMapNuevo);
+            } catch (error) {
+                console.error('Error al cargar datos iniciales:', error);
             } finally {
                 setLoading(false);
             }
         };
 
         run();
-        
-        // Función de limpieza
+
         return () => {
             if (notificacionesIntervalRef.current) {
                 cancelarProgramacionNotificaciones(notificacionesIntervalRef.current);
@@ -155,17 +140,13 @@ export default function Dashboard() {
         };
     }, [navigate]);
 
-    // Recargar rachas periódicamente (el backend las actualiza, solo las mostramos)
+    // Recargar rachas periódicamente
     useEffect(() => {
         if (!user || habitos.length === 0) return;
 
         const intervalId = setInterval(async () => {
-            console.log('Recargando rachas desde el backend...');
-            
-            // Solo recargar rachas para mostrarlas (el backend las actualiza)
             const habitoIds = habitos.map(h => h.id_habito);
             const rachasMapNuevo = await getRachasMultiplesHabitos(habitoIds);
-            setHabitosRachas(rachasMapNuevo);
 
             // Detectar rachas rotas
             Object.keys(rachasMapNuevo).forEach(habitoId => {
@@ -183,7 +164,7 @@ export default function Dashboard() {
             });
 
             setHabitosRachas(rachasMapNuevo);
-        }, 30000); // Verificar cada 30 segundos
+        }, 30000);
 
         return () => clearInterval(intervalId);
     }, [user, habitos, habitosRachas]);
@@ -220,7 +201,7 @@ export default function Dashboard() {
         setOpenRecordatorio(true);
     };
 
-    const handleAdvanceHabito = async (habito: IHabito) => {
+    const handleAdvanceHabito = async (habito: IHabito, cantidad: number = 1) => {
         setAdvancingHabitId(habito.id_habito);
         try {
             const result = await recordHabitProgress(
@@ -228,7 +209,8 @@ export default function Dashboard() {
                 user.id,
                 habito.intervalo_meta,
                 habito.meta_repeticion,
-                habito.dificultad
+                habito.dificultad,
+                cantidad
             );
 
             if (!result.success) {
@@ -245,23 +227,21 @@ export default function Dashboard() {
                 type: 'success',
             });
 
-            // Actualizar progreso del hábito
             setHabitosProgress(prev => ({
                 ...prev,
                 [habito.id_habito]: result.newProgress,
             }));
 
-            // NOTA: La lógica de rachas ahora la maneja el backend (bright-processor Edge Function)
-            // Solo recargamos las rachas para mostrarlas
             const habitoIds = habitos.map(h => h.id_habito);
             const rachasActualizadas = await getRachasMultiplesHabitos(habitoIds);
             setHabitosRachas(rachasActualizadas);
 
-            // Actualizar puntos del usuario para detectar cambios de rango
             const puntosActuales = await getPuntosActuales(user.id);
             setPuntosUsuario(puntosActuales);
 
-            // Limpiar notificación después de 3 segundos
+            const stats = await obtenerEstadisticasUsuario(user.id);
+            setTuPosicion(stats.tuPosicion);
+
             setTimeout(() => setNotification(null), 3000);
         } catch (err: any) {
             setNotification({
@@ -277,7 +257,7 @@ export default function Dashboard() {
     const handleAsignarProtector = async (habito: IHabito) => {
         if (protectoresDisponibles <= 0) {
             setNotification({
-                message: 'No tienes protectores disponibles. Cómpralos en la tienda o gana más completando rachas.',
+                message: 'No tienes protectores disponibles.',
                 type: 'error',
             });
             setTimeout(() => setNotification(null), 3000);
@@ -286,28 +266,17 @@ export default function Dashboard() {
 
         try {
             const result = await asignarProtectorAHabito(user.id, habito.id_habito, 1);
-            
             if (result.success) {
                 setNotification({
                     message: `Protector asignado a "${habito.nombre_habito}"`,
                     type: 'success',
                 });
-
-                // Actualizar protectores del hábito
                 setHabitosProtectores(prev => ({
                     ...prev,
                     [habito.id_habito]: (prev[habito.id_habito] || 0) + 1,
                 }));
-
-                // Actualizar protectores disponibles
                 setProtectoresDisponibles(prev => prev - 1);
-            } else {
-                setNotification({
-                    message: result.message || 'Error al asignar protector',
-                    type: 'error',
-                });
             }
-
             setTimeout(() => setNotification(null), 3000);
         } catch (err: any) {
             setNotification({
@@ -320,40 +289,21 @@ export default function Dashboard() {
 
     const handleQuitarProtector = async (habito: IHabito) => {
         const protectoresActuales = habitosProtectores[habito.id_habito] || 0;
-        
-        if (protectoresActuales <= 0) {
-            setNotification({
-                message: 'Este hábito no tiene protectores asignados',
-                type: 'error',
-            });
-            setTimeout(() => setNotification(null), 3000);
-            return;
-        }
+        if (protectoresActuales <= 0) return;
 
         try {
             const result = await quitarProtectorDeHabito(user.id, habito.id_habito, 1);
-            
             if (result.success) {
                 setNotification({
                     message: `Protector removido de "${habito.nombre_habito}"`,
                     type: 'success',
                 });
-
-                // Actualizar protectores del hábito
                 setHabitosProtectores(prev => ({
                     ...prev,
                     [habito.id_habito]: Math.max(0, (prev[habito.id_habito] || 0) - 1),
                 }));
-
-                // Actualizar protectores disponibles
                 setProtectoresDisponibles(prev => prev + 1);
-            } else {
-                setNotification({
-                    message: result.message || 'Error al quitar protector',
-                    type: 'error',
-                });
             }
-
             setTimeout(() => setNotification(null), 3000);
         } catch (err: any) {
             setNotification({
@@ -366,11 +316,19 @@ export default function Dashboard() {
 
     return (
         <div className={`dashboard ${darkMode ? 'dark' : ''}`}>
-            {/* Banner de permisos de notificación */}
             <PermisosNotificacion />
 
             {/* Botones flotantes */}
-            <button 
+            <button
+                className="floating-ranking-button"
+                onClick={() => setOpenRanking(true)}
+                title="Ver clasificación"
+            >
+                <Trophy size={24} />
+                {tuPosicion !== null && <span className="position-badge">#{tuPosicion}</span>}
+            </button>
+
+            <button
                 className="floating-calendario-button"
                 onClick={() => setOpenCalendario(true)}
                 title="Ver calendario de rachas"
@@ -378,7 +336,7 @@ export default function Dashboard() {
                 <Calendar size={24} />
             </button>
 
-            <button 
+            <button
                 className="floating-protectores-button"
                 onClick={() => setOpenTienda(true)}
                 title="Tienda de Protectores"
@@ -386,7 +344,7 @@ export default function Dashboard() {
                 <ShoppingCart size={24} />
             </button>
 
-            <button 
+            <button
                 className="floating-logros-button"
                 onClick={() => setOpenLogros(true)}
                 title="Ver mis logros"
@@ -394,64 +352,44 @@ export default function Dashboard() {
                 <ChevronRight size={24} />
             </button>
 
-            {/* 1. HEADER */}
             <header className="header">
                 <div className="logo">
-                    <span className="logoIcon">
-                        <Sprout size={24} />
-                    </span>
+                    <span className="logoIcon"><Sprout size={24} /></span>
                     <h1 className="logoText">HabitTrack</h1>
                 </div>
 
                 <div className="headerActions">
                     <InstallPWAButton />
-                    
-                    <button
-                        className="themeToggle"
-                        onClick={() => setDarkMode(!darkMode)}
-                        aria-label="Cambiar tema"
-                    >
+                    <button className="themeToggle" onClick={() => setDarkMode(!darkMode)}>
                         {darkMode ? <Sun size={20} /> : <Moon size={20} />}
                     </button>
-
                     <div className="userAvatar">
                         {user?.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
-
-                    <button
-                        className="logoutButton"
-                        onClick={handleLogout}
-                        aria-label="Cerrar sesión"
-                        title="Cerrar sesión"
-                    >
+                    <button className="logoutButton" onClick={handleLogout}>
                         <LogOut size={18} />
                     </button>
                 </div>
             </header>
+
             <main className="main">
                 {loading ? (
-                    <div className="loading">
-                        <p>Cargando...</p>
-                    </div>
+                    <div className="loading"><p>Cargando...</p></div>
                 ) : (
                     <>
-                        {/* Notificación flotante */}
                         {notification && (
                             <div className={`notification notification-${notification.type}`}>
                                 {notification.message}
                             </div>
                         )}
 
-                        {/* Sección de Título y Botón */}
                         <div className="titleSection">
                             <div>
                                 <h2 className="title">Mis Hábitos</h2>
                                 <p className="subtitle">¡Sigue así, vas por buen camino!</p>
                             </div>
-
                             <button className="createButton" onClick={() => setOpenCreate(true)}>
-                                <Plus size={20} />
-                                Crear Nuevo Hábito
+                                <Plus size={20} /> Crear Nuevo Hábito
                             </button>
                         </div>
 
@@ -469,35 +407,32 @@ export default function Dashboard() {
                                     <p>Comienza creando tu primer hábito</p>
                                 </div>
                             ) : (
-                                <>
-                                    {habitos.map(h => (
-                                        <HabitCard
-                                            key={h.id_habito}
-                                            habito={h}
-                                            weeklyCount={habitosProgress[h.id_habito] || 0}
-                                            streakDays={habitosRachas[h.id_habito] || 0}
-                                            protectoresAsignados={habitosProtectores[h.id_habito] || 0}
-                                            onDelete={() => handleDeleteHabito(h.id_habito)}
-                                            onEdit={() => handleEditHabito(h)}
-                                            onAdvance={() => handleAdvanceHabito(h)}
-                                            isAdvancing={advancingHabitId === h.id_habito}
-                                            onConfigureReminder={() => handleConfigureReminder(h)}
-                                            onAsignarProtector={() => handleAsignarProtector(h)}
-                                            onQuitarProtector={() => handleQuitarProtector(h)}
-                                        />
-                                    ))}
-                                </>
+                                habitos.map(h => (
+                                    <HabitCard
+                                        key={h.id_habito}
+                                        habito={h}
+                                        weeklyCount={habitosProgress[h.id_habito] || 0}
+                                        streakDays={habitosRachas[h.id_habito] || 0}
+                                        protectoresAsignados={habitosProtectores[h.id_habito] || 0}
+                                        onDelete={() => handleDeleteHabito(h.id_habito)}
+                                        onEdit={() => handleEditHabito(h)}
+                                        onAdvance={() => handleAdvanceHabito(h)}
+                                        onAdvanceWithAmount={(cantidad) => handleAdvanceHabito(h, cantidad)}
+                                        isAdvancing={advancingHabitId === h.id_habito}
+                                        onConfigureReminder={() => handleConfigureReminder(h)}
+                                        onAsignarProtector={() => handleAsignarProtector(h)}
+                                        onQuitarProtector={() => handleQuitarProtector(h)}
+                                    />
+                                ))
                             )}
                         </div>
 
-                        {/* Sección de Recordatorios */}
                         {habitos.length > 0 && (
                             <div className="recordatorios-section">
                                 <RecordatorioList />
                             </div>
                         )}
 
-                        {/* Modal Crear Hábito */}
                         <CreateHabitoModal
                             userId={user.id}
                             open={openCreate}
@@ -506,7 +441,6 @@ export default function Dashboard() {
                             habitosActuales={habitos.length}
                         />
 
-                        {/* Modal Editar Hábito */}
                         {habitoEditando && (
                             <EditHabitoModal
                                 habito={habitoEditando}
@@ -519,7 +453,6 @@ export default function Dashboard() {
                             />
                         )}
 
-                        {/* Modal Configurar Recordatorio */}
                         {openRecordatorio && habitoParaRecordatorio && (
                             <RecordatorioConfig
                                 habitoId={habitoParaRecordatorio.id_habito}
@@ -531,7 +464,6 @@ export default function Dashboard() {
                             />
                         )}
 
-                        {/* Modal de Logros */}
                         {openLogros && user && (
                             <LogrosModal
                                 isOpen={openLogros}
@@ -540,22 +472,18 @@ export default function Dashboard() {
                             />
                         )}
 
-                        {/* Modal de Tienda de Protectores */}
                         {openTienda && user && (
                             <TiendaProtectores
                                 isOpen={openTienda}
                                 onClose={() => setOpenTienda(false)}
                                 userId={user.id}
                                 onCompraExitosa={async () => {
-                                    console.log('Protector comprado exitosamente');
-                                    // Recargar protectores disponibles
                                     const protectoresDisp = await getProtectoresActuales(user.id);
                                     setProtectoresDisponibles(protectoresDisp);
                                 }}
                             />
                         )}
 
-                        {/* Modal de Calendario */}
                         {openCalendario && user && (
                             <CalendarioModal
                                 isOpen={openCalendario}
@@ -563,7 +491,6 @@ export default function Dashboard() {
                                 userId={user.id}
                                 darkMode={darkMode}
                                 onEditHabito={(habitoId) => {
-                                    // Buscar el hábito y abrir el modal de edición
                                     const habito = habitos.find(h => h.id_habito === habitoId);
                                     if (habito) {
                                         setHabitoEditando(habito);
@@ -574,10 +501,13 @@ export default function Dashboard() {
                             />
                         )}
 
-                        {/* Widget de Ranking Flotante */}
-                        <RankingWidget userId={user.id} onVerCompleto={() => navigate('/ranking')} />
+                        <RankingWidget
+                            userId={user.id}
+                            isOpen={openRanking}
+                            onClose={() => setOpenRanking(false)}
+                            onVerCompleto={() => navigate('/ranking')}
+                        />
 
-                        {/* Modal de Subida de Rango */}
                         {huboRankUp && rangoAnterior && rangoActual && (
                             <RankUpModal
                                 nuevoRango={rangoActual}
@@ -589,6 +519,6 @@ export default function Dashboard() {
                     </>
                 )}
             </main>
-        </div >
+        </div>
     );
 }

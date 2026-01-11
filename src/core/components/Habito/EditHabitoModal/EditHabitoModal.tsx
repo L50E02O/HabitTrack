@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Save } from 'lucide-react';
-import { updateHabito } from '../../../services/habito/habitoService';
-import type { IHabito, UpdateIHabito } from '../../../types/IHabito';
-import './CreateHabitoModal.css';
+import { updateHabito } from '../../../../services/habito/habitoService';
+import type { IHabito, UpdateIHabito } from '../../../../types/IHabito';
+import { CATEGORIAS, UNIQUE_UNIDADES, HABITOS_POR_CATEGORIA } from '../../../constants/categoriasHabitos';
+import '../CreateHabitoModal/CreateHabitoModal.css';
 
 type Props = {
     habito: IHabito;
@@ -18,9 +19,23 @@ export default function EditHabitoModal({ habito, open, onClose, onUpdated }: Pr
     const [intervalo_meta, setIntervalo] = useState<string>(habito.intervalo_meta);
     const [meta_repeticion, setMeta] = useState<number>(habito.meta_repeticion);
     const [dificultad, setDificultad] = useState<string>(habito.dificultad);
+    const [unidad_medida, setUnidadMedida] = useState<string>(habito.unidad_medida || 'minutos');
     const [activo, setActivo] = useState(habito.activo);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (open) {
+            setNombre(habito.nombre_habito);
+            setDescripcion(habito.descripcion);
+            setCategoria(habito.categoria);
+            setIntervalo(habito.intervalo_meta);
+            setMeta(habito.meta_repeticion);
+            setDificultad(habito.dificultad);
+            setUnidadMedida(habito.unidad_medida || 'minutos');
+            setActivo(habito.activo);
+        }
+    }, [open, habito]);
 
     if (!open) return null;
 
@@ -31,6 +46,7 @@ export default function EditHabitoModal({ habito, open, onClose, onUpdated }: Pr
         setIntervalo(habito.intervalo_meta);
         setMeta(habito.meta_repeticion);
         setDificultad(habito.dificultad);
+        setUnidadMedida(habito.unidad_medida || 'minutos');
         setActivo(habito.activo);
         setError(null);
     };
@@ -40,7 +56,6 @@ export default function EditHabitoModal({ habito, open, onClose, onUpdated }: Pr
         setSubmitting(true);
         setError(null);
         try {
-            // Calcular puntos base según dificultad
             let puntosBase = 5;
             if (dificultad === 'facil') puntosBase = 3;
             else if (dificultad === 'medio') puntosBase = 5;
@@ -54,19 +69,18 @@ export default function EditHabitoModal({ habito, open, onClose, onUpdated }: Pr
                 meta_repeticion,
                 dificultad,
                 puntos: puntosBase,
+                unidad_medida,
                 activo,
             };
-            
+
             await updateHabito(habito.id_habito, updatePayload);
-            
-            // Crear el objeto actualizado
+
             const updatedHabito: IHabito = {
                 ...habito,
                 ...updatePayload,
             };
-            
+
             onUpdated(updatedHabito);
-            reset();
             onClose();
         } catch (err: any) {
             setError(err?.message || 'No se pudo actualizar el hábito');
@@ -86,6 +100,41 @@ export default function EditHabitoModal({ habito, open, onClose, onUpdated }: Pr
                 </div>
 
                 <form className="form" onSubmit={handleSubmit}>
+                    <div className="field">
+                        <label htmlFor="categoria">Categoría</label>
+                        <select id="categoria" title="Categoría" value={categoria} onChange={(e) => setCategoria(e.target.value)}>
+                            {CATEGORIAS.map(cat => (
+                                <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="field">
+                        <label htmlFor="habitoPredefinido">Selecciona un hábito predefinido (opcional)</label>
+                        <select
+                            id="habitoPredefinido"
+                            title="Hábito predefinido"
+                            defaultValue=""
+                            onChange={(e) => {
+                                if (e.target.value) {
+                                    const habito = HABITOS_POR_CATEGORIA[categoria]?.find(h => h.nombre === e.target.value);
+                                    if (habito) {
+                                        setNombre(habito.nombre);
+                                        setUnidadMedida(habito.unidadMedida);
+                                        e.target.value = '';
+                                    }
+                                }
+                            }}
+                        >
+                            <option value="">-- Elige un hábito --</option>
+                            {HABITOS_POR_CATEGORIA[categoria]?.map((habito, idx) => (
+                                <option key={idx} value={habito.nombre}>
+                                    {habito.nombre} ({habito.unidadMedida})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
                     <div className="field">
                         <label>Nombre</label>
                         <input
@@ -108,18 +157,6 @@ export default function EditHabitoModal({ habito, open, onClose, onUpdated }: Pr
                     </div>
 
                     <div className="row">
-                        <div className="field">
-                            <label htmlFor="categoria">Categoría</label>
-                            <select id="categoria" title="Categoría" value={categoria} onChange={(e) => setCategoria(e.target.value)}>
-                                <option value="salud">Salud</option>
-                                <option value="ejercicio">Ejercicio</option>
-                                <option value="estudio">Estudio</option>
-                                <option value="trabajo">Trabajo</option>
-                                <option value="alimentacion">Alimentación</option>
-                                <option value="otro">Otro</option>
-                            </select>
-                        </div>
-
                         <div className="field">
                             <label htmlFor="intervalo">Intervalo</label>
                             <select id="intervalo" title="Intervalo" value={intervalo_meta} onChange={(e) => setIntervalo(e.target.value)}>
@@ -144,6 +181,24 @@ export default function EditHabitoModal({ habito, open, onClose, onUpdated }: Pr
                                 }}
                                 required
                             />
+                        </div>
+
+                        <div className="field">
+                            <label htmlFor="unidadMedida">Unidad de Medida</label>
+                            <select
+                                id="unidadMedida"
+                                title="Unidad de medida"
+                                value={unidad_medida}
+                                onChange={(e) => setUnidadMedida(e.target.value)}
+                                required
+                            >
+                                {UNIQUE_UNIDADES.map(u => (
+                                    <option key={u} value={u}>{u}</option>
+                                ))}
+                                {!UNIQUE_UNIDADES.includes(unidad_medida) && (
+                                    <option value={unidad_medida}>{unidad_medida}</option>
+                                )}
+                            </select>
                         </div>
 
                         <div className="field">

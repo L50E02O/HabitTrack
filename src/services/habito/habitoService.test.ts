@@ -33,6 +33,7 @@ describe("HabitoService", () => {
       activo: true,
       dificultad: "medio",
       puntos: 10,
+      unidad_medida: "minutos",
     };
 
     (supabase.from as any).mockReturnValue({
@@ -47,8 +48,8 @@ describe("HabitoService", () => {
 
   it("deberia obtener todos los habitos correctamente", async () => {
     const mockHabitos = [
-      { id_habito: "1", nombre_habito: "Correr", puntos: 10 },
-      { id_habito: "2", nombre_habito: "Leer", puntos: 5 },
+      { id_habito: "1", nombre_habito: "Correr", puntos: 10, unidad_medida: "minutos" },
+      { id_habito: "2", nombre_habito: "Leer", puntos: 5, unidad_medida: "minutos" },
     ];
 
     (supabase.from as any).mockReturnValue({
@@ -60,7 +61,7 @@ describe("HabitoService", () => {
   });
 
   it("deberia obtener un habito por id correctamente", async () => {
-    const mockHabito = { id_habito: "1", nombre_habito: "Correr", puntos: 10 };
+    const mockHabito = { id_habito: "1", nombre_habito: "Correr", puntos: 10, unidad_medida: "minutos" };
 
     (supabase.from as any).mockReturnValue({
       select: vi.fn().mockReturnThis(),
@@ -77,6 +78,7 @@ describe("HabitoService", () => {
       update: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      select: vi.fn().mockReturnThis(),
     });
 
     await expect(updateHabito("1", { nombre_habito: "Correr 10km" })).resolves.toBeUndefined();
