@@ -31,8 +31,8 @@ SUPABASE_URL=https://pahegdcyadnndhbtzaps.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
 
 # Google Fit API
-GOOGLE_FIT_CLIENT_ID=211825690736-mctakq5imf57bu7i60spkml08gidq9k5.apps.googleusercontent.com
-GOOGLE_FIT_CLIENT_SECRET=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
+GOOGLE_FIT_CLIENT_ID=YOUR_CLIENT_ID.apps.googleusercontent.com
+GOOGLE_FIT_CLIENT_SECRET=YOUR_CLIENT_SECRET
 GOOGLE_FIT_REDIRECT_URI=http://localhost:3001/api/google-fit/callback
 ```
 
