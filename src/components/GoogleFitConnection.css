@@ -1,0 +1,181 @@
+.google-fit-container {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.google-fit-card {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+}
+
+.google-fit-card h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.google-fit-card p {
+  color: #666;
+  line-height: 1.5;
+  margin: 1rem 0;
+}
+
+.google-fit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.google-fit-header h3 {
+  margin: 0;
+}
+
+.google-fit-error {
+  background-color: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+
+.google-fit-login-btn {
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+.google-fit-login-btn:hover:not(:disabled) {
+  background-color: #356ee8;
+}
+
+.google-fit-login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.google-fit-disconnect-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.google-fit-disconnect-btn:hover {
+  background-color: #da190b;
+}
+
+.google-fit-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.google-fit-date-input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.google-fit-refresh-btn {
+  background-color: #34a853;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.google-fit-refresh-btn:hover:not(:disabled) {
+  background-color: #2d8f47;
+}
+
+.google-fit-refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.google-fit-data {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.google-fit-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.google-fit-label {
+  font-size: 0.85rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.google-fit-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4285f4;
+}
+
+.google-fit-date {
+  grid-column: 1 / -1;
+  color: #999;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+}
+
+.google-fit-loading,
+.google-fit-no-data {
+  text-align: center;
+  color: #666;
+  padding: 2rem 1rem;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+@media (max-width: 600px) {
+  .google-fit-card {
+    padding: 1.5rem;
+  }
+
+  .google-fit-controls {
+    flex-direction: column;
+  }
+
+  .google-fit-data {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .google-fit-date {
+    grid-column: 1 / -1;
+  }
+}

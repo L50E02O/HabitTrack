@@ -27,7 +27,7 @@ import TiendaProtectores from '../core/components/Protector/TiendaProtectores';
 import RankingWidget from '../core/components/Ranking/RankingWidget';
 import RankUpModal from '../core/components/Ranking/RankUpModal';
 import CalendarioModal from '../core/components/Calendario/CalendarioModal';
-import SmartwatchConnection from '../core/components/Smartwatch/SmartwatchConnection';
+import GoogleFitConnection from '../components/GoogleFitConnection';
 import { useRankDetection } from '../hooks/useRankDetection';
 import { PermisosNotificacion } from '../components/PermisosNotificacion';
 import { InstallPWAButton } from '../components/InstallPWAButton';
@@ -393,9 +393,9 @@ export default function Dashboard() {
                             </button>
                         </div>
 
-                        {/* Conexión Smartwatch */}
+                        {/* Conexión Google Fit */}
                         {user && (
-                            <SmartwatchConnection userId={user.id} darkMode={darkMode} />
+                            <GoogleFitConnection userId={user.id} />
                         )}
 
                         {/* Grid de Hábitos */}

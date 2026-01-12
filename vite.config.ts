@@ -60,8 +60,8 @@ export default defineConfig({
             short_name: 'Dashboard',
             description: 'Ver tu dashboard de hábitos',
             url: '/dashboard',
-            icons: [{ 
-              src: '/icon-192.png', 
+            icons: [{
+              src: '/icon-192.png',
               sizes: '192x192',
               type: 'image/png'
             }]
@@ -115,7 +115,7 @@ export default defineConfig({
     // Solución: Ejecuta 'npm run dev:api' en otra terminal
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
         // Si el servidor no está disponible, no fallar silenciosamente
