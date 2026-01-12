@@ -68,37 +68,23 @@ router.get('/callback', async (req: Request, res: Response) => {
       });
     }
 
-    // Primero intentar insertar
-    const { error: insertError } = await supabase
+    const { error: supabaseError } = await supabase
       .from('google_fit_tokens')
-      .insert({
-        user_id: userId,
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        expiry_date: new Date(tokens.expiry_date).toISOString(),
-        token_type: tokens.token_type,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      });
-
-    // Si ya existe, actualizar
-    if (insertError && insertError.code === '23505') {
-      const { error: updateError } = await supabase
-        .from('google_fit_tokens')
-        .update({
+      .upsert(
+        {
+          user_id: userId,
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token,
           expiry_date: new Date(tokens.expiry_date).toISOString(),
           token_type: tokens.token_type,
           updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId);
+        },
+        { onConflict: 'user_id' }
+      );
 
-      if (updateError) {
-        throw updateError;
-      }
-    } else if (insertError) {
-      throw insertError;
+    if (supabaseError) {
+      console.error('❌ Error saving tokens to Supabase:', supabaseError);
+      throw supabaseError;
     }
 
     // Redireccionar al dashboard del frontend
@@ -126,6 +112,7 @@ router.get('/steps', async (req: Request, res: Response) => {
   }
 
   try {
+    console.log('DEBUG: Fetching tokens for user:', userId);
     const { data: tokenData, error: tokenError } = await supabase
       .from('google_fit_tokens')
       .select('access_token, refresh_token, expiry_date')
@@ -133,6 +120,7 @@ router.get('/steps', async (req: Request, res: Response) => {
       .single();
 
     if (tokenError || !tokenData) {
+      console.error('❌ Error fetching tokens from Supabase:', tokenError);
       return res.status(401).json({
         error: 'Usuario no autenticado con Google Fit. Por favor, autentica primero.'
       });

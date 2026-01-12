@@ -125,11 +125,12 @@ class GoogleFitService {
       const endTime = new Date(targetDate);
       endTime.setHours(23, 59, 59, 999);
 
-      const startTimeMillis = startTime.getTime();
-      const endTimeMillis = endTime.getTime();
+      const startTimeMillis = startTime.getTime().toString();
+      const endTimeMillis = endTime.getTime().toString();
 
       const response = await this.fitnessApi.users.dataset.aggregate({
         userId: 'me',
+        auth: this.oauth2Client,
         requestBody: {
           aggregateBy: [
             {
@@ -146,15 +147,14 @@ class GoogleFitService {
             }
           ],
           bucketByTime: {
-            durationMillis: 86400000
+            durationMillis: '86400000'
           },
           startTimeMillis,
           endTimeMillis
-        },
-        auth: this.oauth2Client
+        }
       });
 
-      const data = response.data as AggregateDataset;
+      const data = response as unknown as AggregateDataset;
       return this.parseAggregateData(data, targetDate);
     } catch (error) {
       console.error('Error al obtener pasos:', error);
