@@ -1,14 +1,20 @@
 import express from 'express';
 import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
-import googleFitRoutes from './googleFitRoutes.js';
+import googleFitRoutes from '../src/services/googleFit/routes.ts';
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
+// Cargar variables de entorno
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+console.log('🔧 Iniciando servidor...');
+console.log('📍 SUPABASE_URL:', SUPABASE_URL ? 'Configurado ✓' : 'No configurado ✗');
+console.log('🔑 SUPABASE_SERVICE_ROLE_KEY:', SUPABASE_SERVICE_ROLE_KEY ? 'Configurado ✓' : 'No configurado ✗');
+console.log('🏋️ GOOGLE_FIT_CLIENT_ID:', process.env.GOOGLE_FIT_CLIENT_ID ? 'Configurado ✓' : 'No configurado ✗');
+
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables.');
-  console.error('Set them in your shell or in a .env file before running `npm run dev:api`.');
+  console.error('❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables.');
+  console.error('Set them in your .env file before running `npm run dev:api`.');
   process.exit(1);
 }
 
@@ -19,6 +25,7 @@ app.use(cors());
 app.use(express.json());
 
 // Rutas de Google Fit
+console.log('📦 Cargando rutas de Google Fit...');
 app.use('/api/google-fit', googleFitRoutes);
 
 app.get('/api/getRanking', async (req, res) => {
@@ -127,7 +134,11 @@ app.post('/datos', (req, res) => res.redirect(307, '/api/health-connect/datos'))
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
-  console.log(`Google Fit disponible en http://localhost:${port}/api/google-fit`);
-  console.log(`Health Connect Mock disponible en http://localhost:${port}/api/health-connect`);
+  console.log('');
+  console.log('✅ Servidor corriendo exitosamente!');
+  console.log(`🌐 URL: http://localhost:${port}`);
+  console.log(`🏋️ Google Fit API: http://localhost:${port}/api/google-fit`);
+  console.log(`💊 Health Connect Mock: http://localhost:${port}/api/health-connect`);
+  console.log('');
+  console.log('Presiona Ctrl+C para detener el servidor');
 });

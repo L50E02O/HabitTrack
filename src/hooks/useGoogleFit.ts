@@ -18,6 +18,7 @@ export function useGoogleFit({ userId, autoFetch = true }: UseGoogleFitOptions) 
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+
   const refreshSteps = useCallback(async (date?: Date) => {
     setLoading(true);
     setError(null);
@@ -27,7 +28,19 @@ export function useGoogleFit({ userId, autoFetch = true }: UseGoogleFitOptions) 
       setStepsData(data);
       setIsAuthenticated(true);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      let errorMessage = 'Error desconocido';
+
+      if (err instanceof Error) {
+        errorMessage = err.message;
+
+        // Detectar si el error es por servidor backend no disponible
+        if (errorMessage.includes('Unexpected token') ||
+          errorMessage.includes('JSON') ||
+          errorMessage.includes('DOCTYPE')) {
+          errorMessage = '⚠️ Servidor backend no disponible. Por favor, ejecuta "npm run dev:api" en otra terminal.';
+        }
+      }
+
       setError(errorMessage);
       setIsAuthenticated(false);
     } finally {
