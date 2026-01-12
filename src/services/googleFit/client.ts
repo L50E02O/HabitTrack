@@ -15,8 +15,8 @@ class GoogleFitClient {
   /**
    * Obtener URL de autenticación
    */
-  async getAuthUrl(): Promise<string> {
-    const response = await fetch(`${this.apiBaseUrl}/google-fit/auth`);
+  async getAuthUrl(userId: string): Promise<string> {
+    const response = await fetch(`${this.apiBaseUrl}/google-fit/auth?userId=${userId}`);
     const data = await response.json();
 
     if (!response.ok) {
@@ -88,8 +88,8 @@ class GoogleFitClient {
   /**
    * Iniciar flujo de autenticación con redirección
    */
-  async initiateLogin(): Promise<void> {
-    const authUrl = await this.getAuthUrl();
+  async initiateLogin(userId: string): Promise<void> {
+    const authUrl = await this.getAuthUrl(userId);
     window.location.href = authUrl;
   }
 }

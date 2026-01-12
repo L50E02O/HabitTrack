@@ -25,7 +25,10 @@ class GoogleFitService {
   /**
    * Obtener URL de autenticación de Google
    */
-  getAuthUrl(): string {
+  /**
+   * Obtener URL de autenticación de Google
+   */
+  getAuthUrl(userId: string): string {
     const scopes = [
       'https://www.googleapis.com/auth/fitness.activity.read',
       'https://www.googleapis.com/auth/fitness.location.read',
@@ -35,7 +38,8 @@ class GoogleFitService {
     return this.oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: scopes,
-      prompt: 'consent'
+      prompt: 'consent',
+      state: userId
     });
   }
 
@@ -58,7 +62,7 @@ class GoogleFitService {
       };
     } catch (error) {
       console.error('Error al intercambiar código:', error);
-      throw new Error('Error en la autenticación de Google Fit');
+      throw new Error(`Error en la autenticación de Google Fit: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

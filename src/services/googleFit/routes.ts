@@ -1,7 +1,22 @@
 import { Request, Response, Router } from 'express';
-import { supabase } from '../../config/supabase';
+import { createClient } from '@supabase/supabase-js';
 import googleFitService from './googleFitService';
 import type { GoogleFitTokens } from './types';
+
+// Crear cliente de Supabase con Service Role para bypass RLS
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ Error: Falta SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en el entorno del servidor.');
+}
+
+const supabase = createClient(supabaseUrl || '', supabaseServiceKey || '', {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
 
 const router = Router();
 
@@ -10,8 +25,16 @@ const router = Router();
  * GET /api/google-fit/auth
  */
 router.get('/auth', (req: Request, res: Response) => {
+  const { userId } = req.query;
+
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({
+      error: 'userId es requerido'
+    });
+  }
+
   try {
-    const authUrl = googleFitService.getAuthUrl();
+    const authUrl = googleFitService.getAuthUrl(userId);
     res.json({ authUrl });
   } catch (error) {
     console.error('Error al generar URL de autenticación:', error);
@@ -70,7 +93,7 @@ router.get('/callback', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error en callback:', error);
     res.status(500).json({
-      error: 'Error durante la autenticación. Por favor, intenta de nuevo.'
+      error: error instanceof Error ? error.message : 'Error durante la autenticación. Por favor, intenta de nuevo.'
     });
   }
 });

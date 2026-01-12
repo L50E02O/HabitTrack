@@ -41,8 +41,14 @@ export function useGoogleFit({ userId, autoFetch = true }: UseGoogleFitOptions) 
         }
       }
 
-      setError(errorMessage);
-      setIsAuthenticated(false);
+      // Si el error es solo que no está autenticado, no lo mostramos como error
+      if (errorMessage.includes('no autenticado') || errorMessage.includes('autentica primero')) {
+        setIsAuthenticated(false);
+        setError(null);
+      } else {
+        setError(errorMessage);
+        setIsAuthenticated(false);
+      }
     } finally {
       setLoading(false);
     }
@@ -58,8 +64,14 @@ export function useGoogleFit({ userId, autoFetch = true }: UseGoogleFitOptions) 
       setIsAuthenticated(true);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-      setError(errorMessage);
-      setIsAuthenticated(false);
+
+      if (errorMessage.includes('no autenticado') || errorMessage.includes('autentica primero')) {
+        setIsAuthenticated(false);
+        setError(null);
+      } else {
+        setError(errorMessage);
+        setIsAuthenticated(false);
+      }
     } finally {
       setLoading(false);
     }
@@ -67,12 +79,12 @@ export function useGoogleFit({ userId, autoFetch = true }: UseGoogleFitOptions) 
 
   const initiateLogin = useCallback(async () => {
     try {
-      await googleFitClient.initiateLogin();
+      await googleFitClient.initiateLogin(userId);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error en autenticación';
       setError(errorMessage);
     }
-  }, []);
+  }, [userId]);
 
   const revoke = useCallback(async () => {
     setLoading(true);
