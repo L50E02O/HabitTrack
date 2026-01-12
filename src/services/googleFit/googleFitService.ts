@@ -119,11 +119,22 @@ class GoogleFitService {
     });
 
     try {
-      const startTime = new Date(targetDate);
-      startTime.setHours(0, 0, 0, 0);
+      const targetDate = date || new Date();
+      
+      // Convertir a UTC correctamente para Google Fit
+      const startTime = new Date(Date.UTC(
+        targetDate.getUTCFullYear(),
+        targetDate.getUTCMonth(),
+        targetDate.getUTCDate(),
+        0, 0, 0, 0
+      ));
 
-      const endTime = new Date(targetDate);
-      endTime.setHours(23, 59, 59, 999);
+      const endTime = new Date(Date.UTC(
+        targetDate.getUTCFullYear(),
+        targetDate.getUTCMonth(),
+        targetDate.getUTCDate(),
+        23, 59, 59, 999
+      ));
 
       const startTimeMillis = startTime.getTime().toString();
       const endTimeMillis = endTime.getTime().toString();

@@ -33,7 +33,7 @@ class GoogleFitClient {
     const params = new URLSearchParams({ userId });
 
     if (date) {
-      params.append('date', date.toISOString());
+      params.append('date', date.toISOString().split('T')[0]);
     }
 
     const response = await fetch(`${this.apiBaseUrl}/google-fit/steps?${params}`);

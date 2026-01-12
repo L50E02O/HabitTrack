@@ -162,6 +162,97 @@
   margin: 1rem 0;
 }
 
+.google-fit-range-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+.google-fit-toggle-btn {
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.google-fit-toggle-btn:hover {
+  background-color: #356ee8;
+}
+
+.google-fit-range-controls {
+  background-color: #f9f9f9;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.google-fit-range-inputs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.google-fit-range-inputs label {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 150px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.google-fit-range-inputs input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.google-fit-range-data {
+  margin-top: 1.5rem;
+}
+
+.google-fit-range-data h4 {
+  margin: 0 0 1rem 0;
+  color: #333;
+}
+
+.google-fit-data-table {
+  overflow-x: auto;
+}
+
+.google-fit-data-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.google-fit-data-table th {
+  background-color: #f0f0f0;
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #ddd;
+}
+
+.google-fit-data-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+
+.google-fit-data-table tr:hover {
+  background-color: #f9f9f9;
+}
+
 @media (max-width: 600px) {
   .google-fit-card {
     padding: 1.5rem;
@@ -177,5 +268,22 @@
 
   .google-fit-date {
     grid-column: 1 / -1;
+  }
+
+  .google-fit-range-inputs {
+    flex-direction: column;
+  }
+
+  .google-fit-range-inputs label {
+    min-width: auto;
+  }
+
+  .google-fit-data-table {
+    font-size: 0.8rem;
+  }
+
+  .google-fit-data-table th,
+  .google-fit-data-table td {
+    padding: 0.5rem;
   }
 }

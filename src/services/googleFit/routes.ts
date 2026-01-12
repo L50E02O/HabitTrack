@@ -235,4 +235,91 @@ router.post('/revoke', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Sincronizar datos a tabla datos_salud (más eficiente que llamar API cada vez)
+ * POST /api/google-fit/sync?userId=USER_ID&daysBack=30
+ * Guarda datos históricos en la BD para acceso rápido
+ */
+router.post('/sync', async (req: Request, res: Response) => {
+  const { userId, daysBack = '30' } = req.query;
+
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({
+      error: 'userId es requerido'
+    });
+  }
+
+  try {
+    console.log(`🔄 Sincronizando datos de Google Fit para usuario: ${userId}`);
+    
+    const { data: tokenData, error: tokenError } = await supabase
+      .from('google_fit_tokens')
+      .select('access_token, refresh_token, expiry_date')
+      .eq('user_id', userId)
+      .single();
+
+    if (tokenError || !tokenData) {
+      return res.status(401).json({
+        error: 'Usuario no autenticado con Google Fit'
+      });
+    }
+
+    const tokens: GoogleFitTokens = {
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      expiry_date: new Date(tokenData.expiry_date).getTime(),
+      token_type: 'Bearer'
+    };
+
+    const days = Math.min(parseInt(daysBack as string) || 30, 365);
+    const endDate = new Date();
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    console.log(`📊 Obteniendo datos de ${startDate.toDateString()} a ${endDate.toDateString()}`);
+
+    const stepsData = await googleFitService.getDailyStepsRange(tokens, startDate, endDate);
+
+    // Guardar en tabla datos_salud para acceso rápido después
+    const dataToInsert = stepsData
+      .filter(day => day.steps > 0 || day.calories > 0 || day.distance > 0) // Solo días con datos
+      .map(day => ({
+        id_perfil: userId,
+        fecha: day.date,
+        pasos: day.steps,
+        calorias_quemadas: day.calories,
+        distancia_km: day.distance,
+        fecha_sincronizacion: new Date().toISOString()
+      }));
+
+    if (dataToInsert.length > 0) {
+      const { error: insertError } = await supabase
+        .from('datos_salud')
+        .upsert(dataToInsert, { onConflict: 'id_perfil,fecha' });
+
+      if (insertError) {
+        console.error('Error al guardar datos en datos_salud:', insertError);
+        return res.status(500).json({
+          error: 'Error al guardar datos en la base de datos'
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Sincronizados ${dataToInsert.length} días de datos`,
+      dataSync: {
+        days: dataToInsert.length,
+        totalSteps: dataToInsert.reduce((sum, d) => sum + d.pasos, 0),
+        totalCalories: dataToInsert.reduce((sum, d) => sum + d.calorias_quemadas, 0),
+        totalDistance: parseFloat(dataToInsert.reduce((sum, d) => sum + d.distancia_km, 0).toFixed(2))
+      }
+    });
+  } catch (error) {
+    console.error('Error al sincronizar datos:', error);
+    res.status(500).json({
+      error: 'No se pudieron sincronizar los datos'
+    });
+  }
+});
+
 export default router;
