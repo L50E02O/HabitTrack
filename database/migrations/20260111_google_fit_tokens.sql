@@ -42,14 +42,24 @@ CREATE POLICY select_own_google_fit_tokens ON google_fit_tokens
 FOR SELECT
 USING (auth.uid()::text = user_id);
 
+-- Política para que el servicio backend pueda insertar/actualizar (service role)
+CREATE POLICY insert_service_google_fit_tokens ON google_fit_tokens
+FOR INSERT
+WITH CHECK (true);
+
+CREATE POLICY update_service_google_fit_tokens ON google_fit_tokens
+FOR UPDATE
+USING (true);
+
+-- Políticas para usuarios (si autenticados desde frontend)
 CREATE POLICY insert_own_google_fit_tokens ON google_fit_tokens
 FOR INSERT
-WITH CHECK (auth.uid()::text = user_id);
+WITH CHECK (auth.uid()::text = user_id OR auth.role() = 'authenticated');
 
 CREATE POLICY update_own_google_fit_tokens ON google_fit_tokens
 FOR UPDATE
-USING (auth.uid()::text = user_id);
+USING (auth.uid()::text = user_id OR auth.role() = 'authenticated');
 
 CREATE POLICY delete_own_google_fit_tokens ON google_fit_tokens
 FOR DELETE
-USING (auth.uid()::text = user_id);
+USING (auth.uid()::text = user_id OR auth.role() = 'authenticated');

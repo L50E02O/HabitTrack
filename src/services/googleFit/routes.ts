@@ -68,28 +68,42 @@ router.get('/callback', async (req: Request, res: Response) => {
       });
     }
 
-    const { error: supabaseError } = await supabase
+    // Primero intentar insertar
+    const { error: insertError } = await supabase
       .from('google_fit_tokens')
-      .upsert(
-        {
-          user_id: userId,
+      .insert({
+        user_id: userId,
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expiry_date: new Date(tokens.expiry_date).toISOString(),
+        token_type: tokens.token_type,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+
+    // Si ya existe, actualizar
+    if (insertError && insertError.code === '23505') {
+      const { error: updateError } = await supabase
+        .from('google_fit_tokens')
+        .update({
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token,
           expiry_date: new Date(tokens.expiry_date).toISOString(),
           token_type: tokens.token_type,
           updated_at: new Date().toISOString()
-        },
-        { onConflict: 'user_id' }
-      );
+        })
+        .eq('user_id', userId);
 
-    if (supabaseError) {
-      throw supabaseError;
+      if (updateError) {
+        throw updateError;
+      }
+    } else if (insertError) {
+      throw insertError;
     }
 
-    res.json({
-      success: true,
-      message: 'Autenticación completada exitosamente'
-    });
+    // Redireccionar al dashboard del frontend
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/dashboard?googleFit=success`);
   } catch (error) {
     console.error('Error en callback:', error);
     res.status(500).json({
