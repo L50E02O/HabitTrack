@@ -134,16 +134,13 @@ class GoogleFitService {
         requestBody: {
           aggregateBy: [
             {
-              dataTypeName: 'com.google.step_count.delta',
-              dataSourceId: 'derived:com.google.step_count.delta:com.google.android.gms:estimated_steps'
+              dataTypeName: 'com.google.step_count.delta'
             },
             {
-              dataTypeName: 'com.google.calories.expended',
-              dataSourceId: 'derived:com.google.calories.expended:com.google.android.gms:total_calories_expended'
+              dataTypeName: 'com.google.calories.expended'
             },
             {
-              dataTypeName: 'com.google.distance.delta',
-              dataSourceId: 'derived:com.google.distance.delta:com.google.android.gms:total_distance'
+              dataTypeName: 'com.google.distance.delta'
             }
           ],
           bucketByTime: {
@@ -154,7 +151,8 @@ class GoogleFitService {
         }
       });
 
-      const data = response as unknown as AggregateDataset;
+      const data = response.data as AggregateDataset;
+      console.log('📊 Datos crudos de Google Fit:', JSON.stringify(data, null, 2));
       return this.parseAggregateData(data, targetDate);
     } catch (error) {
       console.error('Error al obtener pasos:', error);
