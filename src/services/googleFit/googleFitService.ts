@@ -204,6 +204,10 @@ class GoogleFitService {
 
   /**
    * Parsear la respuesta de agregados de Google Fit
+   * Los datasets vienen en el mismo orden que se especificaron en aggregateBy:
+   * [0] = step_count.delta (intVal)
+   * [1] = calories.expended (fpVal)
+   * [2] = distance.delta (fpVal, en metros)
    */
   private parseAggregateData(data: AggregateDataset, date: Date): DailyStepsData {
     let steps = 0;
@@ -213,28 +217,43 @@ class GoogleFitService {
     if (data.bucket && data.bucket.length > 0) {
       const bucket = data.bucket[0];
 
-      if (bucket.dataset) {
-        bucket.dataset.forEach((dataset) => {
-          if (dataset.point && dataset.point.length > 0) {
-            dataset.point.forEach((point) => {
-              if (point.value && point.value.length > 0) {
-                const value = point.value[0];
-
-                if (value.intVal !== undefined) {
-                  steps += value.intVal;
-                }
-
-                if (value.fpVal !== undefined) {
-                  if (steps === 0) {
-                    calories += value.fpVal;
-                  } else {
-                    distance += value.fpVal / 1000;
-                  }
-                }
+      if (bucket.dataset && bucket.dataset.length > 0) {
+        // Dataset [0]: step_count.delta (intVal)
+        if (bucket.dataset[0]?.point) {
+          bucket.dataset[0].point.forEach((point) => {
+            if (point.value && point.value.length > 0) {
+              const value = point.value[0];
+              if (value.intVal !== undefined) {
+                steps += value.intVal;
               }
-            });
-          }
-        });
+            }
+          });
+        }
+
+        // Dataset [1]: calories.expended (fpVal)
+        if (bucket.dataset[1]?.point) {
+          bucket.dataset[1].point.forEach((point) => {
+            if (point.value && point.value.length > 0) {
+              const value = point.value[0];
+              if (value.fpVal !== undefined) {
+                calories += value.fpVal;
+              }
+            }
+          });
+        }
+
+        // Dataset [2]: distance.delta (fpVal, en metros)
+        if (bucket.dataset[2]?.point) {
+          bucket.dataset[2].point.forEach((point) => {
+            if (point.value && point.value.length > 0) {
+              const value = point.value[0];
+              if (value.fpVal !== undefined) {
+                // Google Fit devuelve la distancia en metros, convertir a km
+                distance += value.fpVal / 1000;
+              }
+            }
+          });
+        }
       }
     }
 

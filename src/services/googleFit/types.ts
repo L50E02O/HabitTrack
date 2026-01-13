@@ -24,6 +24,7 @@ export interface AggregateDataset {
     startTimeMillis: string;
     endTimeMillis: string;
     dataset: Array<{
+      dataSourceId?: string;
       point: Array<{
         value: Array<{
           intVal?: number;
