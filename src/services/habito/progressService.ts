@@ -27,7 +27,14 @@ export async function recordHabitProgress(
     const { currentProgress, lastRegistro } = await obtenerProgresoActual(idHabito, intervaloMeta);
 
     // Calculamos el nuevo progreso
-    const newProgress = currentProgress + cantidad;
+    // Si la cantidad es 1 (botón avanzar por defecto) y falta menos de 1 para la meta,
+    // ajustamos para completar exactamente lo que falta.
+    let cantidadEfectiva = cantidad;
+    if (cantidad === 1 && currentProgress + 1 > metaRepeticion && currentProgress < metaRepeticion) {
+      cantidadEfectiva = metaRepeticion - currentProgress;
+    }
+
+    const newProgress = currentProgress + cantidadEfectiva;
 
     // Verificamos si ya completó el hábito para este período
     if (newProgress > metaRepeticion) {
