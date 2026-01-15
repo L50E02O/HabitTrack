@@ -1,0 +1,44 @@
+# Dependencies
+node_modules
+npm-debug.log
+bun.lock
+
+# Backend files (no needed for frontend)
+server.js
+scripts/dev-api.js
+scripts/test-backend.js
+scripts/googleFitRoutes.js
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Documentation
+docs
+*.md
+!README.md
+
+# Tests
+coverage
+.nyc_output
+src/**/*.test.ts
+src/**/*.test.tsx
+
+# Misc
+*.log
+.cache

@@ -8,8 +8,10 @@ import type { GoogleFitTokens, DailyStepsData } from './types';
 class GoogleFitClient {
   private apiBaseUrl: string;
 
-  constructor(apiBaseUrl: string = '/api') {
-    this.apiBaseUrl = apiBaseUrl;
+  constructor() {
+    // En desarrollo: usa '/api' (proxied por Vite a localhost:3001)
+    // En producción: usa VITE_API_URL si está configurado, sino '/api'
+    this.apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
   }
 
   /**
