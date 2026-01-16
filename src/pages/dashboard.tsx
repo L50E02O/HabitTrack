@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
-import { Moon, Sun, Plus, LogOut, ChevronRight, ShoppingCart, Sprout, Calendar, Trophy } from 'lucide-react';
+import { Moon, Sun, Plus, LogOut, ChevronRight, ShoppingCart, Sprout, Calendar, Trophy, Activity } from 'lucide-react';
 import HabitCard from '../core/components/Habito/HabitCard/HabitCard.tsx';
 import type { IHabito } from '../types/IHabito';
 import { getAllHabitos, deleteHabito } from '../services/habito/habitoService';
@@ -27,6 +27,7 @@ import TiendaProtectores from '../core/components/Protector/TiendaProtectores';
 import RankingWidget from '../core/components/Ranking/RankingWidget';
 import RankUpModal from '../core/components/Ranking/RankUpModal';
 import CalendarioModal from '../core/components/Calendario/CalendarioModal';
+import SmartwatchModal from '../core/components/Smartwatch/SmartwatchModal';
 import { useRankDetection } from '../hooks/useRankDetection';
 import { PermisosNotificacion } from '../components/PermisosNotificacion';
 import { InstallPWAButton } from '../components/InstallPWAButton';
@@ -55,6 +56,7 @@ export default function Dashboard() {
     const [openTienda, setOpenTienda] = useState(false);
     const [openCalendario, setOpenCalendario] = useState(false);
     const [openRanking, setOpenRanking] = useState(false);
+    const [openSmartwatch, setOpenSmartwatch] = useState(false);
     const [tuPosicion, setTuPosicion] = useState<number | null>(null);
     const [puntosUsuario, setPuntosUsuario] = useState(0);
     const notificacionesIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -319,6 +321,14 @@ export default function Dashboard() {
 
             {/* Botones flotantes */}
             <button
+                className="floating-smartwatch-button"
+                onClick={() => setOpenSmartwatch(true)}
+                title="Smartwatch"
+            >
+                <Activity size={24} />
+            </button>
+
+            <button
                 className="floating-ranking-button"
                 onClick={() => setOpenRanking(true)}
                 title="Ver clasificación"
@@ -392,6 +402,7 @@ export default function Dashboard() {
                             </button>
                         </div>
 
+                        {/* Grid de Hábitos */}
                         <div className="habitsGrid">
                             {habitos.length === 0 ? (
                                 <div className="emptyState">
@@ -499,6 +510,13 @@ export default function Dashboard() {
                             isOpen={openRanking}
                             onClose={() => setOpenRanking(false)}
                             onVerCompleto={() => navigate('/ranking')}
+                        />
+
+                        <SmartwatchModal
+                            userId={user.id}
+                            isOpen={openSmartwatch}
+                            onClose={() => setOpenSmartwatch(false)}
+                            darkMode={darkMode}
                         />
 
                         {huboRankUp && rangoAnterior && rangoActual && (

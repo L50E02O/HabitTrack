@@ -129,6 +129,10 @@
     margin-bottom: 2rem;
 }
 
+.dashboard.dark .widgets-container {
+    /* Los widgets individuales manejan su propio dark mode */
+}
+
 /* Logo */
 .logo {
     display: flex;
@@ -211,7 +215,8 @@
 .floating-calendario-button,
 .floating-logros-button,
 .floating-protectores-button,
-.floating-ranking-button {
+.floating-ranking-button,
+.floating-smartwatch-button {
     position: fixed;
     right: 2rem;
     width: 56px;
@@ -229,6 +234,11 @@
 }
 
 /* Posiciones específicas */
+.floating-smartwatch-button {
+    bottom: 18.5rem;
+    background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+}
+
 .floating-ranking-button {
     bottom: 14rem;
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
@@ -268,7 +278,8 @@
 .floating-calendario-button:hover,
 .floating-logros-button:hover,
 .floating-protectores-button:hover,
-.floating-ranking-button:hover {
+.floating-ranking-button:hover,
+.floating-smartwatch-button:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 30px rgba(0, 0, 0, 0.3);
 }
@@ -277,7 +288,8 @@
 .floating-calendario-button:active,
 .floating-logros-button:active,
 .floating-protectores-button:active,
-.floating-ranking-button:active {
+.floating-ranking-button:active,
+.floating-smartwatch-button:active {
     transform: scale(0.95);
 }
 
@@ -286,10 +298,15 @@
     .floating-calendario-button,
     .floating-logros-button,
     .floating-protectores-button,
-    .floating-ranking-button {
+    .floating-ranking-button,
+    .floating-smartwatch-button {
         width: 48px;
         height: 48px;
         right: 1rem;
+    }
+
+    .floating-smartwatch-button {
+        bottom: 16.5rem;
     }
 
     .floating-ranking-button {

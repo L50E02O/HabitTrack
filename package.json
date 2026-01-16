@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:api": "node scripts/dev-api.js",
+    "start": "vite preview",
+    "dev:api": "bun scripts/dev-api.js",
     "prebuild": "node scripts/generate-icons.js",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -15,7 +16,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.78.0",
+    "cors": "^2.8.5",
     "deno": "^2.5.6",
+    "express": "^5.2.1",
+    "google-auth-library": "^9.0.0",
+    "googleapis": "^118.0.0",
     "lucide-react": "^0.552.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
