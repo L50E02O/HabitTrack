@@ -1,10 +1,10 @@
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
-import type { GoogleFitTokens, GoogleFitAuthResponse, DailyStepsData, AggregateDataset } from './types';
+import { GoogleFitTokens, DailyStepsData, AggregateDataset } from './types';
 
 class GoogleFitService {
   private oauth2Client: OAuth2Client;
-  private fitnessApi;
+  private fitnessApi: any;
   private clientId: string;
   private clientSecret: string;
   private redirectUri: string;
@@ -119,8 +119,6 @@ class GoogleFitService {
     });
 
     try {
-      const targetDate = date || new Date();
-      
       // Convertir a UTC correctamente para Google Fit
       const startTime = new Date(Date.UTC(
         targetDate.getUTCFullYear(),
@@ -139,7 +137,7 @@ class GoogleFitService {
       const startTimeMillis = startTime.getTime().toString();
       const endTimeMillis = endTime.getTime().toString();
 
-      const response = await this.fitnessApi.users.dataset.aggregate({
+      const response = await (this.fitnessApi.users as any).dataset.aggregate({
         userId: 'me',
         auth: this.oauth2Client,
         requestBody: {
@@ -162,7 +160,7 @@ class GoogleFitService {
         }
       });
 
-      const data = response.data as AggregateDataset;
+      const data = (response as any).data as AggregateDataset;
       console.log('📊 Datos crudos de Google Fit:', JSON.stringify(data, null, 2));
       return this.parseAggregateData(data, targetDate);
     } catch (error) {

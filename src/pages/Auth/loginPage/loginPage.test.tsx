@@ -10,13 +10,13 @@ vi.mock("react-router-dom", () => ({
 }));
 
 // Mock del servicio de autenticación
-vi.mock("../../services/auth/authService", () => ({
+vi.mock("../../../services/auth/authService", () => ({
 	signIn: vi.fn(),
 }));
 
 // Mock del formulario de login para disparar onSubmit fácilmente
 const mockFormTestId = "mock-formulario-login";
-vi.mock("../../core/components/Auth/formularioLogin/fomularioLogin", () => ({
+vi.mock("../../../core/components/Auth/formularioLogin/fomularioLogin", () => ({
 	__esModule: true,
 	default: ({ onSubmit }: { onSubmit: (email: string, password: string) => void }) => (
 		<div data-testid={mockFormTestId}>
