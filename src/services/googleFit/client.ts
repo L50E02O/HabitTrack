@@ -1,5 +1,4 @@
-import googleFitService from './googleFitService';
-import type { GoogleFitTokens, DailyStepsData } from './types';
+import type { DailyStepsData } from './types';
 
 /**
  * Cliente para consumir Google Fit desde el frontend

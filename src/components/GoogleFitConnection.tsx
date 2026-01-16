@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useGoogleFit } from '../hooks/useGoogleFit';
-import type { DailyStepsData } from '../services/googleFit/types';
+
 import './GoogleFitConnection.css';
 
 interface GoogleFitConnectionProps {
@@ -96,8 +96,8 @@ export default function GoogleFitConnection({ userId }: GoogleFitConnectionProps
         )}
 
         <div className="google-fit-range-section">
-          <button 
-            onClick={() => setShowRange(!showRange)} 
+          <button
+            onClick={() => setShowRange(!showRange)}
             className="google-fit-toggle-btn"
           >
             {showRange ? 'Ocultar rango' : 'Ver rango de fechas'}
@@ -125,9 +125,9 @@ export default function GoogleFitConnection({ userId }: GoogleFitConnectionProps
                   />
                 </label>
               </div>
-              <button 
-                onClick={handleGetRange} 
-                disabled={loading} 
+              <button
+                onClick={handleGetRange}
+                disabled={loading}
                 className="google-fit-refresh-btn"
               >
                 {loading ? 'Cargando...' : 'Obtener rango'}

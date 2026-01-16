@@ -10,16 +10,16 @@ import { signUp } from "../../../services/auth/authService";
 import { createPerfil } from "../../../services/perfil/perfilService";
 
 // Mocks de servicios
-vi.mock("../../services/auth/authService", () => ({
+vi.mock("../../../services/auth/authService", () => ({
   signUp: vi.fn(),
 }));
-vi.mock("../../services/perfil/perfilService", () => ({
+vi.mock("../../../services/perfil/perfilService", () => ({
   createPerfil: vi.fn(),
 }));
 
 // Mock del formulario de registro para poder disparar onSubmit fácilmente
 const mockOnSubmitTriggerTestId = "mock-formulario-registro";
-vi.mock("../../core/components/Auth/formularioRegistro/formularioRegistro", () => ({
+vi.mock("../../../core/components/Auth/formularioRegistro/formularioRegistro", () => ({
   __esModule: true,
   default: ({ onSubmit }: { onSubmit: (p: { email: string; password: string; nombre: string }) => void }) => (
     <div data-testid={mockOnSubmitTriggerTestId}>

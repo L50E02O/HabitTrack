@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Activity, RefreshCw, Calendar, TrendingUp, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
 import { useGoogleFit } from '../../../hooks/useGoogleFit';
-import type { DailyStepsData } from '../../../services/googleFit/types';
+
 import './SmartwatchWidget.css';
 
 interface SmartwatchWidgetProps {
@@ -51,9 +51,9 @@ export default function SmartwatchWidget({ userId, darkMode = false }: Smartwatc
               Conecta tu cuenta de Google Fit para sincronizar automáticamente tus datos de actividad.
             </p>
             {error && <div className="smartwatch-error">{error}</div>}
-            <button 
-              onClick={initiateLogin} 
-              disabled={loading} 
+            <button
+              onClick={initiateLogin}
+              disabled={loading}
               className="smartwatch-connect-btn"
             >
               {loading ? 'Conectando...' : 'Conectar Google Fit'}
@@ -73,16 +73,16 @@ export default function SmartwatchWidget({ userId, darkMode = false }: Smartwatc
           <h3>Smartwatch</h3>
         </div>
         <div className="smartwatch-widget-actions">
-          <button 
-            onClick={handleRefresh} 
-            disabled={loading} 
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
             className="smartwatch-action-btn"
             title="Actualizar datos"
           >
             <RefreshCw size={16} className={loading ? 'spinning' : ''} />
           </button>
-          <button 
-            onClick={() => revoke()} 
+          <button
+            onClick={() => revoke()}
             className="smartwatch-disconnect-btn"
             title="Desconectar"
           >
@@ -133,8 +133,8 @@ export default function SmartwatchWidget({ userId, darkMode = false }: Smartwatc
 
         {/* Sección expandible de rango de fechas */}
         <div className="smartwatch-range-section">
-          <button 
-            onClick={() => setShowRange(!showRange)} 
+          <button
+            onClick={() => setShowRange(!showRange)}
             className="smartwatch-toggle-btn"
           >
             <Calendar size={16} />
@@ -164,9 +164,9 @@ export default function SmartwatchWidget({ userId, darkMode = false }: Smartwatc
                   />
                 </label>
               </div>
-              <button 
-                onClick={handleGetRange} 
-                disabled={loading} 
+              <button
+                onClick={handleGetRange}
+                disabled={loading}
                 className="smartwatch-range-btn"
               >
                 <TrendingUp size={16} />
@@ -180,14 +180,14 @@ export default function SmartwatchWidget({ userId, darkMode = false }: Smartwatc
             <div className="smartwatch-range-data">
               <div className="smartwatch-range-header">
                 <h4>Historial ({stepsRange.length} días)</h4>
-                <button 
+                <button
                   onClick={() => setShowDetails(!showDetails)}
                   className="smartwatch-details-toggle"
                 >
                   {showDetails ? 'Ocultar' : 'Ver detalles'}
                 </button>
               </div>
-              
+
               {showDetails && (
                 <div className="smartwatch-data-table">
                   <table>

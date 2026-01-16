@@ -115,14 +115,14 @@ describe("HabitCard - Dificultad Badge", () => {
   it("deberia mostrar progreso (0/1 minuto) para hábito sin completar", () => {
     render(<HabitCard habito={mockHabitoFacil} weeklyCount={0} />);
 
-    expect(screen.getByText("0/1 minuto")).toBeInTheDocument();
+    expect(screen.getByText("0:00/0:01 minuto")).toBeInTheDocument();
     expect(screen.getByText(/Fácil \(3 pts\)/i)).toBeInTheDocument();
   });
 
   it("deberia mostrar progreso (5/5 minutos) para hábito completado", () => {
     render(<HabitCard habito={mockHabitoMedio} weeklyCount={5} />);
 
-    expect(screen.getByText("5/5 minutos")).toBeInTheDocument();
+    expect(screen.getByText("0:05/0:05 minutos")).toBeInTheDocument();
     expect(screen.getByText(/Medio \(5 pts\)/i)).toBeInTheDocument();
   });
 
