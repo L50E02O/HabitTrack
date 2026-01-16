@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Plus, Clock } from 'lucide-react';
 import { parseTimeToNumber, numberToTimeFormat } from '../../../../utils/habitTypeUtils';
 import '../RegistroProgresoModal/RegistroProgresoModal.css';
@@ -26,37 +26,28 @@ export default function RegistroDuracionModal({
     const [minutos, setMinutos] = useState<number>(0);
     const [error, setError] = useState<string>('');
 
-    if (!isOpen) return null;
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
+    useEffect(() => {
+        if (!isOpen) return;
 
         const tiempoFormateado = `${horas}:${minutos.toString().padStart(2, '0')}`;
-
-        // Convertir a número según la unidad del hábito
-        let valor: number;
+        let valor = 0;
         try {
             valor = parseTimeToNumber(tiempoFormateado, unidadMedida);
-        } catch (err) {
-            setError('Error al procesar el tiempo seleccionado');
+        } catch {
             return;
         }
 
-        // Validación: no puede ser 00:00
         if (valor === 0) {
-            setError('El tiempo debe ser mayor a 00:00');
+            setError('');
             return;
         }
 
-        // Validación: no puede ser mayor a la meta total
         if (valor > metaTotal) {
             const metaFormateada = numberToTimeFormat(metaTotal, unidadMedida);
             setError(`El valor no puede ser mayor a la meta (${metaFormateada})`);
             return;
         }
 
-        // Validación: la suma no puede exceder la meta
         const nuevoProgreso = progresoActual + valor;
         if (nuevoProgreso > metaTotal) {
             const disponible = metaTotal - progresoActual;
@@ -66,6 +57,26 @@ export default function RegistroDuracionModal({
             setError(
                 `Solo puedes agregar hasta ${disponibleFormateado} (llegarías a ${nuevoProgresoFormateado}/${metaFormateada})`
             );
+            return;
+        }
+
+        setError('');
+    }, [isOpen, horas, minutos, metaTotal, progresoActual, unidadMedida]);
+
+    if (!isOpen) return null;
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // Si hay un error visible, no permitir envío
+        if (error) return;
+
+        const tiempoFormateado = `${horas}:${minutos.toString().padStart(2, '0')}`;
+        const valor = parseTimeToNumber(tiempoFormateado, unidadMedida);
+
+        // Validación: no puede ser 00:00
+        if (valor === 0) {
+            setError('El tiempo debe ser mayor a 00:00');
             return;
         }
 
@@ -176,7 +187,7 @@ export default function RegistroDuracionModal({
                         <button type="button" className="rpm-btn-ghost" onClick={handleClose}>
                             Cancelar
                         </button>
-                        <button type="submit" className="rpm-btn-primary">
+                        <button type="submit" className="rpm-btn-primary" disabled={!!error}>
                             <Plus size={16} />
                             Registrar
                         </button>
