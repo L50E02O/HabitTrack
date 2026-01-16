@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Plus, Clock } from 'lucide-react';
-import { isValidTimeFormat, parseTimeToNumber, numberToTimeFormat } from '../../../../utils/habitTypeUtils';
+import { parseTimeToNumber, numberToTimeFormat } from '../../../../utils/habitTypeUtils';
 import '../RegistroProgresoModal/RegistroProgresoModal.css';
 
 type Props = {
@@ -22,44 +22,32 @@ export default function RegistroDuracionModal({
     unidadMedida,
     nombreHabito
 }: Props) {
-    const [tiempo, setTiempo] = useState<string>('');
+    const [horas, setHoras] = useState<number>(0);
+    const [minutos, setMinutos] = useState<number>(0);
     const [error, setError] = useState<string>('');
 
-    if (!isOpen) return null;
+    useEffect(() => {
+        if (!isOpen) return;
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-
-        // Validación: formato válido HH:MM
-        if (!isValidTimeFormat(tiempo)) {
-            setError('Formato inválido. Usa HH:MM (ej. 1:30)');
-            return;
-        }
-
-        // Convertir a número según la unidad del hábito
-        let valor: number;
+        const tiempoFormateado = `${horas}:${minutos.toString().padStart(2, '0')}`;
+        let valor = 0;
         try {
-            valor = parseTimeToNumber(tiempo, unidadMedida);
-        } catch (err) {
-            setError('Error al procesar el tiempo ingresado');
+            valor = parseTimeToNumber(tiempoFormateado, unidadMedida);
+        } catch {
             return;
         }
 
-        // Validación: no puede ser 00:00
         if (valor === 0) {
-            setError('El tiempo debe ser mayor a 00:00');
+            setError('');
             return;
         }
 
-        // Validación: no puede ser mayor a la meta total
         if (valor > metaTotal) {
             const metaFormateada = numberToTimeFormat(metaTotal, unidadMedida);
             setError(`El valor no puede ser mayor a la meta (${metaFormateada})`);
             return;
         }
 
-        // Validación: la suma no puede exceder la meta
         const nuevoProgreso = progresoActual + valor;
         if (nuevoProgreso > metaTotal) {
             const disponible = metaTotal - progresoActual;
@@ -72,28 +60,49 @@ export default function RegistroDuracionModal({
             return;
         }
 
+        setError('');
+    }, [isOpen, horas, minutos, metaTotal, progresoActual, unidadMedida]);
+
+    if (!isOpen) return null;
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // Si hay un error visible, no permitir envío
+        if (error) return;
+
+        const tiempoFormateado = `${horas}:${minutos.toString().padStart(2, '0')}`;
+        const valor = parseTimeToNumber(tiempoFormateado, unidadMedida);
+
+        // Validación: no puede ser 00:00
+        if (valor === 0) {
+            setError('El tiempo debe ser mayor a 00:00');
+            return;
+        }
+
         // Todo válido, enviar
         onSubmit(valor);
-        setTiempo('');
+        setHoras(0);
+        setMinutos(0);
         setError('');
     };
 
     const handleClose = () => {
-        setTiempo('');
+        setHoras(0);
+        setMinutos(0);
         setError('');
         onClose();
     };
 
-    // Calcular progreso resultante si el tiempo es válido
+    // Calcular progreso resultante
+    const tiempoFormateado = `${horas}:${minutos.toString().padStart(2, '0')}`;
     let progresoResultante = progresoActual;
     let valorNumerico = 0;
-    if (isValidTimeFormat(tiempo)) {
-        try {
-            valorNumerico = parseTimeToNumber(tiempo, unidadMedida);
-            progresoResultante = progresoActual + valorNumerico;
-        } catch {
-            // Ignorar errores de conversión
-        }
+    try {
+        valorNumerico = parseTimeToNumber(tiempoFormateado, unidadMedida);
+        progresoResultante = progresoActual + valorNumerico;
+    } catch {
+        // Ignorar
     }
 
     const disponible = metaTotal - progresoActual;
@@ -119,18 +128,37 @@ export default function RegistroDuracionModal({
 
                 <form onSubmit={handleSubmit} className="rpm-form">
                     <div className="rpm-field">
-                        <label htmlFor="tiempo">
-                            Tiempo (HH:MM)
-                        </label>
-                        <input
-                            id="tiempo"
-                            type="text"
-                            value={tiempo}
-                            onChange={(e) => setTiempo(e.target.value)}
-                            placeholder="Ej. 1:30"
-                            autoFocus
-                            required
-                        />
+                        <label>Selecciona el tiempo</label>
+
+                        <div className="rpm-time-selector">
+                            <div className="rpm-time-select-group">
+                                <span className="rpm-time-sublabel">Horas</span>
+                                <select
+                                    value={horas}
+                                    onChange={(e) => setHoras(parseInt(e.target.value))}
+                                    autoFocus
+                                >
+                                    {Array.from({ length: 24 }, (_, i) => (
+                                        <option key={i} value={i}>{i}h</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="rpm-time-separator">:</div>
+
+                            <div className="rpm-time-select-group">
+                                <span className="rpm-time-sublabel">Minutos</span>
+                                <select
+                                    value={minutos}
+                                    onChange={(e) => setMinutos(parseInt(e.target.value))}
+                                >
+                                    {Array.from({ length: 60 }, (_, i) => (
+                                        <option key={i} value={i}>{i.toString().padStart(2, '0')}m</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
                         <div className="rpm-hint">
                             Disponible: {disponibleFormateado}
                         </div>
@@ -143,7 +171,7 @@ export default function RegistroDuracionModal({
                                 {progresoActualFormateado} / {metaTotalFormateada}
                             </span>
                         </div>
-                        {isValidTimeFormat(tiempo) && valorNumerico > 0 && (
+                        {valorNumerico > 0 && (
                             <div className="rpm-progress-row rpm-new">
                                 <span className="rpm-label">Nuevo progreso:</span>
                                 <span className="rpm-value rpm-highlight">
@@ -159,7 +187,7 @@ export default function RegistroDuracionModal({
                         <button type="button" className="rpm-btn-ghost" onClick={handleClose}>
                             Cancelar
                         </button>
-                        <button type="submit" className="rpm-btn-primary">
+                        <button type="submit" className="rpm-btn-primary" disabled={!!error}>
                             <Plus size={16} />
                             Registrar
                         </button>

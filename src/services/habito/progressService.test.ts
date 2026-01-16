@@ -56,19 +56,19 @@ describe("ProgressService", () => {
       const fromMock = vi.mocked(supabase.from);
 
       // 1. obtenerProgresoActual: select().eq().maybeSingle()
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        id_registro_intervalo: "reg1", 
-        progreso: 0 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        id_registro_intervalo: "reg1",
+        progreso: 0
       }) as any);
 
       // 2. guardarRegistroProgreso: insert().select().single()
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        id_registro_intervalo: "new-reg-id" 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        id_registro_intervalo: "new-reg-id"
       }) as any);
 
       // 3. actualizarPuntosUsuario (get): select().eq().single()
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        puntos: 100 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        puntos: 100
       }) as any);
 
       // 4. actualizarPuntosUsuario (update): update().eq()
@@ -84,17 +84,17 @@ describe("ProgressService", () => {
     it("deberia registrar progreso y calcular puntos por dificultad (medio)", async () => {
       const fromMock = vi.mocked(supabase.from);
 
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        id_registro_intervalo: "reg1", 
-        progreso: 0 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        id_registro_intervalo: "reg1",
+        progreso: 0
       }) as any);
 
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        id_registro_intervalo: "new-reg-id" 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        id_registro_intervalo: "new-reg-id"
       }) as any);
 
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        puntos: 100 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        puntos: 100
       }) as any);
 
       fromMock.mockReturnValueOnce(createChainableMock() as any);
@@ -109,17 +109,17 @@ describe("ProgressService", () => {
     it("deberia registrar progreso y calcular puntos por dificultad (dificil)", async () => {
       const fromMock = vi.mocked(supabase.from);
 
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        id_registro_intervalo: "reg1", 
-        progreso: 0 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        id_registro_intervalo: "reg1",
+        progreso: 0
       }) as any);
 
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        id_registro_intervalo: "new-reg-id" 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        id_registro_intervalo: "new-reg-id"
       }) as any);
 
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        puntos: 100 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        puntos: 100
       }) as any);
 
       fromMock.mockReturnValueOnce(createChainableMock() as any);
@@ -135,17 +135,17 @@ describe("ProgressService", () => {
       const fromMock = vi.mocked(supabase.from);
 
       // Meta de 1, entonces al primer avance se completa
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        id_registro_intervalo: "reg1", 
-        progreso: 0 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        id_registro_intervalo: "reg1",
+        progreso: 0
       }) as any);
 
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        id_registro_intervalo: "new-reg-id" 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        id_registro_intervalo: "new-reg-id"
       }) as any);
 
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        puntos: 100 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        puntos: 100
       }) as any);
 
       fromMock.mockReturnValueOnce(createChainableMock() as any);
@@ -160,17 +160,17 @@ describe("ProgressService", () => {
       const fromMock = vi.mocked(supabase.from);
 
       // Meta de 1, entonces al primer avance se completa
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        id_registro_intervalo: "reg1", 
-        progreso: 0 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        id_registro_intervalo: "reg1",
+        progreso: 0
       }) as any);
 
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        id_registro_intervalo: "new-reg-id" 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        id_registro_intervalo: "new-reg-id"
       }) as any);
 
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        puntos: 100 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        puntos: 100
       }) as any);
 
       fromMock.mockReturnValueOnce(createChainableMock() as any);
@@ -185,9 +185,9 @@ describe("ProgressService", () => {
       const fromMock = vi.mocked(supabase.from);
 
       // Ya hay 5 registros (meta = 5), entonces está completo
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        id_registro_intervalo: "reg1", 
-        progreso: 5 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        id_registro_intervalo: "reg1",
+        progreso: 5
       }) as any);
 
       const result = await recordHabitProgress("habit1", "user1", "semanal", 5, "medio");
@@ -196,14 +196,45 @@ describe("ProgressService", () => {
       expect(result.message).toContain("Ya completaste");
       expect(result.isComplete).toBe(true);
     });
+
+    it("deberia ajustar el progreso automaticamente si falta menos de 1 para la meta", async () => {
+      const fromMock = vi.mocked(supabase.from);
+
+      // Progreso actual 1.2, meta 2.0. Falta 0.8.
+      fromMock.mockReturnValueOnce(createChainableMock({
+        id_registro_intervalo: "reg1",
+        progreso: 1.2
+      }) as any);
+
+      // Mock para guardarRegistroProgreso
+      fromMock.mockReturnValueOnce(createChainableMock({
+        id_registro_intervalo: "new-reg-id"
+      }) as any);
+
+      // Mock para actualizarPuntosUsuario (get)
+      fromMock.mockReturnValueOnce(createChainableMock({
+        puntos: 100
+      }) as any);
+
+      // Mock para actualizarPuntosUsuario (update)
+      fromMock.mockReturnValueOnce(createChainableMock() as any);
+
+      // Intentamos avanzar con cantidad 1 (por defecto)
+      const result = await recordHabitProgress("habit1", "user1", "diario", 2, "medio", 1);
+
+      expect(result.success).toBe(true);
+      expect(result.newProgress).toBe(2); // Se ajustó de 1.2 + 1 = 2.2 a 2.0
+      expect(result.isComplete).toBe(true);
+      expect(result.pointsAdded).toBe(10); // Medio * 2 = 5 * 2 = 10 puntos (completado)
+    });
   });
 
   describe("getHabitCurrentProgress", () => {
     it("deberia obtener el progreso actual del hábito", async () => {
       const fromMock = vi.mocked(supabase.from);
 
-      fromMock.mockReturnValueOnce(createChainableMock({ 
-        progreso: 3 
+      fromMock.mockReturnValueOnce(createChainableMock({
+        progreso: 3
       }) as any);
 
       const result = await getHabitCurrentProgress("habit1", "diario");

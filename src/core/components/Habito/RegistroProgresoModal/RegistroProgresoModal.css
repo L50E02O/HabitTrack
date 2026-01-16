@@ -233,6 +233,68 @@
     transform: translateY(0);
 }
 
+/* Selector de tiempo con dropdowns */
+.rpm-time-selector {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.rpm-time-select-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.rpm-time-select-group select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #1f2937;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+.rpm-time-select-group select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.rpm-time-select-group select:hover {
+    border-color: #d1d5db;
+}
+
+.rpm-time-separator {
+    font-size: 24px;
+    font-weight: 700;
+    color: #9ca3af;
+    padding-top: 8px;
+    display: flex;
+    align-items: center;
+    height: 48px;
+}
+
+.rpm-time-sublabel {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: center;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
     .rpm-card {

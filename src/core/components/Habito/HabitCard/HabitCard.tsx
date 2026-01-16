@@ -18,7 +18,7 @@ import {
     Edit3
 } from 'lucide-react';
 import type { IHabito } from '../../../../types/IHabito';
-import { getHabitType } from '../../../../utils/habitTypeUtils';
+import { getHabitType, formatProgressDisplay } from '../../../../utils/habitTypeUtils';
 import RegistroProgresoModal from '../RegistroProgresoModal/RegistroProgresoModal';
 import RegistroDuracionModal from '../RegistroDuracionModal/RegistroDuracionModal';
 
@@ -185,7 +185,7 @@ export default function HabitCard({
                 <div className="progressTop">
                     <span>Progreso</span>
                     <span>
-                        {progress % 1 === 0 ? progress : progress.toFixed(2)}/{goal % 1 === 0 ? goal : goal.toFixed(2)} {formatUnidad(goal, habito.unidad_medida || '')}
+                        {formatProgressDisplay(progress, habito.unidad_medida || '')}/{formatProgressDisplay(goal, habito.unidad_medida || '')} {formatUnidad(goal, habito.unidad_medida || '')}
                     </span>
                 </div>
                 <div className="progressBar">

@@ -1,103 +1,7 @@
 import { supabase } from "../../config/supabase";
 import type { IHabito, CreateIHabito, UpdateIHabito } from "../../types/IHabito";
 
-// Helpers para calcular fechas de períodos
-function toDateString(d: Date): string {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-}
-
-function getPeriodDates(intervaloMeta: string | null, fechaBase?: Date): { inicio: Date; fin: Date } | null {
-    const fecha = fechaBase || new Date();
-    fecha.setHours(0, 0, 0, 0);
-
-    if (intervaloMeta === "semanal") {
-        // Inicio: Lunes de la semana actual
-        const inicio = new Date(fecha);
-        const diaSemana = inicio.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
-        const diasDesdeLunes = diaSemana === 0 ? 6 : diaSemana - 1; // Si es domingo, retroceder 6 días
-        inicio.setDate(inicio.getDate() - diasDesdeLunes);
-
-        // Fin: Domingo de la misma semana (6 días después del lunes)
-        const fin = new Date(inicio);
-        fin.setDate(fin.getDate() + 6);
-        fin.setHours(23, 59, 59, 999);
-        return { inicio, fin };
-    }
-
-    if (intervaloMeta === "mensual") {
-        // Inicio: Primer día del mes actual
-        const inicio = new Date(fecha);
-        inicio.setDate(1);
-
-        // Fin: Último día del mes actual
-        const fin = new Date(inicio);
-        fin.setMonth(fin.getMonth() + 1);
-        fin.setDate(0); // Último día del mes anterior (que es el último día del mes actual)
-        fin.setHours(23, 59, 59, 999);
-        return { inicio, fin };
-    }
-
-    // diario
-    if (intervaloMeta === "diario") {
-        const inicio = new Date(fecha);
-        const fin = new Date(fecha);
-        fin.setHours(23, 59, 59, 999);
-        return { inicio, fin };
-    }
-
-    return null;
-}
-
-/**
- * Genera todos los intervalos futuros para un hábito
- */
-function generarIntervalosFuturos(
-    intervaloMeta: string,
-    fechaInicio: Date,
-    cantidadMeses: number = 6
-): Array<{ inicio: Date; fin: Date }> {
-    const intervalos: Array<{ inicio: Date; fin: Date }> = [];
-    const fechaActual = new Date(fechaInicio);
-    fechaActual.setHours(0, 0, 0, 0);
-
-    if (intervaloMeta === "diario") {
-        // Para hábitos diarios, generar los próximos 90 días
-        for (let i = 0; i < 90; i++) {
-            const periodo = getPeriodDates(intervaloMeta, fechaActual);
-            if (periodo) {
-                intervalos.push(periodo);
-                fechaActual.setDate(fechaActual.getDate() + 1);
-            }
-        }
-    } else if (intervaloMeta === "semanal") {
-        // Para hábitos semanales, generar las próximas semanas (aproximadamente 6 meses = 26 semanas)
-        const semanasTotales = cantidadMeses * 4;
-        for (let i = 0; i < semanasTotales; i++) {
-            const periodo = getPeriodDates(intervaloMeta, fechaActual);
-            if (periodo) {
-                intervalos.push(periodo);
-                // Avanzar al siguiente lunes
-                fechaActual.setDate(fechaActual.getDate() + 7);
-            }
-        }
-    } else if (intervaloMeta === "mensual") {
-        // Para hábitos mensuales, generar los próximos meses
-        for (let i = 0; i < cantidadMeses; i++) {
-            const periodo = getPeriodDates(intervaloMeta, fechaActual);
-            if (periodo) {
-                intervalos.push(periodo);
-                // Avanzar al siguiente mes
-                fechaActual.setMonth(fechaActual.getMonth() + 1);
-                fechaActual.setDate(1);
-            }
-        }
-    }
-
-    return intervalos;
-}
+import { toDateString, getPeriodDates } from "../../utils/dateUtils";
 
 export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito> {
     // Validar meta_repeticion
@@ -119,54 +23,38 @@ export async function createHabito(nuevoHabito: CreateIHabito): Promise<IHabito>
         throw new Error(errorHabito.message);
     }
 
-    // Obtener fechas del período según el tipo de hábito
+    // Obtener fechas del período base para el registro único
     const periodoInfo = getPeriodDates(habitoCreado.intervalo_meta);
-    if (!periodoInfo) {
-        console.error("No se pudo calcular el período para el hábito");
-        return habitoCreado;
-    }
+    const hoyStr = toDateString(new Date());
 
-    // Generar todos los intervalos futuros (6 meses hacia adelante)
-    const intervalosFuturos = generarIntervalosFuturos(
-        habitoCreado.intervalo_meta,
-        periodoInfo.inicio,
-        6
-    );
-
-    // Crear todos los registros de intervalo
-    const registrosParaInsertar = intervalosFuturos.map(periodo => ({
-        id_habito: habitoCreado.id_habito,
-        fecha: toDateString(periodo.inicio),
-        fecha_inicio_intervalo: toDateString(periodo.inicio),
-        fecha_fin_intervalo: toDateString(periodo.fin),
-        cumplido: false,
-        puntos: 0,
-        progreso: 0,
-        cumplido_periodo_anterior: false,
-    }));
-
-    // Insertar todos los registros de intervalo
-    const { data: registrosCreados, error: errorRegistro } = await supabase
+    // Crear el ÚNICO registro de intervalo para este hábito
+    const { data: registroCreado, error: errorRegistro } = await supabase
         .from("registro_intervalo")
-        .insert(registrosParaInsertar)
-        .select();
+        .insert({
+            id_habito: habitoCreado.id_habito,
+            fecha: hoyStr,
+            fecha_inicio_intervalo: periodoInfo ? toDateString(periodoInfo.inicio) : hoyStr,
+            fecha_fin_intervalo: periodoInfo ? toDateString(periodoInfo.fin) : hoyStr,
+            cumplido: false,
+            puntos: 0,
+            progreso: 0,
+            cumplido_periodo_anterior: false,
+        })
+        .select()
+        .single();
 
     if (errorRegistro) {
-        console.error("Error creando registros de intervalo:", errorRegistro);
+        console.error("Error creando el registro de intervalo único:", errorRegistro);
     }
 
-    // Usar el primer registro para la racha inicial
-    const registroInicial = registrosCreados && registrosCreados.length > 0 ? registrosCreados[0] : null;
-
-    // Crear racha inicial
-    if (registroInicial) {
-        const fechaInicioRacha = toDateString(periodoInfo.inicio);
+    // Crear racha inicial asociada al registro único
+    if (registroCreado) {
         const { error: errorRacha } = await supabase
             .from("racha")
             .insert({
-                id_registro_intervalo: registroInicial.id_registro,
-                inicio_racha: toDateString(new Date()),
-                fin_racha: toDateString(new Date()),
+                id_registro_intervalo: registroCreado.id_registro,
+                inicio_racha: hoyStr,
+                fin_racha: hoyStr,
                 dias_consecutivos: 0,
                 racha_activa: false,
                 protectores_asignados: 0,
@@ -243,62 +131,25 @@ export async function updateHabito(id: string, habito: UpdateIHabito): Promise<v
 
 async function regenerarIntervalosHabito(idHabito: string, nuevoIntervalo: string): Promise<void> {
     try {
-        const { data: habito, error: habitoError } = await supabase
-            .from("habito")
-            .select("id_perfil")
-            .eq("id_habito", idHabito)
-            .single();
-
-        if (habitoError || !habito) {
-            console.error("Error obteniendo hábito para regenerar intervalos:", habitoError);
-            return;
-        }
-
-        const hoy = new Date();
-        hoy.setUTCHours(0, 0, 0, 0);
-        const fechaHoyStr = toDateString(hoy);
-
-        const { error: deleteError } = await supabase
-            .from("registro_intervalo")
-            .delete()
-            .eq("id_habito", idHabito)
-            .gte("fecha_inicio_intervalo", fechaHoyStr);
-
-        if (deleteError) {
-            console.error("Error eliminando intervalos antiguos:", deleteError);
-        }
-
         const periodoInfo = getPeriodDates(nuevoIntervalo);
-        if (!periodoInfo) {
-            console.error("No se pudo calcular el período para regenerar intervalos");
-            return;
-        }
+        const hoyStr = toDateString(new Date());
 
-        const intervalosFuturos = generarIntervalosFuturos(
-            nuevoIntervalo,
-            periodoInfo.inicio,
-            6
-        );
-
-        const registrosParaInsertar = intervalosFuturos.map(periodo => ({
-            id_habito: idHabito,
-            fecha: toDateString(periodo.inicio),
-            fecha_inicio_intervalo: toDateString(periodo.inicio),
-            fecha_fin_intervalo: toDateString(periodo.fin),
-            cumplido: false,
-            puntos: 0,
-            progreso: 0,
-            cumplido_periodo_anterior: false,
-        }));
-
-        const { error: insertError } = await supabase
+        const { error: updateError } = await supabase
             .from("registro_intervalo")
-            .insert(registrosParaInsertar);
+            .update({
+                fecha_inicio_intervalo: periodoInfo ? toDateString(periodoInfo.inicio) : hoyStr,
+                fecha_fin_intervalo: periodoInfo ? toDateString(periodoInfo.fin) : hoyStr,
+                // Reiniciamos progreso si cambia el intervalo, ya que es un "nuevo ciclo"
+                progreso: 0,
+                cumplido: false,
+                puntos: 0
+            })
+            .eq("id_habito", idHabito);
 
-        if (insertError) {
-            console.error("Error creando nuevos intervalos:", insertError);
+        if (updateError) {
+            console.error("Error al actualizar el registro de intervalo para el nuevo intervalo:", updateError);
         } else {
-            console.log(`Intervalos regenerados para hábito ${idHabito}: ${registrosParaInsertar.length} intervalos creados`);
+            console.log(`Registro de intervalo actualizado para hábito ${idHabito} con nuevo intervalo ${nuevoIntervalo}`);
         }
 
     } catch (error) {
