@@ -1,0 +1,202 @@
+/* CalendarioModal.css - Estilo del modal de calendario */
+
+/* Modal Overlay */
+.calendario-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content */
+.calendario-modal-content {
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease-out;
+  overflow: hidden;
+}
+
+.calendario-modal-overlay.dark .calendario-modal-content {
+  background: #1a1a1a;
+}
+
+.calendario-modal-body .calendario-widget {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.calendario-modal-overlay.dark .calendario-modal-body .calendario-widget {
+  background: transparent;
+  box-shadow: none;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Modal Header */
+.calendario-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+.calendario-modal-overlay.dark .calendario-modal-header {
+  border-bottom-color: #374151;
+  background: linear-gradient(135deg, #262626 0%, #1f2937 100%);
+}
+
+.calendario-modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.calendario-modal-overlay.dark .calendario-modal-title {
+  color: #f3f4f6;
+}
+
+.calendario-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.calendario-modal-close:hover {
+  background-color: #f3f4f6;
+  color: #1a1a1a;
+}
+
+.calendario-modal-overlay.dark .calendario-modal-close {
+  color: #9ca3af;
+}
+
+.calendario-modal-overlay.dark .calendario-modal-close:hover {
+  background-color: #374151;
+  color: #fff;
+}
+
+/* Modal Body */
+.calendario-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Scrollbar personalizado */
+.calendario-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.calendario-modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.calendario-modal-overlay.dark .calendario-modal-body::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.calendario-modal-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.calendario-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.calendario-modal-overlay.dark .calendario-modal-body::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.calendario-modal-overlay.dark .calendario-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .calendario-modal-overlay {
+    padding: 0.5rem;
+  }
+
+  .calendario-modal-content {
+    max-width: 100%;
+    max-height: 95vh;
+    border-radius: 16px;
+  }
+
+  .calendario-modal-header {
+    padding: 1rem;
+  }
+
+  .calendario-modal-title {
+    font-size: 1.25rem;
+  }
+
+  .calendario-modal-body {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendario-modal-content {
+    border-radius: 12px;
+  }
+
+  .calendario-modal-header {
+    padding: 0.875rem;
+  }
+
+  .calendario-modal-title {
+    font-size: 1.125rem;
+  }
+
+  .calendario-modal-body {
+    padding: 0.875rem;
+  }
+}
+

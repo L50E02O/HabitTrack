@@ -60,8 +60,8 @@ export default defineConfig({
             short_name: 'Dashboard',
             description: 'Ver tu dashboard de hábitos',
             url: '/dashboard',
-            icons: [{ 
-              src: '/icon-192.png', 
+            icons: [{
+              src: '/icon-192.png',
               sizes: '192x192',
               type: 'image/png'
             }]
@@ -110,20 +110,20 @@ export default defineConfig({
   ],
   server: {
     // Proxy /api to local dev API when running vite in development.
-    // NOTA: El servidor debe estar corriendo en puerto 4000 (npm run dev:api)
+    // NOTA: El servidor debe estar corriendo en puerto 3001 (npm run dev:api)
     // Si no está corriendo, verás errores ECONNREFUSED. 
     // Solución: Ejecuta 'npm run dev:api' en otra terminal
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
         // Si el servidor no está disponible, no fallar silenciosamente
         configure: (proxy, _options) => {
           proxy.on('error', (_err, _req, _res) => {
-            console.warn('[Vite Proxy] El servidor API en localhost:4000 no está disponible.');
-            console.warn('[Vite Proxy] Ejecuta "npm run dev:api" en otra terminal para solucionarlo.');
-            console.warn('[Vite Proxy] La app funcionará pero el ranking puede no cargar correctamente.');
+            console.warn('[Vite Proxy] ❌ El servidor API en localhost:3001 no está disponible.');
+            console.warn('[Vite Proxy] 🔧 Ejecuta "npm run dev:api" en otra terminal para solucionarlo.');
+            console.warn('[Vite Proxy] ⚠️  La app funcionará pero Google Fit y el ranking no cargarán.');
           });
         }
       },

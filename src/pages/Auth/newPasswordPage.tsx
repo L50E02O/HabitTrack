@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { updatePasswordWithToken } from "../../services/auth/restorePassword";
 import { supabase } from "../../config/supabase";
-import styles from "./loginPage.module.css";
+import styles from "./loginPage/loginPage.module.css";
 
 export default function NewPasswordPage() {
   const navigate = useNavigate();

@@ -116,7 +116,8 @@
 @media (max-width: 768px) {
     .main {
         padding: 1rem;
-        padding-bottom: 120px; /* Espacio para botones flotantes */
+        padding-bottom: 120px;
+        /* Espacio para botones flotantes */
     }
 }
 
@@ -126,6 +127,10 @@
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
+}
+
+.dashboard.dark .widgets-container {
+    /* Los widgets individuales manejan su propio dark mode */
 }
 
 /* Logo */
@@ -206,17 +211,19 @@
     transform: scale(1.05);
 }
 
-/* Botones Flotantes */
-.floating-logros-button {
+/* Botones Flotantes - Estilos unificados */
+.floating-calendario-button,
+.floating-logros-button,
+.floating-protectores-button,
+.floating-ranking-button,
+.floating-smartwatch-button {
     position: fixed;
-    bottom: 0.5rem;
     right: 2rem;
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
     border: none;
-    box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -224,72 +231,90 @@
     color: white;
     transition: all 0.3s ease;
     z-index: 1000;
-    animation: pulse-gold 2s infinite;
 }
 
-.floating-logros-button:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 30px rgba(251, 191, 36, 0.6);
+/* Posiciones específicas */
+.floating-smartwatch-button {
+    bottom: 18.5rem;
+    background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
 }
 
-.floating-logros-button:active {
-    transform: scale(0.95);
-    width: 52px;
+.floating-ranking-button {
+    bottom: 14rem;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+}
+
+.floating-calendario-button {
+    bottom: 9.5rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.floating-logros-button {
+    bottom: 0.5rem;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
 }
 
 .floating-protectores-button {
-    position: fixed;
-    bottom: 5rem; /* Arriba del botón de logros */
-    right: 2rem;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
+    bottom: 5rem;
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border: none;
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+}
+
+/* Badge de posición */
+.position-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff4444;
     color: white;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    animation: pulse-green 2s infinite;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.floating-protectores-button:hover {
+/* Hover unificado */
+.floating-calendario-button:hover,
+.floating-logros-button:hover,
+.floating-protectores-button:hover,
+.floating-ranking-button:hover,
+.floating-smartwatch-button:hover {
     transform: scale(1.1);
-    box-shadow: 0 6px 30px rgba(16, 185, 129, 0.6);
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.3);
 }
 
-.floating-protectores-button:active {
+/* Active unificado */
+.floating-calendario-button:active,
+.floating-logros-button:active,
+.floating-protectores-button:active,
+.floating-ranking-button:active,
+.floating-smartwatch-button:active {
     transform: scale(0.95);
 }
 
-@keyframes pulse-gold {
-    0%, 100% {
-        box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
-    }
-    50% {
-        box-shadow: 0 4px 30px rgba(251, 191, 36, 0.7);
-    }
-}
-
-@keyframes pulse-green {
-    0%, 100% {
-        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-    }
-    50% {
-        box-shadow: 0 4px 30px rgba(16, 185, 129, 0.7);
-    }
-}
-
 @media (max-width: 768px) {
+
+    .floating-calendario-button,
     .floating-logros-button,
-    .floating-protectores-button {
+    .floating-protectores-button,
+    .floating-ranking-button,
+    .floating-smartwatch-button {
         width: 48px;
         height: 48px;
         right: 1rem;
+    }
+
+    .floating-smartwatch-button {
+        bottom: 16.5rem;
+    }
+
+    .floating-ranking-button {
+        bottom: 12rem;
+    }
+
+    .floating-calendario-button {
+        bottom: 8.5rem;
     }
 
     .floating-logros-button {
@@ -350,7 +375,7 @@
     transform: translateY(0);
 }
 
-/* Grid de Hábitos - Exactamente 3 columnas en desktop */
+/* Grid de Hábitos */
 .habitsGrid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -359,21 +384,19 @@
     margin: 0 auto;
 }
 
-/* Tablet: 2 columnas */
 @media (max-width: 1024px) {
     .habitsGrid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
-/* Móvil: 1 columna */
 @media (max-width: 768px) {
     .habitsGrid {
         grid-template-columns: 1fr;
     }
 }
 
-/* Sección de Recordatorios */
+/* Recordatorios */
 .recordatorios-section {
     margin-top: 3rem;
     padding-top: 2rem;
@@ -384,7 +407,7 @@
     border-top-color: #374151;
 }
 
-/* Estado Vacío */
+/* Empty State */
 .emptyState {
     grid-column: 1 / -1;
     text-align: center;
@@ -420,7 +443,7 @@
     font-size: 1.1rem;
 }
 
-/* Notificaciones */
+/* Notifications */
 .notification {
     position: fixed;
     top: 80px;
@@ -447,7 +470,6 @@
     border-left: 4px solid #ef4444;
 }
 
-/* Notificaciones en modo oscuro */
 .dashboard.dark .notification-success {
     background-color: #064e3b;
     color: #a7f3d0;
@@ -469,50 +491,5 @@
     to {
         transform: translateX(0);
         opacity: 1;
-    }
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-
-    to {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .notification {
-        right: 10px;
-        left: 10px;
-        max-width: none;
-    }
-}
-
-@media (max-width: 768px) {
-    .titleSection {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .createButton {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .habitsGrid {
-        grid-template-columns: 1fr;
-    }
-
-    .header {
-        padding: 1rem;
-    }
-
-    .logoText {
-        font-size: 1.2rem;
     }
 }

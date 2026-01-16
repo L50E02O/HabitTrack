@@ -6,6 +6,7 @@ export interface IHabito{
     categoria: string | "ejercicio" | "alimentacion" | "estudio" | "salud" | "trabajo" | "otro";
     intervalo_meta: string | "diario" | "semanal" | "mensual";
     meta_repeticion: number;
+    unidad_medida: string;
     fecha_creacion: Date;
     activo: boolean;
     dificultad: string | "facil" | "medio" | "dificil";
@@ -19,6 +20,7 @@ export interface CreateIHabito{
     categoria: string | "ejercicio" | "alimentacion" | "estudio" | "salud" | "trabajo" | "otro";
     intervalo_meta: string | "diario" | "semanal" | "mensual";
     meta_repeticion: number;
+    unidad_medida: string;
     fecha_creacion: Date;
     activo: boolean;
     dificultad: string | "facil" | "medio" | "dificil";
@@ -32,6 +34,7 @@ export interface UpdateIHabito{
     categoria?: string | "ejercicio" | "alimentacion" | "estudio" | "salud" | "trabajo" | "otro";
     intervalo_meta?: string | "diario" | "semanal" | "mensual";
     meta_repeticion?: number;
+    unidad_medida?: string;
     fecha_creacion?: Date;
     activo?: boolean;
     dificultad?: string | "facil" | "medio" | "dificil";
