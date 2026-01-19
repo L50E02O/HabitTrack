@@ -53,5 +53,5 @@ export const UNIQUE_UNIDADES = Array.from(
             .flat()
             .map(h => h.unidadMedida)
     )
-).sort();
+).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 

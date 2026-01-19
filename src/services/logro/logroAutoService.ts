@@ -2,6 +2,45 @@ import { supabase } from "../../config/supabase";
 import type { ILogro } from "../../types/ILogro";
 import type { ILogroUsuario } from "../../types/ILogroUsuario";
 
+/**
+ * Calcula y actualiza los protectores de racha ganados
+ * Se gana 1 protector cada 3 días de racha
+ */
+async function calcularYActualizarProtectores(
+  idPerfil: string,
+  diasRachaActual: number
+): Promise<number> {
+  const protectoresDisponibles = Math.floor(diasRachaActual / 3);
+
+  const { data: perfil, error: perfilError } = await supabase
+    .from("perfil")
+    .select("protectores_racha")
+    .eq("id", idPerfil)
+    .single();
+
+  if (perfilError) throw perfilError;
+
+  const protectoresActuales = perfil?.protectores_racha || 0;
+
+  if (protectoresDisponibles <= protectoresActuales) {
+    return 0;
+  }
+
+  const protectoresGanados = protectoresDisponibles - protectoresActuales;
+
+  const { error: updateError } = await supabase
+    .from("perfil")
+    .update({ protectores_racha: protectoresDisponibles })
+    .eq("id", idPerfil);
+
+  if (updateError) {
+    console.error("Error al actualizar protectores:", updateError);
+    throw updateError;
+  }
+
+  return protectoresGanados;
+}
+
 export interface LogroDesbloqueadoResult {
   logrosNuevos: ILogro[];
   protectoresGanados: number;
@@ -70,35 +109,7 @@ export async function verificarYDesbloquearLogros(
     }
 
     // 5. Calcular protectores de racha ganados
-    // Se gana 1 protector cada 3 días de racha
-    const protectoresDisponibles = Math.floor(diasRachaActual / 3);
-
-    // Obtener protectores actuales del perfil
-    const { data: perfil, error: perfilError } = await supabase
-      .from("perfil")
-      .select("protectores_racha")
-      .eq("id", idPerfil)
-      .single();
-
-    if (perfilError) throw perfilError;
-
-    const protectoresActuales = perfil?.protectores_racha || 0;
-
-    // Solo actualizar si hay protectores nuevos
-    let protectoresGanados = 0;
-    if (protectoresDisponibles > protectoresActuales) {
-      protectoresGanados = protectoresDisponibles - protectoresActuales;
-
-      const { error: updateError } = await supabase
-        .from("perfil")
-        .update({ protectores_racha: protectoresDisponibles })
-        .eq("id", idPerfil);
-
-      if (updateError) {
-        console.error("Error al actualizar protectores:", updateError);
-        throw updateError;
-      }
-    }
+    const protectoresGanados = await calcularYActualizarProtectores(idPerfil, diasRachaActual);
 
     // 6. Crear mensaje de logros desbloqueados
     let mensaje = "";

@@ -134,12 +134,17 @@ CREATE OR REPLACE FUNCTION quitar_protector_de_habito(
 DECLARE
     v_racha_id UUID;
     v_protectores_actuales INTEGER;
+    -- Constantes para mensajes
+    MSG_CANTIDAD_INVALIDA CONSTANT TEXT := 'La cantidad debe ser mayor a 0';
+    MSG_RACHA_NO_ENCONTRADA CONSTANT TEXT := 'No se encontró una racha activa para este hábito';
+    MSG_PROTECTORES_ASIGNADOS_INSUFICIENTES CONSTANT TEXT := 'No tienes suficientes protectores asignados a este hábito';
+    MSG_REMOCION_EXITOSA CONSTANT TEXT := 'Protector removido exitosamente';
 BEGIN
     -- Validar que la cantidad sea positiva
     IF p_cantidad <= 0 THEN
         RETURN json_build_object(
             'success', false,
-            'message', 'La cantidad debe ser mayor a 0'
+            'message', MSG_CANTIDAD_INVALIDA
         );
     END IF;
 

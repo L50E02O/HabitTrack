@@ -82,33 +82,27 @@ describe('LogrosModal - Racha Máxima Correcta', () => {
   });
 
   it('debe retornar 0 si no hay rachas', async () => {
-    // Mock para la consulta de rachas (primera llamada a from('racha'))
-    const mockRachaQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
-      }),
-    };
+    // Mock para la consulta de perfil (primera llamada a from('perfil'))
+    const mockPerfilQuery = createSupabaseChain({
+      data: { racha_maxima: 0 }, // Sin rachas
+      error: null,
+    }, true);
 
     // Mock para la consulta de logros (segunda llamada a from('logro'))
     const mockLogrosQuery = {
-      select: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
       }),
     };
 
     // Mock para la consulta de logro_usuario (tercera llamada a from('logro_usuario'))
     const mockLogroUsuarioQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
       }),
     };
 

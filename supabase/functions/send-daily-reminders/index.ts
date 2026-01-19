@@ -6,6 +6,84 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Helper: Procesar un recordatorio individual
+async function procesarRecordatorio(
+    recordatorio: Recordatorio,
+    sendgridApiKey: string,
+    fromEmail: string
+): Promise<{ id: string; success: boolean; email?: string; error?: string }> {
+    const userEmail = (recordatorio as any).perfil?.email ?? null;
+
+    if (!userEmail) {
+        console.error(`❌ No se encontró email en perfil ${recordatorio.id_perfil}`);
+        return {
+            id: recordatorio.id_recordatorio,
+            success: false,
+            error: 'Email no encontrado en perfil'
+        };
+    }
+
+    const userName = recordatorio.perfil?.nombre || 'Usuario';
+    const habitName = recordatorio.habito?.nombre_habito || 'tu hábito';
+
+    const payload = {
+        personalizations: [{ to: [{ email: userEmail }], subject: `🔔 Recordatorio: ${habitName}` }],
+        from: { email: fromEmail, name: 'HabitTrack' },
+        content: [{ type: 'text/html', value: generateEmailHTML(userName, habitName, recordatorio.mensaje) }]
+    };
+
+    try {
+        const emailResponse = await fetch('https://api.sendgrid.com/v3/mail/send', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${sendgridApiKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (emailResponse.status === 202) {
+            console.log(`✅ Email enviado exitosamente a ${userEmail}`);
+            return { id: recordatorio.id_recordatorio, success: true, email: userEmail };
+        }
+
+        const contentType = emailResponse.headers.get('content-type') || '';
+        const body = contentType.includes('application/json')
+            ? await emailResponse.json().catch(() => null)
+            : await emailResponse.text().catch(() => null);
+        
+        console.error(`❌ Error enviando email a ${userEmail}:`, body);
+        return {
+            id: recordatorio.id_recordatorio,
+            success: false,
+            error: body?.errors?.[0]?.message || `HTTP ${emailResponse.status}`
+        };
+    } catch (emailError: any) {
+        console.error(`❌ Error procesando recordatorio ${recordatorio.id_recordatorio}:`, emailError);
+        return {
+            id: recordatorio.id_recordatorio,
+            success: false,
+            error: emailError?.message || String(emailError)
+        };
+    }
+}
+
+// Helper: Procesar todos los recordatorios
+async function procesarRecordatorios(
+    recordatorios: Recordatorio[],
+    sendgridApiKey: string,
+    fromEmail: string
+): Promise<Array<{ id: string; success: boolean; email?: string; error?: string }>> {
+    const results: Array<{ id: string; success: boolean; email?: string; error?: string }> = [];
+    
+    for (const recordatorio of recordatorios) {
+        const result = await procesarRecordatorio(recordatorio, sendgridApiKey, fromEmail);
+        results.push(result);
+    }
+    
+    return results;
+}
+
 interface Recordatorio {
     id_recordatorio: string
     id_perfil: string
@@ -23,7 +101,7 @@ interface Recordatorio {
     }
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
     // Manejar CORS preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
@@ -130,60 +208,7 @@ serve(async (req) => {
         const fromEmail = Deno.env.get('SENDGRID_FROM_EMAIL') || 'jvicenteontaneda110@gmail.com'
 
         // Enviar emails
-        const results: Array<any> = []
-        for (const recordatorio of recordatorios as Recordatorio[]) {
-            try {
-                // Usar el email obtenido por el join en perfil.email
-                const userEmail = (recordatorio as any).perfil?.email ?? null
-
-                if (!userEmail) {
-                    console.error(`❌ No se encontró email en perfil ${recordatorio.id_perfil}`)
-                    results.push({
-                        id: recordatorio.id_recordatorio,
-                        success: false,
-                        error: 'Email no encontrado en perfil'
-                    })
-                    continue
-                }
-
-                const userName = recordatorio.perfil?.nombre || 'Usuario'
-                const habitName = recordatorio.habito?.nombre_habito || 'tu hábito'
-
-                // Preparar payload de SendGrid
-                const payload = {
-                    personalizations: [{ to: [{ email: userEmail }], subject: `🔔 Recordatorio: ${habitName}` }],
-                    from: { email: fromEmail, name: 'HabitTrack' },
-                    content: [{ type: 'text/html', value: generateEmailHTML(userName, habitName, recordatorio.mensaje) }]
-                }
-
-                const emailResponse = await fetch('https://api.sendgrid.com/v3/mail/send', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${sendgridApiKey}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                })
-
-                if (emailResponse.status === 202) {
-                    console.log(`✅ Email enviado exitosamente a ${userEmail}`)
-                    results.push({ id: recordatorio.id_recordatorio, success: true, email: userEmail })
-                } else {
-                    let body: any = null
-                    const contentType = emailResponse.headers.get('content-type') || ''
-                    if (contentType.includes('application/json')) {
-                        body = await emailResponse.json().catch(() => null)
-                    } else {
-                        body = await emailResponse.text().catch(() => null)
-                    }
-                    console.error(`❌ Error enviando email a ${userEmail}:`, body)
-                    results.push({ id: recordatorio.id_recordatorio, success: false, error: body?.errors?.[0]?.message || `HTTP ${emailResponse.status}` })
-                }
-            } catch (emailError: any) {
-                console.error(`❌ Error procesando recordatorio ${recordatorio.id_recordatorio}:`, emailError)
-                results.push({ id: recordatorio.id_recordatorio, success: false, error: emailError?.message || String(emailError) })
-            }
-        }
+        const results = await procesarRecordatorios(recordatorios as Recordatorio[], sendgridApiKey, fromEmail)
 
         const successCount = results.filter((r) => r.success).length
         console.log(`✅ Enviados ${successCount} de ${recordatorios.length} recordatorios`)
