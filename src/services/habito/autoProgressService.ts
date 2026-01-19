@@ -161,6 +161,78 @@ async function verificarYActualizarRacha(habito: IHabito): Promise<boolean> {
 }
 
 /**
+ * Procesa un hábito diario: actualiza racha solo si completó la meta del día
+ */
+async function procesarHabitoDiario(
+  habito: IHabito,
+  progresoHoy: number,
+  registrosHoy: any[] | null
+): Promise<boolean> {
+  // Para hábitos diarios, solo actualizamos si completó la meta
+  if (progresoHoy >= habito.meta_repeticion && registrosHoy && registrosHoy.length > 0) {
+    const ultimoRegistro = registrosHoy[registrosHoy.length - 1];
+    return await actualizarRachaHabito(habito, ultimoRegistro);
+  }
+  return false;
+}
+
+/**
+ * Procesa un hábito periódico (semanal/mensual): verifica si debe actualizar racha
+ */
+async function procesarHabitoPeriodico(
+  habito: IHabito,
+  progresoHoy: number,
+  registrosHoy: any[] | null,
+  rachaActual: any,
+  hoy: Date
+): Promise<boolean> {
+  // Para hábitos periódicos, verificamos si completó la meta del período anterior
+  const inicioPeriodo = calcularInicioPeriodo(hoy, habito.intervalo_meta);
+  const finPeriodoAnterior = new Date(inicioPeriodo);
+  finPeriodoAnterior.setDate(finPeriodoAnterior.getDate() - 1);
+
+  // Verificar si el período anterior fue completado
+  const periodoAnteriorCompletado = await verificarMetaPeriodoAnterior(
+    habito.id_habito,
+    finPeriodoAnterior,
+    habito.meta_repeticion,
+    habito.intervalo_meta
+  );
+
+  if (periodoAnteriorCompletado && registrosHoy && registrosHoy.length > 0) {
+    const ultimoRegistro = registrosHoy[registrosHoy.length - 1];
+    return await actualizarRachaHabito(habito, ultimoRegistro);
+  }
+
+  return false;
+}
+
+/**
+ * Verifica si se completó la meta del período anterior
+ */
+async function verificarMetaPeriodoAnterior(
+  idHabito: string,
+  finPeriodo: Date,
+  metaRepeticion: number,
+  intervaloMeta: string
+): Promise<boolean> {
+  const inicioPeriodo = calcularInicioPeriodo(finPeriodo, intervaloMeta);
+
+  const { data: registros, error } = await supabase
+    .from("registro_intervalo")
+    .select("*")
+    .eq("id_habito", idHabito)
+    .gte("fecha", inicioPeriodo.toISOString())
+    .lte("fecha", finPeriodo.toISOString());
+
+  if (error || !registros) {
+    return false;
+  }
+
+  return registros.length >= metaRepeticion;
+}
+
+/**
  * Actualiza la racha de un hábito específico
  */
 async function actualizarRachaHabito(habito: IHabito, ultimoRegistro: any): Promise<boolean> {
