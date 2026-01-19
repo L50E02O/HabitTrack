@@ -111,19 +111,38 @@ export default defineConfig({
   server: {
     // Proxy /api to local dev API when running vite in development.
     // NOTA: El servidor debe estar corriendo en puerto 3001 (npm run dev:api)
-    // Si no está corriendo, verás errores ECONNREFUSED. 
+    // Si no está corriendo, las peticiones fallarán con error 503.
     // Solución: Ejecuta 'npm run dev:api' en otra terminal
+    // Ver docs/DESARROLLO_LOCAL.md para más información
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
-        // Si el servidor no está disponible, no fallar silenciosamente
+        // Manejar errores de conexión de manera más silenciosa
         configure: (proxy, _options) => {
-          proxy.on('error', (_err, _req, _res) => {
-            console.warn('[Vite Proxy] ❌ El servidor API en localhost:3001 no está disponible.');
-            console.warn('[Vite Proxy] 🔧 Ejecuta "npm run dev:api" en otra terminal para solucionarlo.');
-            console.warn('[Vite Proxy] ⚠️  La app funcionará pero Google Fit y el ranking no cargarán.');
+          let lastErrorTime = 0;
+          const ERROR_THROTTLE_MS = 10000; // Mostrar error máximo cada 10 segundos
+          
+          proxy.on('error', (err, req, res) => {
+            const now = Date.now();
+            // Solo mostrar el error si pasó suficiente tiempo desde el último
+            if (now - lastErrorTime > ERROR_THROTTLE_MS) {
+              console.warn('\n[Vite Proxy] ⚠️  El servidor API en localhost:3001 no está disponible.');
+              console.warn('[Vite Proxy] 💡 Ejecuta "npm run dev:api" en otra terminal para habilitar las APIs.');
+              console.warn('[Vite Proxy] 📖 Ver docs/DESARROLLO_LOCAL.md para más información.\n');
+              lastErrorTime = now;
+            }
+            
+            // Responder con un error 503 para que el cliente pueda manejarlo
+            if (res && !res.headersSent) {
+              res.writeHead(503, {
+                'Content-Type': 'application/json',
+              });
+              res.end(JSON.stringify({
+                error: 'Servidor API no disponible. Ejecuta "npm run dev:api" en otra terminal.'
+              }));
+            }
           });
         }
       },
