@@ -86,7 +86,7 @@ export async function actualizarRachaMaximaEnPerfil(
       ...(rachas || []).map(r => r.dias_consecutivos || 0),
       rachaActual
     ];
-    
+
     const rachaMaximaCalculada = Math.max(...todasLasRachas);
 
     console.log(`Rachas del usuario: ${todasLasRachas.length} encontradas, máxima: ${rachaMaximaCalculada}`);
@@ -135,7 +135,7 @@ async function actualizarRachaEnPerfil(
         console.error('Error actualizando racha_maxima:', updateError);
       } else {
         console.log(`Nuevo récord. Racha máxima actualizada: ${rachaMaximaPerfil} a ${nuevaRachaMaxima} días`);
-        
+
         // IMPORTANTE: Verificar logros después de actualizar racha_maxima
         // El trigger en la BD también lo hará, pero esto asegura que se haga desde el código
         try {
@@ -145,7 +145,7 @@ async function actualizarRachaEnPerfil(
           // No lanzamos el error para no bloquear la actualización de racha
         }
       }
-      } else {
+    } else {
       console.log(`Racha actual: ${nuevaRachaMaxima} días (Récord: ${rachaMaximaPerfil} días)`);
     }
   } catch (error) {
@@ -230,25 +230,25 @@ export async function updateRachaOnHabitCompletion(
     } else {
       // Verificar si la racha se rompió y si hay protectores disponibles
       const { seRompio, usóProtector } = await seRompioLaRachaConProteccion(
-        rachaActual, 
-        hoy, 
+        rachaActual,
+        hoy,
         intervaloMeta,
         idPerfil,
         idHabito
       );
-      
+
       if (seRompio) {
         // Si la racha se rompió por tiempo y no había protector, creamos una nueva
         return await crearNuevaRacha(idRegistroIntervalo, rachaActual, periodosConsecutivos, intervaloMeta, idPerfil);
       } else {
         // Si la racha sigue activa (o se salvó con protector), la extendemos
         const resultado = await extenderRacha(rachaActual, idRegistroIntervalo, hoy, periodosConsecutivos, intervaloMeta, idPerfil);
-        
+
         // Si se usó un protector, agregar info al mensaje
         if (usóProtector) {
           resultado.message = `${resultado.message} (Protector usado para salvar tu racha)`;
         }
-        
+
         return resultado;
       }
     }
@@ -265,44 +265,23 @@ export async function updateRachaOnHabitCompletion(
   }
 }
 
-// Esta función busca la racha que está activa actualmente
+// Esta función busca la racha que está activa actualmente para el hábito
 async function buscarRachaActiva(idHabito: string): Promise<IRacha | null> {
   try {
-    // Primero obtenemos todos los registros_intervalo de este hábito
-    const { data: registros, error: errorRegistros } = await supabase
-      .from("registro_intervalo")
-      .select("id_registro")
-      .eq("id_habito", idHabito);
-
-    if (errorRegistros) {
-      console.error("Error al buscar registros:", errorRegistros);
-      return null;
-    }
-
-    if (!registros || registros.length === 0) {
-      return null;
-    }
-
-    // Extraer los IDs de los registros
-    const idsRegistros = registros.map(r => r.id_registro);
-
-    // Buscar rachas activas para estos registros
-    const { data: rachas, error } = await supabase
+    // Buscar la racha directamente a través del registro_intervalo único del hábito
+    const { data: racha, error } = await supabase
       .from("racha")
-      .select("*")
-      .in("id_registro_intervalo", idsRegistros)
+      .select("*, registro_intervalo!inner(id_habito)")
+      .eq("registro_intervalo.id_habito", idHabito)
       .eq("racha_activa", true)
-      .order("fin_racha", { ascending: false })
-      .limit(1);
+      .maybeSingle();
 
     if (error) {
       console.error("Error al buscar racha activa:", error);
       return null;
     }
 
-    if (!rachas || rachas.length === 0) {
-      return null; // No hay racha activa
-    } return rachas[0];
+    return racha;
   } catch (error) {
     console.error("💥 Error en buscarRachaActiva:", error);
     return null;
@@ -311,20 +290,20 @@ async function buscarRachaActiva(idHabito: string): Promise<IRacha | null> {
 
 // Cuenta períodos consecutivos según el tipo de intervalo
 // IMPORTANTE: Cuenta TODOS los registros del hábito
+// Retorna el progreso actual del registro único
 async function calcularPeriodosConsecutivos(
   idHabito: string,
-  intervaloMeta: string,
-  fechaHoy: Date,
-  metaRepeticion: number
+  _intervaloMeta: string,
+  _fechaHoy: Date,
+  _metaRepeticion: number
 ): Promise<number> {
-  // Obtener TODOS los registros del hábito (sin filtrar por cumplido)
-  const { data: registros, error } = await supabase
+  // Con el nuevo diseño 1:1, los "periodos consecutivos" o racha se mantienen en la tabla racha.
+  // Pero si necesitamos calcularlo de cero baseado en registros, ahora solo tenemos UN registro.
+  const { data: registro, error } = await supabase
     .from("registro_intervalo")
-    .select("fecha")
+    .select("progreso")
     .eq("id_habito", idHabito)
-    .order("fecha", { ascending: false });
-
-  console.log(`Total de registros para hábito ${idHabito}:`, registros?.length || 0);
+    .single();
 
   if (error) {
     console.error("Error al contar registros:", error);
@@ -470,8 +449,8 @@ function obtenerClaveSemanaMejorada(fecha: Date): string {
 // Revisa si la racha se rompió porque pasó mucho tiempo
 // NUEVA: Intenta usar un protector automáticamente si está disponible
 async function seRompioLaRachaConProteccion(
-  racha: IRacha, 
-  _fechaHoy: Date, 
+  racha: IRacha,
+  _fechaHoy: Date,
   intervaloMeta: string,
   idPerfil: string,
   idHabito: string
@@ -484,7 +463,7 @@ async function seRompioLaRachaConProteccion(
 
   // Tiempos de expiración según el tipo de intervalo
   let seRompioTiempo = false;
-  
+
   if (intervaloMeta === 'diario') {
     // 1 día = 24 horas
     const unDiaEnMs = 24 * 60 * 60 * 1000;
@@ -493,12 +472,12 @@ async function seRompioLaRachaConProteccion(
     // Verificar si saltamos UNA semana completa (no solo 7 días)
     const semanaAnterior = obtenerClaveSemanaMejorada(ultimaFecha);
     const semanaActual = obtenerClaveSemanaMejorada(ahora);
-    
+
     // Calcular diferencia de semanas
     const [añoAnt, semAnt] = semanaAnterior.split('-W').map(Number);
     const [añoAct, semAct] = semanaActual.split('-W').map(Number);
     const diferenciaSemanas = (añoAct - añoAnt) * 52 + (semAct - semAnt);
-    
+
     // Se rompe si saltamos MÁS de 1 semana (ej: de semana 1 a semana 3+)
     seRompioTiempo = diferenciaSemanas > 1;
   } else if (intervaloMeta === 'mensual') {
@@ -512,7 +491,7 @@ async function seRompioLaRachaConProteccion(
       ahora.getMonth() + 1
     ];
     const diferenciaMeses = (añoAct - añoAnt) * 12 + (mesAct - mesAnt);
-    
+
     // Se rompe si saltamos MÁS de 1 mes (ej: de enero a marzo+)
     seRompioTiempo = diferenciaMeses > 1;
   } else {
@@ -532,8 +511,7 @@ async function seRompioLaRachaConProteccion(
     const { data: rachaData, error: rachaError } = await supabase
       .from('racha')
       .select('protectores_asignados, dias_consecutivos')
-      .eq('id_habito', idHabito)
-      .eq('id_perfil', idPerfil)
+      .eq('id_racha', racha.id_racha)
       .single();
 
     if (rachaError || !rachaData) {
@@ -544,12 +522,12 @@ async function seRompioLaRachaConProteccion(
     const protectoresAsignados = rachaData.protectores_asignados || 0;
     const rachaActual = rachaData.dias_consecutivos || 0;
 
-      if (protectoresAsignados > 0) {
+    if (protectoresAsignados > 0) {
       console.log('Racha rota. Usando protector automáticamente...');
-      
+
       // Usar el protector
       const resultado = await usarProtector(idPerfil, idHabito, rachaActual);
-      
+
       if (resultado.success) {
         console.log(`Protector usado exitosamente. Racha salvada: ${rachaActual} días`);
         return { seRompio: false, usóProtector: true };
@@ -850,8 +828,8 @@ export async function checkAndDeactivateExpiredRachas(
 
     // Verificar si la racha se rompió y si hay protectores disponibles
     const { seRompio, usóProtector } = await seRompioLaRachaConProteccion(
-      rachaActiva, 
-      fechaHoy, 
+      rachaActiva,
+      fechaHoy,
       intervaloMeta,
       idPerfil!, // Ya verificamos que existe
       idHabito
@@ -863,7 +841,7 @@ export async function checkAndDeactivateExpiredRachas(
         .from("racha")
         .update({ racha_activa: false })
         .eq("id_racha", rachaActiva.id_racha);
-      
+
       console.log(`Racha desactivada para hábito ${idHabito}`);
     } else if (usóProtector) {
       console.log(`Racha salvada con protector para hábito ${idHabito}`);

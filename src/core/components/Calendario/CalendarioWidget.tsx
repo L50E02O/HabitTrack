@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
-import { obtenerDiasConRachaEnRango } from '../../../services/calendario/calendarioService';
+import { Calendar, ChevronLeft, ChevronRight, Dumbbell, Ham, GraduationCap, HeartPulse, BriefcaseBusiness, Star } from 'lucide-react';
+import { obtenerDiasFinIntervaloEnRango, type DiaFinIntervalo } from '../../../services/calendario/calendarioService';
+import HabitoInfoModal from './HabitoInfoModal';
 import './CalendarioWidget.css';
 
 interface CalendarioWidgetProps {
   userId: string;
   darkMode?: boolean;
+  onEditHabito?: (habitoId: string) => void;
 }
 
-export default function CalendarioWidget({ userId, darkMode = false }: CalendarioWidgetProps) {
+export default function CalendarioWidget({ userId, darkMode = false, onEditHabito }: CalendarioWidgetProps) {
   const [fechaActual, setFechaActual] = useState(new Date());
-  const [diasCompletados, setDiasCompletados] = useState<Set<string>>(new Set());
+  const [diasFinIntervalo, setDiasFinIntervalo] = useState<Map<string, DiaFinIntervalo>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [habitoSeleccionado, setHabitoSeleccionado] = useState<string | null>(null);
+  const [showHabitoInfo, setShowHabitoInfo] = useState(false);
 
   useEffect(() => {
-    const cargarDiasCompletados = async () => {
+    const cargarDiasFinIntervalo = async () => {
       if (!userId) return;
       
       try {
@@ -28,16 +32,16 @@ export default function CalendarioWidget({ userId, darkMode = false }: Calendari
         const inicioRango = new Date(año, mes - 1, 1);
         const finRango = new Date(año, mes + 2, 0);
         
-        const dias = await obtenerDiasConRachaEnRango(userId, inicioRango, finRango);
-        setDiasCompletados(dias);
+        const dias = await obtenerDiasFinIntervaloEnRango(userId, inicioRango, finRango);
+        setDiasFinIntervalo(dias);
       } catch (error) {
-        console.error('Error cargando días completados:', error);
+        console.error('Error cargando días de fin de intervalo:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    cargarDiasCompletados();
+    cargarDiasFinIntervalo();
   }, [userId, fechaActual]);
 
   const año = fechaActual.getFullYear();
@@ -68,10 +72,24 @@ export default function CalendarioWidget({ userId, darkMode = false }: Calendari
     setFechaActual(new Date());
   };
 
-  const esDiaCompletado = (dia: number): boolean => {
+  // Función para obtener el icono según la categoría (igual que en HabitCard)
+  const pickIcon = (categoria: string) => {
+    const iconSize = 14;
+    const iconMap: Record<string, React.ReactElement> = {
+      ejercicio: <Dumbbell size={iconSize} />,
+      alimentacion: <Ham size={iconSize} />,
+      estudio: <GraduationCap size={iconSize} />,
+      salud: <HeartPulse size={iconSize} />,
+      trabajo: <BriefcaseBusiness size={iconSize} />,
+      otro: <Star size={iconSize} />,
+    };
+    return iconMap[categoria] || iconMap['otro'];
+  };
+
+  const obtenerInfoDiaFinIntervalo = (dia: number): DiaFinIntervalo | null => {
     const fecha = new Date(año, mes, dia);
     const fechaStr = fecha.toISOString().split('T')[0];
-    return diasCompletados.has(fechaStr);
+    return diasFinIntervalo.get(fechaStr) || null;
   };
 
   const esHoy = (dia: number): boolean => {
@@ -104,7 +122,7 @@ export default function CalendarioWidget({ userId, darkMode = false }: Calendari
     diasDelMes.push(dia);
   }
 
-  const totalDiasCompletados = Array.from(diasCompletados).filter(fecha => {
+  const totalDiasFinIntervalo = Array.from(diasFinIntervalo.keys()).filter(fecha => {
     const fechaObj = new Date(fecha);
     return fechaObj.getFullYear() === año && fechaObj.getMonth() === mes;
   }).length;
@@ -118,7 +136,7 @@ export default function CalendarioWidget({ userId, darkMode = false }: Calendari
         </div>
         <div className="calendario-stats">
           <span className="calendario-stat">
-            {totalDiasCompletados} día{totalDiasCompletados !== 1 ? 's' : ''} este mes
+            {totalDiasFinIntervalo} día{totalDiasFinIntervalo !== 1 ? 's' : ''} con hábitos este mes
           </span>
         </div>
       </div>
@@ -172,30 +190,49 @@ export default function CalendarioWidget({ userId, darkMode = false }: Calendari
                 return <div key={index} className="calendario-dia-vacio"></div>;
               }
 
-              const completado = esDiaCompletado(dia);
+              const infoFinIntervalo = obtenerInfoDiaFinIntervalo(dia);
               const hoy = esHoy(dia);
               const futuro = esDiaFuturo(dia);
+
+              // Crear tooltip con información de los hábitos
+              const tooltip = infoFinIntervalo 
+                ? `Fin de intervalo: ${infoFinIntervalo.habitos.map(h => h.nombre_habito).join(', ')}`
+                : '';
 
               return (
                 <div
                   key={index}
                   className={`calendario-dia ${
-                    completado ? 'completado' : ''
+                    infoFinIntervalo ? 'fin-intervalo' : ''
                   } ${hoy ? 'hoy' : ''} ${futuro ? 'futuro' : ''}`}
-                  title={completado ? `Completaste tu racha el ${dia}/${mes + 1}/${año}` : ''}
+                  title={tooltip}
                 >
                   <span className="calendario-dia-numero">{dia}</span>
-                  {completado && (
-                    <div className="calendario-dia-check">
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path
-                          d="M10 3L4.5 8.5L2 6"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
+                  {infoFinIntervalo && (
+                    <div className="calendario-dia-habitos">
+                      {infoFinIntervalo.habitos.slice(0, 3).map((habito, idx) => (
+                        <div 
+                          key={habito.id_habito} 
+                          className="calendario-habito-icono"
+                          style={{ 
+                            zIndex: 10 - idx,
+                            marginLeft: idx > 0 ? '-4px' : '0'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setHabitoSeleccionado(habito.id_habito);
+                            setShowHabitoInfo(true);
+                          }}
+                          title={habito.nombre_habito}
+                        >
+                          {pickIcon(habito.categoria)}
+                        </div>
+                      ))}
+                      {infoFinIntervalo.habitos.length > 3 && (
+                        <div className="calendario-habito-contador">
+                          +{infoFinIntervalo.habitos.length - 3}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -207,14 +244,34 @@ export default function CalendarioWidget({ userId, darkMode = false }: Calendari
 
       <div className="calendario-leyenda">
         <div className="calendario-leyenda-item">
-          <div className="calendario-leyenda-color completado"></div>
-          <span>Día completado</span>
+          <div className="calendario-leyenda-color fin-intervalo"></div>
+          <span>Fin de intervalo</span>
         </div>
         <div className="calendario-leyenda-item">
           <div className="calendario-leyenda-color hoy"></div>
           <span>Hoy</span>
         </div>
       </div>
+
+      {/* Modal de información del hábito */}
+      {habitoSeleccionado && (
+        <HabitoInfoModal
+          isOpen={showHabitoInfo}
+          onClose={() => {
+            setShowHabitoInfo(false);
+            setHabitoSeleccionado(null);
+          }}
+          habitoId={habitoSeleccionado}
+          darkMode={darkMode}
+          onEdit={() => {
+            if (onEditHabito) {
+              onEditHabito(habitoSeleccionado);
+            }
+            setShowHabitoInfo(false);
+            setHabitoSeleccionado(null);
+          }}
+        />
+      )}
     </div>
   );
 }

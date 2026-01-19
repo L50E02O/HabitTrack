@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { sendPasswordResetEmail } from "../../services/auth/restorePassword";
-import styles from "./loginPage.module.css";
+import styles from "./loginPage/loginPage.module.css";
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();

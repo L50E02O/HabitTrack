@@ -7,9 +7,10 @@ interface CalendarioModalProps {
   onClose: () => void;
   userId: string;
   darkMode?: boolean;
+  onEditHabito?: (habitoId: string) => void;
 }
 
-export default function CalendarioModal({ isOpen, onClose, userId, darkMode = false }: CalendarioModalProps) {
+export default function CalendarioModal({ isOpen, onClose, userId, darkMode = false, onEditHabito }: CalendarioModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -26,7 +27,7 @@ export default function CalendarioModal({ isOpen, onClose, userId, darkMode = fa
           </button>
         </div>
         <div className="calendario-modal-body">
-          <CalendarioWidget userId={userId} darkMode={darkMode} />
+          <CalendarioWidget userId={userId} darkMode={darkMode} onEditHabito={onEditHabito} />
         </div>
       </div>
     </div>
