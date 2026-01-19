@@ -181,9 +181,9 @@ async function procesarHabitoDiario(
  */
 async function procesarHabitoPeriodico(
   habito: IHabito,
-  progresoHoy: number,
+  _progresoHoy: number,
   registrosHoy: any[] | null,
-  rachaActual: any,
+  _rachaActual: any,
   hoy: Date
 ): Promise<boolean> {
   // Para hábitos periódicos, verificamos si completó la meta del período anterior
