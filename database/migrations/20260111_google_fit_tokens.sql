@@ -52,14 +52,19 @@ FOR UPDATE
 USING (true);
 
 -- Políticas para usuarios (si autenticados desde frontend)
-CREATE POLICY insert_own_google_fit_tokens ON google_fit_tokens
-FOR INSERT
-WITH CHECK (auth.uid()::text = user_id OR auth.role() = 'authenticated');
+DO $$
+DECLARE
+    ROLE_AUTHENTICATED CONSTANT TEXT := 'authenticated';
+BEGIN
+    EXECUTE format('CREATE POLICY insert_own_google_fit_tokens ON google_fit_tokens
+        FOR INSERT
+        WITH CHECK (auth.uid()::text = user_id OR auth.role() = %L)', ROLE_AUTHENTICATED);
 
-CREATE POLICY update_own_google_fit_tokens ON google_fit_tokens
-FOR UPDATE
-USING (auth.uid()::text = user_id OR auth.role() = 'authenticated');
+    EXECUTE format('CREATE POLICY update_own_google_fit_tokens ON google_fit_tokens
+        FOR UPDATE
+        USING (auth.uid()::text = user_id OR auth.role() = %L)', ROLE_AUTHENTICATED);
 
-CREATE POLICY delete_own_google_fit_tokens ON google_fit_tokens
-FOR DELETE
-USING (auth.uid()::text = user_id OR auth.role() = 'authenticated');
+    EXECUTE format('CREATE POLICY delete_own_google_fit_tokens ON google_fit_tokens
+        FOR DELETE
+        USING (auth.uid()::text = user_id OR auth.role() = %L)', ROLE_AUTHENTICATED);
+END $$;

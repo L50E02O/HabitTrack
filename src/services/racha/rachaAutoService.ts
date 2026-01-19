@@ -288,150 +288,171 @@ async function buscarRachaActiva(idHabito: string): Promise<IRacha | null> {
   }
 }
 
+// Helper: Calcular días consecutivos para hábitos diarios
+async function calcularDiasConsecutivos(
+  idHabito: string,
+  fechaHoy: Date,
+  metaRepeticion: number
+): Promise<number> {
+  const { data: registros, error } = await supabase
+    .from("registro_intervalo")
+    .select("fecha, progreso")
+    .eq("id_habito", idHabito);
+
+  if (error || !registros || registros.length === 0) {
+    return 1;
+  }
+
+  const registrosPorDia = new Map<string, number>();
+  registros.forEach(reg => {
+    const fecha = new Date(reg.fecha);
+    fecha.setUTCHours(0, 0, 0, 0);
+    const diaKey = fecha.toISOString();
+    registrosPorDia.set(diaKey, (registrosPorDia.get(diaKey) || 0) + 1);
+  });
+
+  const diasCompletados = Array.from(registrosPorDia.entries())
+    .filter(([_, count]) => count >= metaRepeticion)
+    .map(([diaKey]) => new Date(diaKey))
+    .sort((a, b) => b.getTime() - a.getTime());
+
+  if (diasCompletados.length === 0) return 1;
+
+  let consecutivos = 0;
+  let fechaEsperada = new Date(fechaHoy);
+  fechaEsperada.setUTCHours(0, 0, 0, 0);
+
+  for (const dia of diasCompletados) {
+    if (dia.getTime() === fechaEsperada.getTime()) {
+      consecutivos++;
+      fechaEsperada.setDate(fechaEsperada.getDate() - 1);
+    } else if (dia.getTime() < fechaEsperada.getTime()) {
+      break;
+    }
+  }
+
+  return Math.max(1, consecutivos);
+}
+
+// Helper: Calcular semanas consecutivas para hábitos semanales
+async function calcularSemanasConsecutivas(
+  idHabito: string,
+  fechaHoy: Date,
+  metaRepeticion: number
+): Promise<number> {
+  const { data: registros, error } = await supabase
+    .from("registro_intervalo")
+    .select("fecha, progreso")
+    .eq("id_habito", idHabito);
+
+  if (error || !registros || registros.length === 0) {
+    return 1;
+  }
+
+  const registrosPorSemana = new Map<string, number>();
+  registros.forEach(reg => {
+    const fecha = new Date(reg.fecha);
+    const semanaKey = obtenerClaveSemanaMejorada(fecha);
+    registrosPorSemana.set(semanaKey, (registrosPorSemana.get(semanaKey) || 0) + 1);
+  });
+
+  const semanasCompletadas = Array.from(registrosPorSemana.entries())
+    .filter(([_, count]) => count >= metaRepeticion)
+    .map(([semanaKey]) => semanaKey)
+    .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
+
+  if (semanasCompletadas.length === 0) return 1;
+
+  let consecutivos = 0;
+  let semanaActual = obtenerClaveSemanaMejorada(fechaHoy);
+  const semanasSet = new Set(semanasCompletadas);
+
+  while (semanasSet.has(semanaActual)) {
+    consecutivos++;
+    const [año, semana] = semanaActual.split('-W').map(Number);
+    let nuevaSemana = semana - 1;
+    let nuevoAño = año;
+    
+    if (nuevaSemana < 1) {
+      nuevoAño--;
+      nuevaSemana = 52;
+    }
+    
+    semanaActual = `${nuevoAño}-W${nuevaSemana}`;
+  }
+
+  return Math.max(1, consecutivos);
+}
+
+// Helper: Calcular meses consecutivos para hábitos mensuales
+async function calcularMesesConsecutivos(
+  idHabito: string,
+  fechaHoy: Date,
+  metaRepeticion: number
+): Promise<number> {
+  const { data: registros, error } = await supabase
+    .from("registro_intervalo")
+    .select("fecha, progreso")
+    .eq("id_habito", idHabito);
+
+  if (error || !registros || registros.length === 0) {
+    return 1;
+  }
+
+  const registrosPorMes = new Map<string, number>();
+  registros.forEach(reg => {
+    const fecha = new Date(reg.fecha);
+    const mesKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+    registrosPorMes.set(mesKey, (registrosPorMes.get(mesKey) || 0) + 1);
+  });
+
+  const mesesCompletados = Array.from(registrosPorMes.entries())
+    .filter(([_, count]) => count >= metaRepeticion)
+    .map(([mesKey]) => mesKey)
+    .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
+
+  if (mesesCompletados.length === 0) return 1;
+
+  let consecutivos = 0;
+  let mesActual = `${fechaHoy.getFullYear()}-${String(fechaHoy.getMonth() + 1).padStart(2, '0')}`;
+  const mesesSet = new Set(mesesCompletados);
+
+  while (mesesSet.has(mesActual)) {
+    consecutivos++;
+    const [año, mes] = mesActual.split('-').map(Number);
+    let nuevoMes = mes - 1;
+    let nuevoAño = año;
+    
+    if (nuevoMes < 1) {
+      nuevoAño--;
+      nuevoMes = 12;
+    }
+    
+    mesActual = `${nuevoAño}-${String(nuevoMes).padStart(2, '0')}`;
+  }
+
+  return Math.max(1, consecutivos);
+}
+
 // Cuenta períodos consecutivos según el tipo de intervalo
 // IMPORTANTE: Cuenta TODOS los registros del hábito
 // Retorna el progreso actual del registro único
 async function calcularPeriodosConsecutivos(
   idHabito: string,
-  _intervaloMeta: string,
-  _fechaHoy: Date,
-  _metaRepeticion: number
+  intervaloMeta: string,
+  fechaHoy: Date,
+  metaRepeticion: number
 ): Promise<number> {
-  // Con el nuevo diseño 1:1, los "periodos consecutivos" o racha se mantienen en la tabla racha.
-  // Pero si necesitamos calcularlo de cero baseado en registros, ahora solo tenemos UN registro.
-  const { data: registro, error } = await supabase
-    .from("registro_intervalo")
-    .select("progreso")
-    .eq("id_habito", idHabito)
-    .single();
-
-  if (error) {
-    console.error("Error al contar registros:", error);
-    return 1;
-  }
-
-  if (!registros || registros.length === 0) {
-    return 1; // Este es el primer avance
-  }
-
-  // Para hábitos diarios: contar días donde se alcanzó la meta
   if (intervaloMeta === 'diario') {
-    // Agrupar registros por día y contar cuántos hay en cada día
-    const registrosPorDia = new Map<string, number>();
-    
-    registros.forEach(reg => {
-      const fecha = new Date(reg.fecha);
-      fecha.setUTCHours(0, 0, 0, 0);
-      const diaKey = fecha.toISOString();
-      registrosPorDia.set(diaKey, (registrosPorDia.get(diaKey) || 0) + 1);
-    });
-
-    // Solo contar días donde se completó el objetivo
-    const diasCompletados = Array.from(registrosPorDia.entries())
-      .filter(([_, count]) => count >= metaRepeticion)
-      .map(([diaKey]) => new Date(diaKey))
-      .sort((a, b) => b.getTime() - a.getTime());
-
-    if (diasCompletados.length === 0) return 1;
-
-    // Contar días consecutivos desde hoy
-    let consecutivos = 0;
-    let fechaEsperada = new Date(fechaHoy);
-    fechaEsperada.setUTCHours(0, 0, 0, 0);
-
-    for (const dia of diasCompletados) {
-      if (dia.getTime() === fechaEsperada.getTime()) {
-        consecutivos++;
-        fechaEsperada.setDate(fechaEsperada.getDate() - 1);
-      } else if (dia.getTime() < fechaEsperada.getTime()) {
-        break;
-      }
-    }
-
-    return Math.max(1, consecutivos);
+    return await calcularDiasConsecutivos(idHabito, fechaHoy, metaRepeticion);
   }
 
-  // Para semanales: contar SEMANAS CONSECUTIVAS desde hoy hacia atrás
   if (intervaloMeta === 'semanal') {
-    // Agrupar registros por semana y contar cuántos hay en cada semana
-    const registrosPorSemana = new Map<string, number>();
-    
-    registros.forEach(reg => {
-      const fecha = new Date(reg.fecha);
-      const semanaKey = obtenerClaveSemanaMejorada(fecha);
-      registrosPorSemana.set(semanaKey, (registrosPorSemana.get(semanaKey) || 0) + 1);
-    });
-
-    // Filtrar semanas donde se completó el objetivo
-    const semanasCompletadas = Array.from(registrosPorSemana.entries())
-      .filter(([_, count]) => count >= metaRepeticion)
-      .map(([semanaKey]) => semanaKey)
-      .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' })); // Ordenar de más reciente a más antigua
-
-    if (semanasCompletadas.length === 0) return 1;
-
-    // Contar semanas consecutivas desde la semana actual
-    let consecutivos = 0;
-    let semanaActual = obtenerClaveSemanaMejorada(fechaHoy);
-    const semanasSet = new Set(semanasCompletadas);
-
-    while (semanasSet.has(semanaActual)) {
-      consecutivos++;
-      // Retroceder a la semana anterior
-      const [año, semana] = semanaActual.split('-W').map(Number);
-      let nuevaSemana = semana - 1;
-      let nuevoAño = año;
-      
-      if (nuevaSemana < 1) {
-        nuevoAño--;
-        nuevaSemana = 52; // Aproximación: última semana del año anterior
-      }
-      
-      semanaActual = `${nuevoAño}-W${nuevaSemana}`;
-    }
-
-    return Math.max(1, consecutivos);
+    return await calcularSemanasConsecutivas(idHabito, fechaHoy, metaRepeticion);
   }
 
   if (intervaloMeta === 'mensual') {
-    // Agrupar registros por mes y contar cuántos hay en cada mes
-    const registrosPorMes = new Map<string, number>();
-    
-    registros.forEach(reg => {
-      const fecha = new Date(reg.fecha);
-      const mesKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
-      registrosPorMes.set(mesKey, (registrosPorMes.get(mesKey) || 0) + 1);
-    });
-
-    // Filtrar meses donde se completó el objetivo
-    const mesesCompletados = Array.from(registrosPorMes.entries())
-      .filter(([_, count]) => count >= metaRepeticion)
-      .map(([mesKey]) => mesKey)
-      .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' })); // Ordenar de más reciente a más antiguo
-
-    if (mesesCompletados.length === 0) return 1;
-
-    // Contar meses consecutivos desde el mes actual
-    let consecutivos = 0;
-    let mesActual = `${fechaHoy.getFullYear()}-${String(fechaHoy.getMonth() + 1).padStart(2, '0')}`;
-    const mesesSet = new Set(mesesCompletados);
-
-    while (mesesSet.has(mesActual)) {
-      consecutivos++;
-      // Retroceder al mes anterior
-      const [año, mes] = mesActual.split('-').map(Number);
-      let nuevoMes = mes - 1;
-      let nuevoAño = año;
-      
-      if (nuevoMes < 1) {
-        nuevoAño--;
-        nuevoMes = 12;
-      }
-      
-      mesActual = `${nuevoAño}-${String(nuevoMes).padStart(2, '0')}`;
-    }
-
-    return Math.max(1, consecutivos);
+    return await calcularMesesConsecutivos(idHabito, fechaHoy, metaRepeticion);
   }
 
   return 1;

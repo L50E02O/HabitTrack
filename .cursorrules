@@ -382,6 +382,8 @@ import './Componente.css';
    - Diseño mobile-first
    - Probar en diferentes tamaños de pantalla
 
+6. Evita generar readmes innecesarios
+
 ## Comandos Importantes
 
 - `npm run dev` - Servidor de desarrollo

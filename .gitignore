@@ -40,6 +40,12 @@ coverage/
 # Archivos de configuración específicos
 *.tsbuildinfo
 
+# Archivos temporales de salida
+test_output.txt
+test_results.txt
+tsc_output.txt
+*.output.txt
+
 # =========================================
 # 🧠 SUPABASE CONFIG
 # =========================================
@@ -105,6 +111,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# Archivos temporales de salida
+test_output.txt
+test_results.txt
+tsc_output.txt
+*.output.txt
 
 node_modules
 dist
