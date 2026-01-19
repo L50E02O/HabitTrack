@@ -150,21 +150,27 @@ export default function Dashboard() {
             const rachasMapNuevo = await getRachasMultiplesHabitos(habitoIds);
 
             // Detectar rachas rotas - extraído para reducir anidación
-            const rachasRotas = Object.keys(rachasMapNuevo).filter(habitoId => {
-                const rachaAnterior = habitosRachas[habitoId] || 0;
-                const rachaNueva = rachasMapNuevo[habitoId] || 0;
-                return rachaAnterior > 0 && rachaNueva === 0;
-            });
-
-            rachasRotas.forEach(habitoId => {
-                const rachaAnterior = habitosRachas[habitoId] || 0;
-                const habito = habitos.find(h => h.id_habito === habitoId);
-                setNotification({
-                    message: `Has perdido tu racha de ${rachaAnterior} día${rachaAnterior > 1 ? 's' : ''} en "${habito?.nombre_habito}". No se completó el hábito a tiempo.`,
-                    type: 'error',
+            const detectarYNotificarRachasRotas = () => {
+                const rachasRotas = Object.keys(rachasMapNuevo).filter(habitoId => {
+                    const rachaAnterior = habitosRachas[habitoId] || 0;
+                    const rachaNueva = rachasMapNuevo[habitoId] || 0;
+                    return rachaAnterior > 0 && rachaNueva === 0;
                 });
-                setTimeout(() => setNotification(null), 6000);
-            });
+
+                rachasRotas.forEach(habitoId => {
+                    const rachaAnterior = habitosRachas[habitoId] || 0;
+                    const habito = habitos.find(h => h.id_habito === habitoId);
+                    if (habito) {
+                        setNotification({
+                            message: `Has perdido tu racha de ${rachaAnterior} día${rachaAnterior > 1 ? 's' : ''} en "${habito.nombre_habito}". No se completó el hábito a tiempo.`,
+                            type: 'error',
+                        });
+                        setTimeout(() => setNotification(null), 6000);
+                    }
+                });
+            };
+
+            detectarYNotificarRachasRotas();
 
             setHabitosRachas(rachasMapNuevo);
         }, 30000);

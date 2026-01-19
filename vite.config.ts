@@ -124,7 +124,7 @@ export default defineConfig({
           let lastErrorTime = 0;
           const ERROR_THROTTLE_MS = 10000; // Mostrar error máximo cada 10 segundos
           
-          proxy.on('error', (err, req, res) => {
+          proxy.on('error', (_err, _req, res) => {
             const now = Date.now();
             // Solo mostrar el error si pasó suficiente tiempo desde el último
             if (now - lastErrorTime > ERROR_THROTTLE_MS) {
@@ -135,11 +135,11 @@ export default defineConfig({
             }
             
             // Responder con un error 503 para que el cliente pueda manejarlo
-            if (res && !res.headersSent) {
-              res.writeHead(503, {
+            if (res && typeof (res as any).writeHead === 'function' && !(res as any).headersSent) {
+              (res as any).writeHead(503, {
                 'Content-Type': 'application/json',
               });
-              res.end(JSON.stringify({
+              (res as any).end(JSON.stringify({
                 error: 'Servidor API no disponible. Ejecuta "npm run dev:api" en otra terminal.'
               }));
             }

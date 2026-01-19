@@ -65,12 +65,16 @@ DECLARE
     MSG_CANTIDAD_INVALIDA CONSTANT TEXT := 'La cantidad debe ser mayor a 0';
     MSG_PROTECTORES_INSUFICIENTES CONSTANT TEXT := 'No tienes suficientes protectores disponibles';
     MSG_ASIGNACION_EXITOSA CONSTANT TEXT := 'Protector asignado exitosamente';
+    -- Constantes para JSON
+    KEY_SUCCESS CONSTANT TEXT := 'success';
+    KEY_MESSAGE CONSTANT TEXT := 'message';
+    KEY_PROTECTORES_ASIGNADOS CONSTANT TEXT := 'protectores_asignados';
 BEGIN
     -- Validar que la cantidad sea positiva
     IF p_cantidad <= 0 THEN
         RETURN json_build_object(
-            'success', false,
-            'message', MSG_CANTIDAD_INVALIDA
+            KEY_SUCCESS, false,
+            KEY_MESSAGE, MSG_CANTIDAD_INVALIDA
         );
     END IF;
 
@@ -82,8 +86,8 @@ BEGIN
     -- Verificar que tenga suficientes protectores
     IF v_protectores_disponibles < p_cantidad THEN
         RETURN json_build_object(
-            'success', false,
-            'message', MSG_PROTECTORES_INSUFICIENTES
+            KEY_SUCCESS, false,
+            KEY_MESSAGE, MSG_PROTECTORES_INSUFICIENTES
         );
     END IF;
 
@@ -118,9 +122,9 @@ BEGIN
     VALUES (p_user_id, p_habito_id, p_cantidad);
 
     RETURN json_build_object(
-        'success', true,
-        'message', MSG_ASIGNACION_EXITOSA,
-        'protectores_asignados', v_protectores_actuales + p_cantidad
+        KEY_SUCCESS, true,
+        KEY_MESSAGE, MSG_ASIGNACION_EXITOSA,
+        KEY_PROTECTORES_ASIGNADOS, v_protectores_actuales + p_cantidad
     );
 END;
 $$ LANGUAGE plpgsql;
@@ -139,12 +143,16 @@ DECLARE
     MSG_RACHA_NO_ENCONTRADA CONSTANT TEXT := 'No se encontró una racha activa para este hábito';
     MSG_PROTECTORES_ASIGNADOS_INSUFICIENTES CONSTANT TEXT := 'No tienes suficientes protectores asignados a este hábito';
     MSG_REMOCION_EXITOSA CONSTANT TEXT := 'Protector removido exitosamente';
+    -- Constantes para JSON
+    KEY_SUCCESS CONSTANT TEXT := 'success';
+    KEY_MESSAGE CONSTANT TEXT := 'message';
+    KEY_PROTECTORES_ASIGNADOS CONSTANT TEXT := 'protectores_asignados';
 BEGIN
     -- Validar que la cantidad sea positiva
     IF p_cantidad <= 0 THEN
         RETURN json_build_object(
-            'success', false,
-            'message', MSG_CANTIDAD_INVALIDA
+            KEY_SUCCESS, false,
+            KEY_MESSAGE, MSG_CANTIDAD_INVALIDA
         );
     END IF;
 
@@ -189,9 +197,9 @@ BEGIN
     VALUES (p_user_id, p_habito_id, p_cantidad);
 
     RETURN json_build_object(
-        'success', true,
-        'message', MSG_REMOCION_EXITOSA,
-        'protectores_asignados', v_protectores_actuales - p_cantidad
+        KEY_SUCCESS, true,
+        KEY_MESSAGE, MSG_REMOCION_EXITOSA,
+        KEY_PROTECTORES_ASIGNADOS, v_protectores_actuales - p_cantidad
     );
 END;
 $$ LANGUAGE plpgsql;
