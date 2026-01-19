@@ -415,25 +415,8 @@ describe("NotificacionService - TDD", () => {
             };
 
             // mockFrom debe crear un nuevo mock cada vez (importante para timers)
-            const mockFrom = vi.fn(() => createChainableMock());
-            (supabase.from as any) = mockFrom;
-            vi.mocked(pwaService.tieneServiceWorkerActivo).mockReturnValue(false);
-
-            const mockNotification = vi.fn();
-            (globalThis as any).Notification = mockNotification as any;
-            (globalThis as any).Notification.permission = "granted";
-
-            // Mock de getUser para email
-            (supabase.auth as any) = {
-                getUser: vi.fn().mockResolvedValue({
-                    data: { user: { email: "test@example.com" } },
-                    error: null,
-                }),
-            };
-
-            // Mock de obtener hábito (cuando se llama from('habito'))
-            // Necesitamos que mockFrom retorne diferentes mocks según la tabla
-            mockFrom.mockImplementation((table: string) => {
+            // Definir mockFrom para que acepte parámetros desde el inicio
+            const mockFrom = vi.fn((table: string) => {
                 if (table === 'recordatorio') {
                     // Para obtenerRecordatoriosActivos
                     return createChainableMock();
@@ -451,6 +434,20 @@ describe("NotificacionService - TDD", () => {
                 // Fallback
                 return createChainableMock();
             });
+            (supabase.from as any) = mockFrom;
+            vi.mocked(pwaService.tieneServiceWorkerActivo).mockReturnValue(false);
+
+            const mockNotification = vi.fn();
+            (globalThis as any).Notification = mockNotification as any;
+            (globalThis as any).Notification.permission = "granted";
+
+            // Mock de getUser para email
+            (supabase.auth as any) = {
+                getUser: vi.fn().mockResolvedValue({
+                    data: { user: { email: "test@example.com" } },
+                    error: null,
+                }),
+            };
 
             // Calcular la hora local equivalente a 13:30 UTC
             const fechaUTC = new Date();
