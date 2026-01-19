@@ -2,6 +2,14 @@
   "mcpServers": {
     "supabase": {
       "url": "https://mcp.supabase.com/mcp?project_ref=pahegdcyadnndhbtzaps"
+    },
+    "sonarqube": {
+      "env": {
+        "SONARQUBE_TOKEN": "9e40736ebf6bb7eea1e68bf75e6bded412f476c6",
+        "SONARQUBE_ORG": "l50e02o"
+      },
+      "command": "docker run -i --rm -e SONARQUBE_TOKEN -e SONARQUBE_ORG mcp/sonarqube",
+      "args": []
     }
   }
 }

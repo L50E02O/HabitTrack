@@ -144,66 +144,12 @@ async function verificarYActualizarRacha(habito: IHabito): Promise<boolean> {
     const progresoHoy = registrosHoy ? registrosHoy.length : 0;
 
     // 3. LÓGICA ESPECÍFICA POR TIPO DE INTERVALO
-    
     if (habito.intervalo_meta === 'diario') {
-      // DIARIO: Solo actualiza si completó la meta del día
-      const metaCompletada = progresoHoy >= habito.meta_repeticion;
-      
-      if (!metaCompletada) {
-        console.log(`${habito.nombre_habito} (Diario): ${progresoHoy}/${habito.meta_repeticion} - Meta no alcanzada`);
-        return false;
-      }
-
-      console.log(`${habito.nombre_habito} (Diario): Meta completada - Actualizando racha...`);
-      return await actualizarRachaHabito(habito, registrosHoy[0]);
+      return await procesarHabitoDiario(habito, progresoHoy, registrosHoy);
     }
 
     if (habito.intervalo_meta === 'semanal' || habito.intervalo_meta === 'mensual') {
-      // SEMANAL/MENSUAL: Actualiza racha CADA DÍA que hay progreso
-      // Al final del período verifica si completó la meta
-      
-      if (progresoHoy === 0) {
-        console.log(`${habito.nombre_habito} (${habito.intervalo_meta}): Sin progreso hoy`);
-        
-        // Verificar si terminó el período sin completar meta
-        if (rachaActual) {
-          const finRacha = new Date(rachaActual.fin_racha);
-          const inicioPeriodoRacha = calcularInicioPeriodo(finRacha, habito.intervalo_meta);
-          const inicioPeriodoActual = calcularInicioPeriodo(hoy, habito.intervalo_meta);
-          
-          // Si cambió el período, verificar si completó la meta del período anterior
-          if (inicioPeriodoActual.getTime() !== inicioPeriodoRacha.getTime()) {
-            console.log(`${habito.nombre_habito}: Periodo cambió, verificando meta del período anterior...`);
-            
-            // Obtener registros del período anterior
-            const finPeriodoAnterior = new Date(inicioPeriodoActual);
-            finPeriodoAnterior.setDate(finPeriodoAnterior.getDate() - 1);
-            finPeriodoAnterior.setUTCHours(23, 59, 59, 999);
-            
-            const inicioPeriodoAnterior = calcularInicioPeriodo(finPeriodoAnterior, habito.intervalo_meta);
-            
-            const { data: registrosPeriodoAnterior } = await supabase
-              .from("registro_intervalo")
-              .select("*")
-              .eq("id_habito", habito.id_habito)
-              .gte("fecha", inicioPeriodoAnterior.toISOString())
-              .lte("fecha", finPeriodoAnterior.toISOString());
-            
-            const progresoAnterior = registrosPeriodoAnterior ? registrosPeriodoAnterior.length : 0;
-            
-            if (progresoAnterior < habito.meta_repeticion) {
-              console.log(`${habito.nombre_habito}: Período anterior NO completado (${progresoAnterior}/${habito.meta_repeticion}). Verificando rachas expiradas...`);
-              await checkAndDeactivateExpiredRachas(habito.id_habito, habito.intervalo_meta);
-            }
-          }
-        }
-        
-        return false;
-      }
-
-      // Hay progreso hoy → Actualizar racha (suma +1 por el día)
-      console.log(`${habito.nombre_habito} (${habito.intervalo_meta}): Progreso hoy (${progresoHoy}) - Actualizando racha diaria...`);
-      return await actualizarRachaHabito(habito, registrosHoy[0]);
+      return await procesarHabitoPeriodico(habito, progresoHoy, registrosHoy, rachaActual, hoy);
     }
 
     return false;

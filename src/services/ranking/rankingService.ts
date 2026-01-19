@@ -147,7 +147,11 @@ export async function obtenerUsuariosCercanos(
 
         // Combinar y ordenar
         const todos = [...(arriba || []), ...(abajo || [])]
-            .sort((a, b) => (b.puntos || 0) - (a.puntos || 0));
+            .sort((a, b) => {
+                const puntosA = a.puntos || 0;
+                const puntosB = b.puntos || 0;
+                return puntosB - puntosA;
+            });
 
         // Si no hay resultados, devolver vacío
         if (todos.length === 0) return [];

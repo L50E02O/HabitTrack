@@ -48,6 +48,92 @@ export function InstallPWAButton() {
 
     checkIfInstalled();
 
+    // Helper: Verificar iconos en manifest
+    const verifyIconsInManifest = async (manifest: any): Promise<boolean> => {
+      if (!manifest.icons || manifest.icons.length === 0) {
+        return false;
+      }
+
+      console.log('[INSTALL] Iconos en manifest:', manifest.icons);
+      for (const icon of manifest.icons) {
+        try {
+          const iconResponse = await fetch(icon.src);
+          if (!iconResponse.ok) {
+            console.error(`[INSTALL] Icono no accesible: ${icon.src} (${iconResponse.status})`);
+          } else {
+            console.log(`[INSTALL] Icono accesible: ${icon.src}`);
+          }
+        } catch (iconError) {
+          console.error(`[INSTALL] Error verificando icono ${icon.src}:`, iconError);
+        }
+      }
+      return true;
+    };
+
+    // Helper: Cargar manifest desde URL
+    const loadManifestFromUrl = async (url: string): Promise<any | null> => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          console.error('[INSTALL] Error cargando manifest:', response.status, response.statusText);
+          return null;
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('[INSTALL] Error cargando manifest:', error);
+        return null;
+      }
+    };
+
+    // Helper: Verificar manifest
+    const verifyManifest = async (): Promise<boolean> => {
+      const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
+      if (!manifestLink) {
+        console.warn('[INSTALL] No se encontró link al manifest en el HTML');
+        return false;
+      }
+
+      const manifestUrl = manifestLink.href;
+      console.log('[INSTALL] Manifest URL:', manifestUrl);
+      
+      let manifest = await loadManifestFromUrl(manifestUrl);
+      
+      // Fallback a manifest.json si falla
+      if (!manifest) {
+        manifest = await loadManifestFromUrl('/manifest.json');
+        if (manifest) {
+          console.log('[INSTALL] Manifest fallback cargado:', manifest);
+        }
+      }
+
+      if (manifest) {
+        console.log('[INSTALL] Manifest cargado:', {
+          name: manifest.name,
+          short_name: manifest.short_name,
+          icons: manifest.icons?.length || 0,
+          start_url: manifest.start_url,
+          display: manifest.display
+        });
+        return await verifyIconsInManifest(manifest);
+      }
+
+      return false;
+    };
+
+    // Helper: Verificar Service Worker
+    const verifyServiceWorker = async (): Promise<void> => {
+      if (!('serviceWorker' in navigator)) {
+        return;
+      }
+
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        console.log('[INSTALL] Service Worker listo:', registration.scope);
+      } catch (error) {
+        console.warn('[INSTALL] Service Worker no listo:', error);
+      }
+    };
+
     // Verificar criterios de instalabilidad
     const checkInstallability = async () => {
       console.log('[INSTALL] Verificando criterios de instalabilidad...');
@@ -56,83 +142,24 @@ export function InstallPWAButton() {
         hasServiceWorker: 'serviceWorker' in navigator,
         hasManifest: document.querySelector('link[rel="manifest"]') !== null,
         isHTTPS: window.location.protocol === 'https:' || window.location.hostname === 'localhost',
-        hasIcons: true, // Asumimos que los iconos están en el manifest
+        hasIcons: false,
       };
 
-      console.log('[INSTALL] Criterios de instalabilidad:', checks);
-
-      // Verificar manifest
-      try {
-        const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
-        if (manifestLink) {
-          const manifestUrl = manifestLink.href;
-          console.log('[INSTALL] Manifest URL:', manifestUrl);
-          
-          const response = await fetch(manifestUrl);
-          if (response.ok) {
-            const manifest = await response.json();
-            console.log('[INSTALL] Manifest cargado:', {
-              name: manifest.name,
-              short_name: manifest.short_name,
-              icons: manifest.icons?.length || 0,
-              start_url: manifest.start_url,
-              display: manifest.display
-            });
-            
-            // Verificar que los iconos sean válidos
-            if (manifest.icons && manifest.icons.length > 0) {
-              console.log('[INSTALL] Iconos en manifest:', manifest.icons);
-              for (const icon of manifest.icons) {
-                try {
-                  const iconResponse = await fetch(icon.src);
-                  if (!iconResponse.ok) {
-                    console.error(`[INSTALL] Icono no accesible: ${icon.src} (${iconResponse.status})`);
-                  } else {
-                    console.log(`[INSTALL] Icono accesible: ${icon.src}`);
-                  }
-                } catch (iconError) {
-                  console.error(`[INSTALL] Error verificando icono ${icon.src}:`, iconError);
-                }
-              }
-            }
-            
-            checks.hasIcons = (manifest.icons?.length || 0) > 0;
-          } else {
-            console.error('[INSTALL] Error cargando manifest:', response.status, response.statusText);
-            // Intentar cargar manifest.json como fallback
-            try {
-              const fallbackResponse = await fetch('/manifest.json');
-              if (fallbackResponse.ok) {
-                const fallbackManifest = await fallbackResponse.json();
-                console.log('[INSTALL] Manifest fallback cargado:', fallbackManifest);
-                checks.hasIcons = (fallbackManifest.icons?.length || 0) > 0;
-              }
-            } catch (fallbackError) {
-              console.error('[INSTALL] Error cargando manifest fallback:', fallbackError);
-            }
-          }
-        } else {
-          console.warn('[INSTALL] No se encontró link al manifest en el HTML');
-        }
-      } catch (error) {
-        console.error('[INSTALL] Error verificando manifest:', error);
-      }
-
+      // Verificar manifest e iconos
+      checks.hasIcons = await verifyManifest();
+      
       // Verificar Service Worker
-      if (checks.hasServiceWorker) {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          console.log('[INSTALL] Service Worker listo:', registration.scope);
-        } catch (error) {
-          console.warn('[INSTALL] Service Worker no listo:', error);
-        }
-      }
+      await verifyServiceWorker();
 
       const allChecksPass = Object.values(checks).every(check => check === true);
       console.log('[INSTALL] Todos los criterios pasan:', allChecksPass, checks);
       
       if (!allChecksPass) {
-        setInstallabilityStatus(`Faltan requisitos: ${Object.entries(checks).filter(([_, v]) => !v).map(([k]) => k).join(', ')}`);
+        const missingChecks = Object.entries(checks)
+          .filter(([_, v]) => !v)
+          .map(([k]) => k)
+          .join(', ');
+        setInstallabilityStatus(`Faltan requisitos: ${missingChecks}`);
       } else {
         setInstallabilityStatus('Lista para instalar (esperando evento beforeinstallprompt)');
       }

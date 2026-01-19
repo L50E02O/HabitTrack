@@ -10,6 +10,19 @@ vi.mock('../../../config/supabase', () => ({
   },
 }));
 
+// Helper para crear mocks chainables de Supabase
+const createSupabaseChain = (finalResult: { data: any; error: any | null }) => {
+  const chain = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue(finalResult),
+  };
+  // El último método en la cadena debe retornar la promesa
+  return chain;
+};
+
 describe('LogrosModal', () => {
   const mockUserId = 'user-123';
   const mockOnClose = vi.fn();
@@ -53,35 +66,32 @@ describe('LogrosModal', () => {
 
   it('debe renderizar el modal cuando isOpen es true', async () => {
     const mockFrom = vi.fn().mockImplementation((table) => {
-      if (table === 'racha') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              order: vi.fn().mockReturnValue({
-                limit: vi.fn().mockReturnValue({
-                  single: vi.fn().mockResolvedValue({
-                    data: { racha_maxima: 5 },
-                    error: null,
-                  }),
-                }),
-              }),
-            }),
+      if (table === 'perfil') {
+        // Para obtener racha_maxima
+        const chain = {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: { racha_maxima: 5 },
+            error: null,
           }),
         };
+        return chain;
       } else if (table === 'logro') {
         return {
-          select: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: mockLogros, error: null }),
-          }),
+          select: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: mockLogros, error: null }),
         };
       } else if (table === 'logro_usuario') {
         return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({ data: mockLogrosUsuario, error: null }),
-          }),
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: mockLogrosUsuario, error: null }),
         };
       }
-      return {};
+      return {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+      };
     });
     (supabase.from as any) = mockFrom;
 
@@ -102,34 +112,26 @@ describe('LogrosModal', () => {
 
   it('debe mostrar la racha máxima del usuario', async () => {
     // Mock para la consulta de perfil (primera llamada a from('perfil'))
-    const mockPerfilQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: { racha_maxima: 15 },
-            error: null,
-          }),
-        }),
-      }),
-    };
+    const mockPerfilQuery = createSupabaseChain({
+      data: { racha_maxima: 15 },
+      error: null,
+    });
 
     // Mock para la consulta de logros (segunda llamada a from('logro'))
     const mockLogrosQuery = {
-      select: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({
-          data: mockLogros,
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({
+        data: mockLogros,
+        error: null,
       }),
     };
 
     // Mock para la consulta de logro_usuario (tercera llamada a from('logro_usuario'))
     const mockLogroUsuarioQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
       }),
     };
 
@@ -149,34 +151,26 @@ describe('LogrosModal', () => {
 
   it('debe mostrar logros desbloqueados', async () => {
     // Mock para la consulta de perfil (primera llamada a from('perfil'))
-    const mockPerfilQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: { racha_maxima: 5 },
-            error: null,
-          }),
-        }),
-      }),
-    };
+    const mockPerfilQuery = createSupabaseChain({
+      data: { racha_maxima: 5 },
+      error: null,
+    });
 
     // Mock para la consulta de logros (segunda llamada a from('logro'))
     const mockLogrosQuery = {
-      select: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({
-          data: mockLogros,
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({
+        data: mockLogros,
+        error: null,
       }),
     };
 
     // Mock para la consulta de logro_usuario (tercera llamada a from('logro_usuario'))
     const mockLogroUsuarioQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          data: mockLogrosUsuario,
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({
+        data: mockLogrosUsuario,
+        error: null,
       }),
     };
 
@@ -198,30 +192,25 @@ describe('LogrosModal', () => {
   it('debe mostrar logros bloqueados', async () => {
     const mockFrom = vi.fn().mockImplementation((table) => {
       if (table === 'perfil') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              single: vi.fn().mockResolvedValue({
-                data: { racha_maxima: 1 },
-                error: null,
-              }),
-            }),
-          }),
-        };
+        return createSupabaseChain({
+          data: { racha_maxima: 1 },
+          error: null,
+        });
       } else if (table === 'logro') {
         return {
-          select: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: mockLogros, error: null }),
-          }),
+          select: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: mockLogros, error: null }),
         };
       } else if (table === 'logro_usuario') {
         return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({ data: mockLogrosUsuario, error: null }),
-          }),
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: mockLogrosUsuario, error: null }),
         };
       }
-      return {};
+      return {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+      };
     });
     (supabase.from as any) = mockFrom;
 
@@ -237,30 +226,25 @@ describe('LogrosModal', () => {
   it('debe calcular correctamente el porcentaje de progreso', async () => {
     const mockFrom = vi.fn().mockImplementation((table) => {
       if (table === 'perfil') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              single: vi.fn().mockResolvedValue({
-                data: { racha_maxima: 5 },
-                error: null,
-              }),
-            }),
-          }),
-        };
+        return createSupabaseChain({
+          data: { racha_maxima: 5 },
+          error: null,
+        });
       } else if (table === 'logro') {
         return {
-          select: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: mockLogros, error: null }),
-          }),
+          select: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: mockLogros, error: null }),
         };
       } else if (table === 'logro_usuario') {
         return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({ data: mockLogrosUsuario, error: null }),
-          }),
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: mockLogrosUsuario, error: null }),
         };
       }
-      return {};
+      return {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+      };
     });
     (supabase.from as any) = mockFrom;
 
@@ -275,35 +259,26 @@ describe('LogrosModal', () => {
 
   it('debe cerrar el modal al hacer click en el botón X', async () => {
     const mockFrom = vi.fn().mockImplementation((table) => {
-      if (table === 'racha') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              order: vi.fn().mockReturnValue({
-                limit: vi.fn().mockReturnValue({
-                  single: vi.fn().mockResolvedValue({
-                    data: { racha_maxima: 5 },
-                    error: null,
-                  }),
-                }),
-              }),
-            }),
-          }),
-        };
+      if (table === 'perfil') {
+        return createSupabaseChain({
+          data: { racha_maxima: 5 },
+          error: null,
+        });
       } else if (table === 'logro') {
         return {
-          select: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: mockLogros, error: null }),
-          }),
+          select: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: mockLogros, error: null }),
         };
       } else if (table === 'logro_usuario') {
         return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({ data: [], error: null }),
-          }),
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: [], error: null }),
         };
       }
-      return {};
+      return {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+      };
     });
     (supabase.from as any) = mockFrom;
 
@@ -319,18 +294,28 @@ describe('LogrosModal', () => {
   });
 
   it('debe cerrar el modal al hacer click en el overlay', async () => {
-    const mockFrom = vi.fn().mockImplementation(() => ({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          order: vi.fn().mockReturnValue({
-            limit: vi.fn().mockReturnValue({
-              single: vi.fn().mockResolvedValue({ data: { racha_maxima: 0 }, error: null }),
-            }),
-          }),
-        }),
-        order: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }),
-    }));
+    const mockFrom = vi.fn().mockImplementation((table) => {
+      if (table === 'perfil') {
+        return createSupabaseChain({
+          data: { racha_maxima: 0 },
+          error: null,
+        });
+      } else if (table === 'logro') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      } else if (table === 'logro_usuario') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      return {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+      };
+    });
     (supabase.from as any) = mockFrom;
 
     const { container } = render(
@@ -348,13 +333,11 @@ describe('LogrosModal', () => {
   it('debe mostrar spinner mientras carga', () => {
     // Mock para la consulta de perfil que nunca se resuelve (para mostrar spinner)
     const mockPerfilQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockImplementation(
-            () => new Promise(() => {}) // Never resolves
-          ),
-        }),
-      }),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockImplementation(
+        () => new Promise(() => {}) // Never resolves
+      ),
     };
 
     const mockFrom = vi.fn().mockReturnValueOnce(mockPerfilQuery);
@@ -367,34 +350,26 @@ describe('LogrosModal', () => {
 
   it('debe mostrar días faltantes para logros bloqueados', async () => {
     // Mock para la consulta de perfil (primera llamada a from('perfil'))
-    const mockPerfilQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: { racha_maxima: 2 }, // Usuario tiene 2 días
-            error: null,
-          }),
-        }),
-      }),
-    };
+    const mockPerfilQuery = createSupabaseChain({
+      data: { racha_maxima: 2 }, // Usuario tiene 2 días
+      error: null,
+    });
 
     // Mock para la consulta de logros (segunda llamada a from('logro'))
     const mockLogrosQuery = {
-      select: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({
-          data: mockLogros,
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({
+        data: mockLogros,
+        error: null,
       }),
     };
 
     // Mock para la consulta de logro_usuario (tercera llamada a from('logro_usuario'))
     const mockLogroUsuarioQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
       }),
     };
 

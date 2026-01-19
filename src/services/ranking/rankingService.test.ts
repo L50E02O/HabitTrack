@@ -268,31 +268,33 @@ describe('RankingService', () => {
             // Segunda: select('id', { count: 'exact', head: true }) - total usuarios
             let countQueryCallCount = 0;
 
+            // Helper: Crear mock de query de conteo
+            const createCountQueryMock = (callNumber: number) => {
+                if (callNumber === 1) {
+                    return mockCountAbove;
+                }
+                return mockCountTotalPromise;
+            };
+
+            // Helper: Crear mock de select
+            const createSelectMock = (fields: string, options?: any) => {
+                if (fields === 'puntos' && !options) {
+                    return mockCountQuery;
+                }
+                
+                if (options && options.count === 'exact' && options.head === true && fields === 'id') {
+                    countQueryCallCount++;
+                    return createCountQueryMock(countQueryCallCount);
+                }
+                
+                return mockCountQuery;
+            };
+
             (supabase.from as any) = vi.fn((table: string) => {
                 if (table === 'perfil') {
-                    const query = {
-                        select: vi.fn((fields: string, options?: any) => {
-                            // Query normal para obtener puntos del usuario
-                            if (fields === 'puntos' && !options) {
-                                return mockCountQuery;
-                            }
-                            
-                            // Queries de conteo con count: 'exact' y head: true
-                            if (options && options.count === 'exact' && options.head === true && fields === 'id') {
-                                countQueryCallCount++;
-                                // Primera llamada: retorna objeto con .gt() para filtrar por puntos
-                                if (countQueryCallCount === 1) {
-                                    return mockCountAbove;
-                                }
-                                // Segunda llamada: retorna directamente la promesa con { count, error }
-                                // No necesita .maybeSingle() porque head: true retorna directamente
-                                return mockCountTotalPromise;
-                            }
-                            
-                            return mockCountQuery;
-                        }),
+                    return {
+                        select: vi.fn(createSelectMock),
                     };
-                    return query;
                 }
                 return {};
             });
@@ -342,30 +344,33 @@ describe('RankingService', () => {
             // Segunda: select('id', { count: 'exact', head: true }) - total usuarios
             let countQueryCallCount = 0;
 
+            // Helper: Crear mock de query de conteo
+            const createCountQueryMock = (callNumber: number) => {
+                if (callNumber === 1) {
+                    return mockCountAbove;
+                }
+                return mockCountTotal;
+            };
+
+            // Helper: Crear mock de select
+            const createSelectMock = (fields: string, options?: any) => {
+                if (fields === 'puntos' && !options) {
+                    return mockCountQuery;
+                }
+                
+                if (options && options.count === 'exact' && options.head === true && fields === 'id') {
+                    countQueryCallCount++;
+                    return createCountQueryMock(countQueryCallCount);
+                }
+                
+                return mockCountQuery;
+            };
+
             (supabase.from as any) = vi.fn((table: string) => {
                 if (table === 'perfil') {
-                    const query = {
-                        select: vi.fn((fields: string, options?: any) => {
-                            // Query normal para obtener puntos del usuario
-                            if (fields === 'puntos' && !options) {
-                                return mockCountQuery;
-                            }
-                            
-                            // Queries de conteo con count: 'exact' y head: true
-                            if (options && options.count === 'exact' && options.head === true && fields === 'id') {
-                                countQueryCallCount++;
-                                // Primera llamada: retorna objeto con .gt() para filtrar por puntos
-                                if (countQueryCallCount === 1) {
-                                    return mockCountAbove;
-                                }
-                                // Segunda llamada: retorna objeto con .maybeSingle() para total
-                                return mockCountTotal;
-                            }
-                            
-                            return mockCountQuery;
-                        }),
+                    return {
+                        select: vi.fn(createSelectMock),
                     };
-                    return query;
                 }
                 return {};
             });
@@ -473,27 +478,29 @@ describe('RankingService', () => {
                 }),
             };
 
+            // Helper: Crear mock según número de llamada
+            const createMockByCallCount = (count: number) => {
+                if (count === 1) {
+                    return {
+                        select: vi.fn(() => ({
+                            eq: vi.fn(() => mockUsuarioQuery),
+                        })),
+                    };
+                }
+                if (count === 2) {
+                    return mockArribaQuery;
+                }
+                if (count === 3) {
+                    return mockAbajoQuery;
+                }
+                return mockCountQuery;
+            };
+
             let callCount = 0;
             (supabase.from as any) = vi.fn((table: string) => {
                 if (table === 'perfil') {
                     callCount++;
-                    if (callCount === 1) {
-                        // Primera llamada: obtener puntos del usuario
-                        return {
-                            select: vi.fn(() => ({
-                                eq: vi.fn(() => mockUsuarioQuery),
-                            })),
-                        };
-                    } else if (callCount === 2) {
-                        // Segunda llamada: usuarios arriba
-                        return mockArribaQuery;
-                    } else if (callCount === 3) {
-                        // Tercera llamada: usuarios abajo
-                        return mockAbajoQuery;
-                    } else {
-                        // Cuarta llamada: count para posición
-                        return mockCountQuery;
-                    }
+                    return createMockByCallCount(callCount);
                 }
                 return {};
             });
@@ -537,21 +544,26 @@ describe('RankingService', () => {
                 }),
             };
 
+            // Helper: Crear mock según número de llamada
+            const createMockByCallCount = (count: number) => {
+                if (count === 1) {
+                    return {
+                        select: vi.fn(() => ({
+                            eq: vi.fn(() => mockUsuarioQuery),
+                        })),
+                    };
+                }
+                if (count === 2) {
+                    return mockArribaQuery;
+                }
+                return mockAbajoQuery;
+            };
+
             let callCount = 0;
             (supabase.from as any) = vi.fn((table: string) => {
                 if (table === 'perfil') {
                     callCount++;
-                    if (callCount === 1) {
-                        return {
-                            select: vi.fn(() => ({
-                                eq: vi.fn(() => mockUsuarioQuery),
-                            })),
-                        };
-                    } else if (callCount === 2) {
-                        return mockArribaQuery;
-                    } else {
-                        return mockAbajoQuery;
-                    }
+                    return createMockByCallCount(callCount);
                 }
                 return {};
             });

@@ -188,17 +188,30 @@ describe("NotificacionService - TDD", () => {
                 },
             ];
 
-            const mockFrom = vi.fn().mockReturnValue({
-                select: vi.fn().mockReturnValue({
-                    eq: vi.fn().mockReturnValue({
-                        eq: vi.fn().mockResolvedValue({
+            // Crear mock chainable que retorna this en cada método
+            // Para Supabase: from().select().eq().eq() - el último eq retorna la promesa
+            const createChainableMock = () => {
+                const chain: any = {
+                    select: vi.fn().mockReturnThis(),
+                };
+                // eq puede ser llamado 2 veces, el segundo retorna la promesa
+                let eqCallCount = 0;
+                chain.eq = vi.fn().mockImplementation((...args: any[]) => {
+                    eqCallCount++;
+                    if (eqCallCount === 2) {
+                        // Segundo eq retorna la promesa directamente
+                        return Promise.resolve({
                             data: mockRecordatorios,
                             error: null,
-                        }),
-                    }),
-                }),
-            });
+                        });
+                    }
+                    // Primer eq retorna this para continuar encadenando
+                    return chain;
+                });
+                return chain;
+            };
 
+            const mockFrom = vi.fn(() => createChainableMock());
             (supabase.from as any) = mockFrom;
 
             const resultado = await obtenerRecordatoriosActivos("user-1");
@@ -378,18 +391,31 @@ describe("NotificacionService - TDD", () => {
                 },
             ];
 
-            // Mock de obtenerRecordatoriosActivos
-            const mockFrom = vi.fn().mockReturnValue({
-                select: vi.fn().mockReturnValue({
-                    eq: vi.fn().mockReturnValue({
-                        eq: vi.fn().mockResolvedValue({
+            // Mock de obtenerRecordatoriosActivos - debe retornar this para encadenar
+            // IMPORTANTE: Cada vez que se llama from(), debe crear un nuevo mock con contador reseteado
+            const createChainableMock = () => {
+                const chain: any = {
+                    select: vi.fn().mockReturnThis(),
+                };
+                // Contador local para este mock específico
+                let eqCallCount = 0;
+                chain.eq = vi.fn().mockImplementation((...args: any[]) => {
+                    eqCallCount++;
+                    if (eqCallCount === 2) {
+                        // Segundo eq retorna la promesa
+                        return Promise.resolve({
                             data: mockRecordatorios,
                             error: null,
-                        }),
-                    }),
-                }),
-            });
+                        });
+                    }
+                    // Primer eq retorna this para continuar encadenando
+                    return chain;
+                });
+                return chain;
+            };
 
+            // mockFrom debe crear un nuevo mock cada vez (importante para timers)
+            const mockFrom = vi.fn(() => createChainableMock());
             (supabase.from as any) = mockFrom;
             vi.mocked(pwaService.tieneServiceWorkerActivo).mockReturnValue(false);
 
@@ -405,16 +431,26 @@ describe("NotificacionService - TDD", () => {
                 }),
             };
 
-            // Mock de obtener hábito
-            mockFrom.mockReturnValueOnce({
-                select: vi.fn().mockReturnValue({
-                    eq: vi.fn().mockReturnValue({
+            // Mock de obtener hábito (cuando se llama from('habito'))
+            // Necesitamos que mockFrom retorne diferentes mocks según la tabla
+            const originalMockFrom = mockFrom;
+            mockFrom.mockImplementation((table: string) => {
+                if (table === 'recordatorio') {
+                    // Para obtenerRecordatoriosActivos
+                    return createChainableMock();
+                } else if (table === 'habito') {
+                    // Para obtener hábito
+                    return {
+                        select: vi.fn().mockReturnThis(),
+                        eq: vi.fn().mockReturnThis(),
                         single: vi.fn().mockResolvedValue({
                             data: { nombre_habito: "Ejercicio" },
                             error: null,
                         }),
-                    }),
-                }),
+                    };
+                }
+                // Fallback
+                return createChainableMock();
             });
 
             // Calcular la hora local equivalente a 13:30 UTC
@@ -452,17 +488,25 @@ describe("NotificacionService - TDD", () => {
                 },
             ];
 
-            const mockFrom = vi.fn().mockReturnValue({
-                select: vi.fn().mockReturnValue({
-                    eq: vi.fn().mockReturnValue({
-                        eq: vi.fn().mockResolvedValue({
+            const createChainableMock = () => {
+                const chain: any = {
+                    select: vi.fn().mockReturnThis(),
+                };
+                let eqCallCount = 0;
+                chain.eq = vi.fn().mockImplementation((...args: any[]) => {
+                    eqCallCount++;
+                    if (eqCallCount === 2) {
+                        return Promise.resolve({
                             data: mockRecordatorios,
                             error: null,
-                        }),
-                    }),
-                }),
-            });
+                        });
+                    }
+                    return chain;
+                });
+                return chain;
+            };
 
+            const mockFrom = vi.fn(() => createChainableMock());
             (supabase.from as any) = mockFrom;
 
             // La función retorna un intervalId que se puede usar con clearInterval

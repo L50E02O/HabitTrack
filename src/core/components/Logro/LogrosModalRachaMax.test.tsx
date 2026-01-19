@@ -9,6 +9,22 @@ vi.mock('../../../config/supabase', () => ({
   },
 }));
 
+// Helper para crear mocks chainables de Supabase
+const createSupabaseChain = (finalResult: { data: any; error: any | null }, useSingle = false) => {
+  const chain: any = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+  };
+  if (useSingle) {
+    chain.single = vi.fn().mockResolvedValue(finalResult);
+  } else {
+    // Para métodos que no usan single, eq retorna la promesa directamente
+    chain.eq = vi.fn().mockResolvedValue(finalResult);
+  }
+  return chain;
+};
+
 describe('LogrosModal - Racha Máxima Correcta', () => {
   const userId = 'test-user-123';
 
@@ -21,33 +37,29 @@ describe('LogrosModal - Racha Máxima Correcta', () => {
 
     // Mock para la consulta de perfil (primera llamada a from('perfil'))
     const mockPerfilQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: { racha_maxima: 30 }, // Racha máxima del usuario
-            error: null,
-          }),
-        }),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: { racha_maxima: 30 }, // Racha máxima del usuario
+        error: null,
       }),
     };
 
     // Mock para la consulta de logros (segunda llamada a from('logro'))
     const mockLogrosQuery = {
-      select: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
       }),
     };
 
     // Mock para la consulta de logro_usuario (tercera llamada a from('logro_usuario'))
     const mockLogroUsuarioQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
       }),
     };
 
@@ -101,7 +113,7 @@ describe('LogrosModal - Racha Máxima Correcta', () => {
     };
 
     const mockFrom = vi.fn()
-      .mockReturnValueOnce(mockRachaQuery)
+      .mockReturnValueOnce(mockPerfilQuery)
       .mockReturnValueOnce(mockLogrosQuery)
       .mockReturnValueOnce(mockLogroUsuarioQuery);
 
@@ -167,34 +179,26 @@ describe('LogrosModal - Racha Máxima Correcta', () => {
 
   it('debe usar Math.max para encontrar la racha más alta', async () => {
     // Mock para la consulta de perfil (primera llamada a from('perfil'))
-    const mockPerfilQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: { racha_maxima: 150 }, // La más alta
-            error: null,
-          }),
-        }),
-      }),
-    };
+    const mockPerfilQuery = createSupabaseChain({
+      data: { racha_maxima: 150 }, // La más alta
+      error: null,
+    }, true);
 
     // Mock para la consulta de logros (segunda llamada a from('logro'))
     const mockLogrosQuery = {
-      select: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
       }),
     };
 
     // Mock para la consulta de logro_usuario (tercera llamada a from('logro_usuario'))
     const mockLogroUsuarioQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
       }),
     };
 
@@ -216,34 +220,26 @@ describe('LogrosModal - Racha Máxima Correcta', () => {
 
   it('debe manejar valores null en racha_maxima', async () => {
     // Mock para la consulta de perfil (primera llamada a from('perfil'))
-    const mockPerfilQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: { racha_maxima: 0 },
-            error: null,
-          }),
-        }),
-      }),
-    };
+    const mockPerfilQuery = createSupabaseChain({
+      data: { racha_maxima: 0 },
+      error: null,
+    }, true);
 
     // Mock para la consulta de logros (segunda llamada a from('logro'))
     const mockLogrosQuery = {
-      select: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
       }),
     };
 
     // Mock para la consulta de logro_usuario (tercera llamada a from('logro_usuario'))
     const mockLogroUsuarioQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
       }),
     };
 
@@ -266,34 +262,26 @@ describe('LogrosModal - Racha Máxima Correcta', () => {
 
   it('debe cargar rachas cuando el modal se abre', async () => {
     // Mock para la consulta de perfil (primera llamada a from('perfil'))
-    const mockPerfilQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: { racha_maxima: 50 },
-            error: null,
-          }),
-        }),
-      }),
-    };
+    const mockPerfilQuery = createSupabaseChain({
+      data: { racha_maxima: 50 },
+      error: null,
+    }, true);
 
     // Mock para la consulta de logros (segunda llamada a from('logro'))
     const mockLogrosQuery = {
-      select: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
       }),
     };
 
     // Mock para la consulta de logro_usuario (tercera llamada a from('logro_usuario'))
     const mockLogroUsuarioQuery = {
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
       }),
     };
 

@@ -61,12 +61,16 @@ DECLARE
     v_protectores_disponibles INTEGER;
     v_racha_id UUID;
     v_protectores_actuales INTEGER;
+    -- Constantes para mensajes
+    MSG_CANTIDAD_INVALIDA CONSTANT TEXT := 'La cantidad debe ser mayor a 0';
+    MSG_PROTECTORES_INSUFICIENTES CONSTANT TEXT := 'No tienes suficientes protectores disponibles';
+    MSG_ASIGNACION_EXITOSA CONSTANT TEXT := 'Protector asignado exitosamente';
 BEGIN
     -- Validar que la cantidad sea positiva
     IF p_cantidad <= 0 THEN
         RETURN json_build_object(
             'success', false,
-            'message', 'La cantidad debe ser mayor a 0'
+            'message', MSG_CANTIDAD_INVALIDA
         );
     END IF;
 
@@ -79,7 +83,7 @@ BEGIN
     IF v_protectores_disponibles < p_cantidad THEN
         RETURN json_build_object(
             'success', false,
-            'message', 'No tienes suficientes protectores disponibles'
+            'message', MSG_PROTECTORES_INSUFICIENTES
         );
     END IF;
 
@@ -115,7 +119,7 @@ BEGIN
 
     RETURN json_build_object(
         'success', true,
-        'message', 'Protector asignado exitosamente',
+        'message', MSG_ASIGNACION_EXITOSA,
         'protectores_asignados', v_protectores_actuales + p_cantidad
     );
 END;
@@ -153,7 +157,7 @@ BEGIN
     IF v_racha_id IS NULL THEN
         RETURN json_build_object(
             'success', false,
-            'message', 'No se encontró racha activa para este hábito'
+            'message', MSG_RACHA_NO_ENCONTRADA
         );
     END IF;
 
@@ -161,7 +165,7 @@ BEGIN
     IF v_protectores_actuales < p_cantidad THEN
         RETURN json_build_object(
             'success', false,
-            'message', 'No hay suficientes protectores asignados a este hábito'
+            'message', MSG_PROTECTORES_ASIGNADOS_INSUFICIENTES
         );
     END IF;
 
@@ -181,7 +185,7 @@ BEGIN
 
     RETURN json_build_object(
         'success', true,
-        'message', 'Protector removido exitosamente',
+        'message', MSG_REMOCION_EXITOSA,
         'protectores_asignados', v_protectores_actuales - p_cantidad
     );
 END;

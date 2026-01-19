@@ -387,7 +387,7 @@ async function calcularPeriodosConsecutivos(
     const semanasCompletadas = Array.from(registrosPorSemana.entries())
       .filter(([_, count]) => count >= metaRepeticion)
       .map(([semanaKey]) => semanaKey)
-      .sort((a, b) => b.localeCompare(a)); // Ordenar de más reciente a más antigua
+      .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' })); // Ordenar de más reciente a más antigua
 
     if (semanasCompletadas.length === 0) return 1;
 
@@ -428,7 +428,7 @@ async function calcularPeriodosConsecutivos(
     const mesesCompletados = Array.from(registrosPorMes.entries())
       .filter(([_, count]) => count >= metaRepeticion)
       .map(([mesKey]) => mesKey)
-      .sort((a, b) => b.localeCompare(a)); // Ordenar de más reciente a más antiguo
+      .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' })); // Ordenar de más reciente a más antiguo
 
     if (mesesCompletados.length === 0) return 1;
 

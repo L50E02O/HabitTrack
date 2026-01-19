@@ -25,6 +25,7 @@ LIMIT 10;
 
 -- 3. Recalcular racha_maxima para todos los usuarios
 -- (Por si acaso los valores están desactualizados)
+-- IMPORTANTE: WHERE explícito para evitar actualizar todos los registros sin intención
 UPDATE perfil p
 SET racha_maxima = COALESCE(
   (
@@ -35,7 +36,13 @@ SET racha_maxima = COALESCE(
     WHERE h.id_perfil = p.id
   ),
   0
-);
+)
+WHERE EXISTS (
+  -- Solo actualizar perfiles que tienen hábitos asociados
+  SELECT 1
+  FROM habito h
+  WHERE h.id_perfil = p.id
+) OR p.racha_maxima IS NULL;
 
 -- 4. Verificar que se actualizó correctamente
 SELECT 

@@ -198,93 +198,116 @@ function marcarComoEnviado(idPerfil: string, idRecordatorio: string, hora: numbe
  * @param idPerfil ID del perfil del usuario
  * @returns ID del intervalo para poder cancelarlo
  */
+/**
+ * Helper: Obtener email del usuario para enviar notificaciones
+ */
+async function obtenerEmailUsuario(idPerfil: string): Promise<string | null> {
+    try {
+        const { data: userEmail, error: emailError } = await supabase
+            .rpc('get_user_email', { user_id: idPerfil });
+
+        if (!emailError && userEmail) {
+            return userEmail;
+        }
+
+        // Fallback: intentar con getUser()
+        const { data: { user } } = await supabase.auth.getUser();
+        return user?.email || null;
+    } catch (error) {
+        console.warn("Error obteniendo email del usuario:", error);
+        return null;
+    }
+}
+
+/**
+ * Helper: Procesar un recordatorio individual
+ */
+async function procesarRecordatorio(
+    idPerfil: string,
+    recordatorio: IRecordatorio,
+    horaActual: Date,
+    horasActuales: number,
+    minutosActuales: number
+): Promise<void> {
+    const debeActivarse = debeActivarseRecordatorio(recordatorio, horaActual);
+    
+    if (!debeActivarse) {
+        return;
+    }
+
+    // Verificar si ya se envió en este minuto para evitar duplicados
+    if (yaFueEnviado(idPerfil, recordatorio.id_recordatorio, horasActuales, minutosActuales)) {
+        console.log(`[NOTIF] Recordatorio ${recordatorio.id_recordatorio} ya fue enviado en este minuto, omitiendo...`);
+        return;
+    }
+
+    // Marcar como enviado antes de enviar
+    marcarComoEnviado(idPerfil, recordatorio.id_recordatorio, horasActuales, minutosActuales);
+
+    console.log(`[NOTIF] Enviando notificación. Recordatorio ${recordatorio.id_recordatorio} a las ${horasActuales}:${minutosActuales.toString().padStart(2, '0')}`);
+
+    // Enviar notificación push (PWA)
+    enviarNotificacion(
+        "Recordatorio de Hábito",
+        recordatorio.mensaje || "Es hora de trabajar en tu hábito",
+        {
+            tag: `recordatorio-${recordatorio.id_recordatorio}`,
+            requireInteraction: false,
+            data: {
+                url: "/dashboard",
+                recordatorioId: recordatorio.id_recordatorio
+            }
+        }
+    ).catch((error) => {
+        console.error("[NOTIF] Error enviando notificación push:", error);
+    });
+
+    // Enviar email (no bloquea si falla)
+    const userEmail = await obtenerEmailUsuario(idPerfil);
+    if (userEmail) {
+        try {
+            await enviarEmailConHabito(userEmail, recordatorio);
+        } catch (emailError) {
+            console.warn("Error enviando email de recordatorio:", emailError);
+        }
+    }
+}
+
+/**
+ * Helper: Verificar y procesar todos los recordatorios activos
+ */
+async function verificarRecordatorios(idPerfil: string): Promise<void> {
+    limpiarRecordatoriosAntiguos();
+    
+    const recordatorios = await obtenerRecordatoriosActivos(idPerfil);
+    const horaActual = new Date();
+    const horasActuales = horaActual.getHours();
+    const minutosActuales = horaActual.getMinutes();
+
+    console.log(`[NOTIF] Verificando ${recordatorios.length} recordatorios a las ${horasActuales}:${minutosActuales.toString().padStart(2, '0')}`);
+    
+    if (recordatorios.length > 0) {
+        console.log("[NOTIF] Recordatorios encontrados:", recordatorios.map(r => ({
+            id: r.id_recordatorio,
+            hora: r.intervalo_recordar,
+            activo: r.activo,
+            mensaje: r.mensaje
+        })));
+    }
+
+    // Procesar cada recordatorio
+    for (const recordatorio of recordatorios) {
+        await procesarRecordatorio(idPerfil, recordatorio, horaActual, horasActuales, minutosActuales);
+    }
+}
+
 export function programarNotificacionesDiarias(idPerfil: string): ReturnType<typeof setInterval> {
     console.log("[NOTIF] programarNotificacionesDiarias iniciado para perfil:", idPerfil);
     console.log("[NOTIF] Permiso de notificaciones:", Notification.permission);
     
     const intervalId = setInterval(async () => {
         try {
-            // Limpiar recordatorios antiguos periódicamente
-            limpiarRecordatoriosAntiguos();
-            
-            const recordatorios = await obtenerRecordatoriosActivos(idPerfil);
-            const horaActual = new Date();
-            const horasActuales = horaActual.getHours();
-            const minutosActuales = horaActual.getMinutes();
-
-            console.log(`[NOTIF] Verificando ${recordatorios.length} recordatorios a las ${horasActuales}:${minutosActuales.toString().padStart(2, '0')}`);
-            
-            if (recordatorios.length > 0) {
-                console.log("[NOTIF] Recordatorios encontrados:", recordatorios.map(r => ({
-                    id: r.id_recordatorio,
-                    hora: r.intervalo_recordar,
-                    activo: r.activo,
-                    mensaje: r.mensaje
-                })));
-            }
-
-            for (const recordatorio of recordatorios) {
-                const debeActivarse = debeActivarseRecordatorio(recordatorio, horaActual);
-                
-                console.log(`[NOTIF] Recordatorio ${recordatorio.id_recordatorio}:`, {
-                    intervalo_recordar: recordatorio.intervalo_recordar,
-                    horaActual: `${horasActuales}:${minutosActuales}`,
-                    debeActivarse
-                });
-                
-                if (debeActivarse) {
-                    // Verificar si ya se envió en este minuto para evitar duplicados
-                    if (yaFueEnviado(idPerfil, recordatorio.id_recordatorio, horasActuales, minutosActuales)) {
-                        console.log(`[NOTIF] Recordatorio ${recordatorio.id_recordatorio} ya fue enviado en este minuto, omitiendo...`);
-                        continue;
-                    }
-
-                    // Marcar como enviado antes de enviar
-                    marcarComoEnviado(idPerfil, recordatorio.id_recordatorio, horasActuales, minutosActuales);
-
-                    console.log(`[NOTIF] Enviando notificación. Recordatorio ${recordatorio.id_recordatorio} a las ${horasActuales}:${minutosActuales.toString().padStart(2, '0')}`);
-
-                    // Enviar notificación push (PWA)
-                    enviarNotificacion(
-                        "Recordatorio de Hábito",
-                        recordatorio.mensaje || "Es hora de trabajar en tu hábito",
-                        {
-                            tag: `recordatorio-${recordatorio.id_recordatorio}`,
-                            requireInteraction: false,
-                            data: {
-                                url: "/dashboard",
-                                recordatorioId: recordatorio.id_recordatorio
-                            }
-                        }
-                    ).catch((error) => {
-                        console.error("[NOTIF] Error enviando notificación push:", error);
-                    });
-
-                    // Enviar email usando Supabase (si está configurado)
-                    try {
-                        // Obtener email del usuario usando la función RPC
-                        // Esto es más confiable que getUser() en el contexto del intervalo
-                        const { data: userEmail, error: emailError } = await supabase
-                            .rpc('get_user_email', { user_id: idPerfil });
-
-                        if (emailError) {
-                            console.warn("Error obteniendo email del usuario:", emailError);
-                            // Fallback: intentar con getUser()
-                            const { data: { user } } = await supabase.auth.getUser();
-                            if (user?.email) {
-                                await enviarEmailConHabito(user.email, recordatorio);
-                            }
-                        } else if (userEmail) {
-                            await enviarEmailConHabito(userEmail, recordatorio);
-                        } else {
-                            console.warn("No se encontró email para el usuario:", idPerfil);
-                        }
-                    } catch (emailError) {
-                        console.warn("Error enviando email de recordatorio:", emailError);
-                        // No bloqueamos la notificación push si falla el email
-                    }
-                }
-            }
+            await verificarRecordatorios(idPerfil);
         } catch (error) {
             console.error("Error al verificar recordatorios:", error);
         }

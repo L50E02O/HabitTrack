@@ -60,26 +60,26 @@ self.addEventListener('fetch', (event) => {
   }
   
   event.respondWith(
-    caches.match(event.request).then((response) => {
+    caches.match(event.request).then((cachedResponse) => {
       // Si está en cache, devolverlo
-      if (response) {
-        return response;
+      if (cachedResponse) {
+        return cachedResponse;
       }
       
       // Si no está en cache, hacer fetch y cachear
-      return fetch(event.request).then((response) => {
+      return fetch(event.request).then((fetchResponse) => {
         // Solo cachear respuestas válidas
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+        if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
+          return fetchResponse;
         }
         
-        const responseToCache = response.clone();
+        const responseToCache = fetchResponse.clone();
         
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);
         });
         
-        return response;
+        return fetchResponse;
       });
     })
   );
