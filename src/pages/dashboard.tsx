@@ -149,23 +149,22 @@ export default function Dashboard() {
             const habitoIds = habitos.map(h => h.id_habito);
             const rachasMapNuevo = await getRachasMultiplesHabitos(habitoIds);
 
-            // Detectar rachas rotas
-            const detectarRachasRotas = () => {
-                Object.keys(rachasMapNuevo).forEach(habitoId => {
-                    const rachaAnterior = habitosRachas[habitoId] || 0;
-                    const rachaNueva = rachasMapNuevo[habitoId] || 0;
+            // Detectar rachas rotas - extraído para reducir anidación
+            const rachasRotas = Object.keys(rachasMapNuevo).filter(habitoId => {
+                const rachaAnterior = habitosRachas[habitoId] || 0;
+                const rachaNueva = rachasMapNuevo[habitoId] || 0;
+                return rachaAnterior > 0 && rachaNueva === 0;
+            });
 
-                    if (rachaAnterior > 0 && rachaNueva === 0) {
-                        const habito = habitos.find(h => h.id_habito === habitoId);
-                        setNotification({
-                            message: `Has perdido tu racha de ${rachaAnterior} día${rachaAnterior > 1 ? 's' : ''} en "${habito?.nombre_habito}". No se completó el hábito a tiempo.`,
-                            type: 'error',
-                        });
-                        setTimeout(() => setNotification(null), 6000);
-                    }
+            rachasRotas.forEach(habitoId => {
+                const rachaAnterior = habitosRachas[habitoId] || 0;
+                const habito = habitos.find(h => h.id_habito === habitoId);
+                setNotification({
+                    message: `Has perdido tu racha de ${rachaAnterior} día${rachaAnterior > 1 ? 's' : ''} en "${habito?.nombre_habito}". No se completó el hábito a tiempo.`,
+                    type: 'error',
                 });
-            };
-            detectarRachasRotas();
+                setTimeout(() => setNotification(null), 6000);
+            });
 
             setHabitosRachas(rachasMapNuevo);
         }, 30000);

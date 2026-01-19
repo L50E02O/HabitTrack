@@ -56,15 +56,9 @@ DO $$
 DECLARE
     ROLE_AUTHENTICATED CONSTANT TEXT := 'authenticated';
 BEGIN
-    EXECUTE format('CREATE POLICY insert_own_google_fit_tokens ON google_fit_tokens
-        FOR INSERT
-        WITH CHECK (auth.uid()::text = user_id OR auth.role() = %L)', ROLE_AUTHENTICATED);
+    EXECUTE format('CREATE POLICY insert_own_google_fit_tokens ON google_fit_tokens FOR INSERT WITH CHECK (auth.uid()::text = user_id OR auth.role() = %L)', ROLE_AUTHENTICATED);
 
-    EXECUTE format('CREATE POLICY update_own_google_fit_tokens ON google_fit_tokens
-        FOR UPDATE
-        USING (auth.uid()::text = user_id OR auth.role() = %L)', ROLE_AUTHENTICATED);
+    EXECUTE format('CREATE POLICY update_own_google_fit_tokens ON google_fit_tokens FOR UPDATE USING (auth.uid()::text = user_id OR auth.role() = %L)', ROLE_AUTHENTICATED);
 
-    EXECUTE format('CREATE POLICY delete_own_google_fit_tokens ON google_fit_tokens
-        FOR DELETE
-        USING (auth.uid()::text = user_id OR auth.role() = %L)', ROLE_AUTHENTICATED);
+    EXECUTE format('CREATE POLICY delete_own_google_fit_tokens ON google_fit_tokens FOR DELETE USING (auth.uid()::text = user_id OR auth.role() = %L)', ROLE_AUTHENTICATED);
 END $$;
