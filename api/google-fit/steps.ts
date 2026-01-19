@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import googleFitService from '../../src/services/googleFit/googleFitService';
-import type { GoogleFitTokens } from '../../src/services/googleFit/types';
+import googleFitService, { type GoogleFitTokens } from '../_shared/googleFitService';
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

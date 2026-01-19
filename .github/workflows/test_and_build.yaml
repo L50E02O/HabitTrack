@@ -40,22 +40,33 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
+      - name: Build project
+        run: npm run build
+
       - name: Deploy to Vercel
         id: vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           echo "🚀 Iniciando deployment a Vercel..."
-          DEPLOY_OUTPUT=$(vercel --prod --yes --token=$VERCEL_TOKEN 2>&1)
-          echo "$DEPLOY_OUTPUT"
+          vercel --prod --yes --token=$VERCEL_TOKEN 2>&1 | tee vercel-deploy.log || EXIT_CODE=$?
+          
+          echo "📋 Output completo del deployment:"
+          cat vercel-deploy.log
+          
+          if [ -n "${EXIT_CODE:-}" ] && [ "$EXIT_CODE" -ne 0 ]; then
+            echo "❌ Error en deployment. Exit code: $EXIT_CODE"
+            echo "📋 Últimas 50 líneas del log:"
+            tail -n 50 vercel-deploy.log
+            exit $EXIT_CODE
+          fi
           
           # Intentar extraer la URL del deployment
-          DEPLOY_URL=$(echo "$DEPLOY_OUTPUT" | grep -oE 'https://[a-zA-Z0-9-]+\.vercel\.app' | head -n 1 || echo "")
+          DEPLOY_URL=$(grep -oE 'https://[a-zA-Z0-9-]+\.vercel\.app' vercel-deploy.log | head -n 1 || echo "")
           
           if [ -z "$DEPLOY_URL" ]; then
             echo "⚠️ No se pudo extraer la URL automáticamente, pero el deployment puede haber sido exitoso"
             echo "Revisa el output anterior para la URL del deployment"
-            # No fallar el workflow, solo advertir
           else
             echo "✅ Deployment exitoso: $DEPLOY_URL"
             echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
