@@ -24,6 +24,25 @@ vi.mock("../../utils/pwaService", () => ({
 }));
 
 describe("NotificacionService - TDD", () => {
+    // Helper compartido para crear mocks chainables de Supabase
+    const createChainableMock = (mockData: any) => {
+        const chain: any = {
+            select: vi.fn().mockReturnThis(),
+        };
+        let eqCallCount = 0;
+        chain.eq = vi.fn().mockImplementation(() => {
+            eqCallCount++;
+            if (eqCallCount === 2) {
+                return Promise.resolve({
+                    data: mockData,
+                    error: null,
+                });
+            }
+            return chain;
+        });
+        return chain;
+    };
+
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -188,30 +207,8 @@ describe("NotificacionService - TDD", () => {
                 },
             ];
 
-            // Crear mock chainable que retorna this en cada método
-            // Para Supabase: from().select().eq().eq() - el último eq retorna la promesa
-            const createChainableMock = () => {
-                const chain: any = {
-                    select: vi.fn().mockReturnThis(),
-                };
-                // eq puede ser llamado 2 veces, el segundo retorna la promesa
-                let eqCallCount = 0;
-                chain.eq = vi.fn().mockImplementation(() => {
-                    eqCallCount++;
-                    if (eqCallCount === 2) {
-                        // Segundo eq retorna la promesa directamente
-                        return Promise.resolve({
-                            data: mockRecordatorios,
-                            error: null,
-                        });
-                    }
-                    // Primer eq retorna this para continuar encadenando
-                    return chain;
-                });
-                return chain;
-            };
-
-            const mockFrom = vi.fn(() => createChainableMock());
+            // Helper: Crear mock chainable para reducir anidación
+            const mockFrom = vi.fn(() => createChainableMock(mockRecordatorios));
             (supabase.from as any) = mockFrom;
 
             const resultado = await obtenerRecordatoriosActivos("user-1");
@@ -391,35 +388,10 @@ describe("NotificacionService - TDD", () => {
                 },
             ];
 
-            // Mock de obtenerRecordatoriosActivos - debe retornar this para encadenar
-            // IMPORTANTE: Cada vez que se llama from(), debe crear un nuevo mock con contador reseteado
-            const createChainableMock = () => {
-                const chain: any = {
-                    select: vi.fn().mockReturnThis(),
-                };
-                // Contador local para este mock específico
-                let eqCallCount = 0;
-                chain.eq = vi.fn().mockImplementation(() => {
-                    eqCallCount++;
-                    if (eqCallCount === 2) {
-                        // Segundo eq retorna la promesa
-                        return Promise.resolve({
-                            data: mockRecordatorios,
-                            error: null,
-                        });
-                    }
-                    // Primer eq retorna this para continuar encadenando
-                    return chain;
-                });
-                return chain;
-            };
-
             // mockFrom debe crear un nuevo mock cada vez (importante para timers)
-            // Definir mockFrom para que acepte parámetros desde el inicio
             const mockFrom = vi.fn((table: string) => {
                 if (table === 'recordatorio') {
-                    // Para obtenerRecordatoriosActivos
-                    return createChainableMock();
+                    return createChainableMock(mockRecordatorios);
                 } else if (table === 'habito') {
                     // Para obtener hábito
                     return {
@@ -431,8 +403,7 @@ describe("NotificacionService - TDD", () => {
                         }),
                     };
                 }
-                // Fallback
-                return createChainableMock();
+                return createChainableMock(mockRecordatorios);
             });
             (supabase.from as any) = mockFrom;
             vi.mocked(pwaService.tieneServiceWorkerActivo).mockReturnValue(false);
@@ -484,25 +455,7 @@ describe("NotificacionService - TDD", () => {
                 },
             ];
 
-            const createChainableMock = () => {
-                const chain: any = {
-                    select: vi.fn().mockReturnThis(),
-                };
-                let eqCallCount = 0;
-                chain.eq = vi.fn().mockImplementation(() => {
-                    eqCallCount++;
-                    if (eqCallCount === 2) {
-                        return Promise.resolve({
-                            data: mockRecordatorios,
-                            error: null,
-                        });
-                    }
-                    return chain;
-                });
-                return chain;
-            };
-
-            const mockFrom = vi.fn(() => createChainableMock());
+            const mockFrom = vi.fn(() => createChainableMock(mockRecordatorios));
             (supabase.from as any) = mockFrom;
 
             // La función retorna un intervalId que se puede usar con clearInterval
