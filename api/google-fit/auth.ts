@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import googleFitService from '../_shared/googleFitService';
+import googleFitService from '../_shared/googleFitService.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
