@@ -196,7 +196,7 @@ describe("NotificacionService - TDD", () => {
                 };
                 // eq puede ser llamado 2 veces, el segundo retorna la promesa
                 let eqCallCount = 0;
-                chain.eq = vi.fn().mockImplementation((...args: any[]) => {
+                chain.eq = vi.fn().mockImplementation(() => {
                     eqCallCount++;
                     if (eqCallCount === 2) {
                         // Segundo eq retorna la promesa directamente
@@ -399,7 +399,7 @@ describe("NotificacionService - TDD", () => {
                 };
                 // Contador local para este mock específico
                 let eqCallCount = 0;
-                chain.eq = vi.fn().mockImplementation((...args: any[]) => {
+                chain.eq = vi.fn().mockImplementation(() => {
                     eqCallCount++;
                     if (eqCallCount === 2) {
                         // Segundo eq retorna la promesa
@@ -433,7 +433,6 @@ describe("NotificacionService - TDD", () => {
 
             // Mock de obtener hábito (cuando se llama from('habito'))
             // Necesitamos que mockFrom retorne diferentes mocks según la tabla
-            const originalMockFrom = mockFrom;
             mockFrom.mockImplementation((table: string) => {
                 if (table === 'recordatorio') {
                     // Para obtenerRecordatoriosActivos
@@ -493,7 +492,7 @@ describe("NotificacionService - TDD", () => {
                     select: vi.fn().mockReturnThis(),
                 };
                 let eqCallCount = 0;
-                chain.eq = vi.fn().mockImplementation((...args: any[]) => {
+                chain.eq = vi.fn().mockImplementation(() => {
                     eqCallCount++;
                     if (eqCallCount === 2) {
                         return Promise.resolve({
