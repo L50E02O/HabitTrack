@@ -41,10 +41,11 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-    - name: set up Bun
-      uses: oven-sh/bun@v1
+
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
       with:
-       version: 'latest'    
+       version: latest    
 
     - name: npm install, build, and test
       run: |
