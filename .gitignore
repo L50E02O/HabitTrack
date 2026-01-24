@@ -31,7 +31,7 @@ pnpm-debug.log*
 
 # Builds y distribuciones
 build/
-dist/
+
 .cache/
 .vite/
 coverage/
@@ -118,8 +118,7 @@ tsc_output.txt
 *.output.txt
 
 node_modules
-dist
-dist-ssr
+
 *.local
 
 # Editor directories and files
