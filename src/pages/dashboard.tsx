@@ -29,8 +29,8 @@ import RankUpModal from '../core/components/Ranking/RankUpModal';
 import CalendarioModal from '../core/components/Calendario/CalendarioModal';
 import SmartwatchModal from '../core/components/Smartwatch/SmartwatchModal';
 import { useRankDetection } from '../hooks/useRankDetection';
-import { PermisosNotificacion } from '../components/PermisosNotificacion';
-import { InstallPWAButton } from '../components/InstallPWAButton';
+import { PermisosNotificacion } from '../core/components/Notificaciones/PermisosNotificacion';
+import { InstallPWAButton } from '../core/components/PWA/InstallPWAButton.tsx';
 
 export default function Dashboard() {
     const navigate = useNavigate();

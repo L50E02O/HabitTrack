@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { solicitarPermisoNotificaciones } from '../utils/initPWA';
+import { solicitarPermisoNotificaciones } from '../../../utils/initPWA';
 import './PermisosNotificacion.css';
 
 /**
