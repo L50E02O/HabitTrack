@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useGoogleFit } from '../hooks/useGoogleFit';
+import { useGoogleFit } from '../../../hooks/useGoogleFit';
 
 import './GoogleFitConnection.css';
 

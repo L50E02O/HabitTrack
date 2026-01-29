@@ -5,18 +5,21 @@ Proyecto modelado siguiendo metodologías ágiles (Kanban y XP), centrado en la 
 ## Descripción
 
 HabitTrack es una aplicación React (Vite + TypeScript) para seguimiento de hábitos con funcionalidades avanzadas como:
-- Sistema de puntos y logros
-- Ranking de usuarios
-- PWA con notificaciones push
-- Sistema de protectores de racha
-- Recordatorios programados
+- **Sistema de hábitos**: Diario, semanal y mensual con categorías y dificultades.
+- **Gamificación**: Sistema de puntos (XP), niveles y logros automáticos.
+- **Social**: Ranking global de usuarios (top 100).
+- **Integración con Google Fit**: Sincronización automática de pasos, calorías y distancia.
+- **PWA**: Instalable como app nativa con soporte para notificaciones push y uso offline.
+- **Rachas**: Sistema de rachas automático con protectores de racha (tienda de protectores).
+- **Recordatorios**: Notificaciones programadas vía navegador y email.
 
 ## Inicio rápido
 
 ### Requisitos Previos
-- Node.js (recomendado >= 18)
-- npm (v8+)
+- Node.js (recomendado >= 20.x) o Bun
+- npm (v10+)
 - Una cuenta en Supabase
+- Google Cloud Project (para Google Fit API)
 
 ### Instalación
 
@@ -32,140 +35,121 @@ npm install
 ```
 
 3. Configura las variables de entorno:
-Crea un archivo `.env` en la raíz:
+Crea un archivo `.env` en la raíz (ver `.env.example` si existe):
 ```env
-VITE_SUPABASE_URL=https://tu-supabase-url.supabase.co
+# Supabase
+VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
 VITE_SUPABASE_ANON_KEY=tu-anon-key
+SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key
+
+# Google Fit API
+GOOGLE_FIT_CLIENT_ID=tu-client-id.apps.googleusercontent.com
+GOOGLE_FIT_CLIENT_SECRET=tu-client-secret
+GOOGLE_FIT_REDIRECT_URI=http://localhost:3001/api/google-fit/callback
 ```
 
-4. (Opcional) Configura MCP de Supabase para Cursor:
-Si usas Cursor IDE y quieres usar el MCP de Supabase, copia el archivo de ejemplo:
+4. Inicia los servidores:
+Debes ejecutar el backend y el frontend simultáneamente:
 ```bash
-cp .cursor/mcp.json.example .cursor/mcp.json
-```
-Luego edita `.cursor/mcp.json` y reemplaza `TU_PROJECT_REF_AQUI` con tu `project_ref` de Supabase.
-**Nota:** El archivo `.cursor/mcp.json` está en `.gitignore` y no se subirá al repositorio por seguridad.
+# Terminal 1: Backend API
+npm run dev:api
 
-5. Inicia el servidor de desarrollo:
-```bash
+# Terminal 2: Frontend
 npm run dev
 ```
 
 ## Scripts disponibles
 
-- `npm run dev` - Servidor de desarrollo (Vite)
-- `npm run build` - Compila la aplicación
-- `npm run preview` - Previsualiza la build
-- `npm test` - Ejecuta los tests
-- `npm run lint` - Ejecuta ESLint
-- `npm run dev:api` - Servidor API local (requiere variables de entorno)
-- `npm run generate-icons` - Genera iconos PWA
+| Script | Descripción |
+|--------|-------------|
+| `npm run dev` | Inicia el servidor de desarrollo (Vite) |
+| `npm run dev:api` | Inicia el servidor API local (Express + Bun) |
+| `npm run build` | Compila la aplicación para producción |
+| `npm run quality` | Ejecuta verificación completa (Lint + TypeCheck + Tests) |
+| `npm test` | Ejecuta los tests con Vitest |
+| `npm run lint` | Ejecuta ESLint para verificar el estilo de código |
+| `npm run type-check` | Verifica los tipos de TypeScript |
+| `npm run generate-icons` | Genera iconos para la PWA |
 
-## Testing
+## Calidad y Estándares
 
-El proyecto incluye tests completos con Vitest:
+El proyecto sigue estrictos estándares de calidad:
+- **SonarQube / Quality Gate**: Monitoreo de bugs, vulnerabilidades y deuda técnica.
+- **Testing**: Suite completa de tests unitarios e integración (Vitest).
+- **CI/CD**: Workflows de GitHub Actions para validación automática en cada PR.
 
+Antes de realizar un Pull Request, se recomienda ejecutar:
 ```bash
-# Ejecutar todos los tests
-npm test
-
-# Modo watch
-npm test -- --watch
-
-# Con cobertura
-npm test -- --coverage
+npm run quality
 ```
+Ver [Guía de Verificación de Calidad](./docs/VERIFICACION_CALIDAD_PR.md) para más detalles.
 
-Ver [docs/TESTS_README.md](./docs/TESTS_README.md) para más detalles.
+## Integración con Google Fit
 
-## PWA en HabitTrack (explicación resumida)
+HabitTrack se integra con Google Fit API para automatizar el seguimiento de hábitos de actividad física.
+- **Auth**: Usa OAuth2 para una conexión segura.
+- **Datos**: Sincroniza pasos, calorías quemadas y distancia recorrida.
+- **Backend**: Requiere el servidor de la carpeta `api/` o el script `dev:api` corriendo.
 
-HabitTrack funciona como una **PWA (Progressive Web App)**, es decir, se puede **instalar como app** en el móvil o en el ordenador y seguir funcionando aunque cierres la pestaña del navegador.
+Consulta [GOOGLE_FIT_SETUP.md](./docs/GOOGLE_FIT_SETUP.md) para la configuración inicial.
 
-- **Archivos clave**
-  - `public/manifest.json`: describe el nombre, iconos y colores de la app (lo que ve el sistema operativo al instalarla).
-  - `public/sw.js`: Service Worker que permite cache básico y manejo de notificaciones en segundo plano.
-  - `src/utils/initPWA.ts`: inicializa la PWA (revisa Service Worker, manifest y permisos de notificación).
-  - `src/components/InstallPWAButton.tsx`: muestra el botón de “Instalar App” cuando el navegador lo permite.
-  - `src/components/PermisosNotificacion.tsx` y `src/core/components/Recordatorio/RecordatorioConfig.tsx`: gestionan los permisos y la creación de recordatorios con notificaciones.
+## PWA y Notificaciones
 
-- **Cómo se instala la app**
-  1. Levanta el proyecto (`npm run dev`) o abre la versión desplegada.
-  2. Abre HabitTrack en un navegador compatible (Chrome, Edge, Safari).
-  3. Verás un botón de **“Instalar App”** en la interfaz (componente `InstallPWAButton`).
-  4. Al aceptar, HabitTrack se añade al dispositivo como si fuera una app nativa (icono en escritorio o pantalla de inicio).
+HabitTrack es una **Progressive Web App** instalable.
+- **Offline**: Cache de recursos críticos mediante Service Workers.
+- **Push**: Notificaciones en tiempo real para recordatorios de hábitos.
+- **Instalación**: Botón dedicado para añadir a la pantalla de inicio en móviles y escritorio.
 
-- **Cómo funcionan las notificaciones y recordatorios**
-  - El usuario puede crear recordatorios desde el dashboard; se guardan en la tabla `recordatorio` de Supabase.
-  - El código de `notificacionService` y el Service Worker revisan cada minuto qué recordatorios tocan y disparan:
-    - una **notificación del navegador** (PWA), y
-    - opcionalmente un **email** usando una Edge Function de Supabase.
-  - El banner `PermisosNotificacion` y la pantalla de configuración de recordatorios piden el permiso de notificaciones solo cuando es necesario.
+Detalles técnicos en [PWA_SETUP.md](./docs/PWA_SETUP.md).
 
-Para una explicación más completa y técnica puedes ver `docs/PWA_SETUP.md`.
+## Despliegue
 
-## Documentación
+### Vercel
+El proyecto está optimizado para desplegarse en Vercel:
+- **Frontend**: SPA automática.
+- **Backend**: Las rutas en `/api` se convierten automáticamente en **Serverless Functions**.
 
-Toda la documentación está en la carpeta `docs/`:
+Ver [Guía de Despliegue en Vercel](./docs/DEPLOY_VERCEL_BACKEND.md).
 
-- `docs/BACKEND_VERIFICATION.md` - Verificación del backend y modelo de datos
-- `docs/PWA_SETUP.md` - Configuración PWA y comportamiento de instalación/offline
-- `docs/GUIA_NOTIFICACIONES.md` - Arquitectura de notificaciones y flujo actual
-- `docs/PROBAR_NOTIFICACIONES.md` - Guía práctica para probar notificaciones
-- `docs/SISTEMA_RACHAS_AUTOMATICO.md` - Lógica del sistema de rachas automático
-- `docs/RACHA_TESTING_GUIDE.md` - Guía de testing específico de rachas
-- `docs/TESTS_README.md` - Guía completa de testing del proyecto
-- `docs/REFACTORING_SUMMARY.md` - Resumen de refactorización y organización del código
-- `docs/FUNCIONALIDADES_FUTURAS.md` - Roadmap y planificación de funcionalidades futuras
+## Documentación Detallada
 
-## Tecnologías
+Toda la documentación está organizada en la carpeta `docs/`:
 
-### Dependencias Principales
-- **React** ^19.1.1
-- **React Router** ^7.9.5
-- **Supabase** ^2.78.0
-- **Lucide React** ^0.552.0
-
-### DevDependencies
-- **Vite** ^7.1.7
-- **TypeScript** ~5.9.3
-- **Vitest** ^4.0.5
-- **Testing Library** ^16.3.0
-- **Vite PWA Plugin** ^1.1.0
+| Documento | Descripción |
+|-----------|-------------|
+| [GUIA_NOTIFICACIONES.md](./docs/GUIA_NOTIFICACIONES.md) | Arquitectura y flujo de notificaciones |
+| [SISTEMA_RACHAS_AUTOMATICO.md](./docs/SISTEMA_RACHAS_AUTOMATICO.md) | Lógica de cálculo de rachas |
+| [GOOGLE_FIT_INTEGRATION.md](./docs/GOOGLE_FIT_INTEGRATION.md) | Guía técnica de Google Fit |
+| [ANALISIS_QUALITY_GATE.md](./docs/ANALISIS_QUALITY_GATE.md) | Estado y métricas de SonarQube |
+| [REFACTORING_SUMMARY.md](./docs/REFACTORING_SUMMARY.md) | Resumen de la arquitectura de código |
+| [DESARROLLO_LOCAL.md](./docs/DESARROLLO_LOCAL.md) | Guía extendida para contribuidores |
 
 ## Estructura del proyecto
 
 ```
 HabitTrack/
-├── docs/              # Documentación
-├── public/            # Archivos estáticos (PWA)
+├── api/               # Serverless Functions (Vercel)
+├── docs/              # Documentación técnica
+├── public/            # Archivos estáticos y PWA manifest
 ├── src/
-│   ├── config/       # Configuración (Supabase)
-│   ├── core/         # Componentes y lógica core
-│   ├── pages/        # Páginas de la aplicación
-│   ├── services/     # Servicios y lógica de negocio
-│   ├── types/        # Tipos TypeScript
-│   └── utils/        # Utilidades (PWA, etc.)
-├── scripts/          # Scripts de utilidad
-└── database/         # Migraciones SQL
+│   ├── components/    # Componentes UI reutilizables
+│   ├── core/          # Lógica central (hábitos, rachas, logros)
+│   ├── hooks/         # Custom hooks (Google Fit, PWA)
+│   ├── pages/         # Páginas de la aplicación
+│   ├── services/      # Servicios de negocio y API
+│   ├── types/         # Definiciones de tipos (Dominio)
+│   └── utils/         # Helpers y utilidades transversales
+├── scripts/          # Scripts de automatización y herramientas de dev
+└── database/         # Migraciones y esquemas SQL
 ```
 
-## Funcionalidades principales
+## Arquitectura
 
-- Sistema de hábitos con categorías y dificultades
-- Sistema de puntos y logros automáticos
-- Ranking de usuarios (máximo 100)
-- PWA instalable con notificaciones
-- Sistema de protectores de racha
-- Recordatorios programados
-- Tema oscuro/claro
-- Diseño responsive
-
-## Seguridad
-
-- Variables de entorno para credenciales
-- RLS (Row Level Security) en Supabase
-- Validación de datos en frontend y backend
+HabitTrack utiliza una arquitectura por capas:
+1. **Capa de Dominio (`src/types`)**: Define las entidades y reglas de negocio.
+2. **Capa de Aplicación (`src/services`)**: Contiene la lógica orquestadora.
+3. **Capa de Presentación (`src/pages` / `src/components`)**: Interfaz de usuario React.
+4. **Infraestructura (`src/config` / `api`)**: Conexión con Supabase y servicios externos.
 
 ## Contribuir
 
@@ -177,49 +161,8 @@ HabitTrack/
 
 ## Licencia
 
-Este proyecto es privado.
-
-## Recursos
-
-- [Vite](https://vitejs.dev/)
-- [React Router](https://reactrouter.com/)
-- [Supabase](https://supabase.com/)
-- [Vitest](https://vitest.dev/)
-- [PWA Guide](https://web.dev/progressive-web-apps/)
+Este proyecto es privado y todos los derechos están reservados.
 
 ---
+© 2026 HabitTrack - Proyecto Privado.
 
-Para más información, consulta la [documentación completa](./docs/README.md).
-
-## Arquitectura general
-
-HabitTrack está organizado en capas claras:
-
-- `src/core`: componentes y lógica central reutilizable (hábitos, rachas, protectores, logros, recordatorios).
-- `src/pages`: páginas de la aplicación (dashboard, ranking, configuración, etc.).
-- `src/services`: servicios que encapsulan la lógica de negocio (ranking, rachas, notificaciones, protectores, logros, etc.).
-- `src/config`: configuración de Supabase y otros servicios externos.
-- `src/utils`: utilidades transversales (PWA, helpers de tiempo, inicialización de notificaciones, etc.).
-
-La persistencia de datos se realiza en Supabase (PostgreSQL) con políticas RLS para garantizar la seguridad, y el frontend se comunica directamente con Supabase o, en algunos casos, mediante funciones Edge.
-
-## Flujo principal de la aplicación
-
-1. El usuario inicia sesión y accede al dashboard.
-2. Desde el dashboard puede:
-   - Crear y gestionar hábitos (diarios, semanales, mensuales).
-   - Configurar recordatorios con notificaciones.
-   - Ver su racha actual y sus protectores.
-   - Consultar sus logros y progreso.
-3. El sistema actualiza automáticamente las rachas según el progreso registrado (ver `docs/SISTEMA_RACHAS_AUTOMATICO.md`).
-4. El sistema de notificaciones programa recordatorios y, según la configuración, dispara notificaciones en el navegador y correos electrónicos (ver `docs/GUIA_NOTIFICACIONES.md` y `docs/PROBAR_NOTIFICACIONES.md`).
-5. El ranking global muestra la posición del usuario frente al resto de perfiles (ver `docs/BACKEND_VERIFICATION.md` para el modelo de datos y políticas RLS necesarias).
-
-## Calidad y pruebas
-
-El proyecto cuenta con una batería de tests (unitarios, de integración y de componentes) escritos con Vitest y Testing Library, que cubren:
-
-- Servicios de negocio clave (ranking, rachas, protectores, logros, notificaciones).
-- Componentes de interfaz críticos (tienda de protectores, modales de logros, paneles de notificaciones).
-
-Para detalles completos y estrategias de testing, revisar `docs/TESTS_README.md` y `docs/RACHA_TESTING_GUIDE.md`.

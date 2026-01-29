@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { enviarNotificacion } from '../services/recordatorio/notificacionService';
+import { enviarNotificacion } from '../../../services/recordatorio/notificacionService';
 
 /**
  * Componente de debug para probar notificaciones manualmente
