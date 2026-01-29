@@ -7,11 +7,11 @@
     "node": "20.x"
   },
   "scripts": {
-    "dev": "vite",
-    "start": "vite preview",
+    "dev": "node api.js && vite",
+    "start": "node api.js && vite preview",
     "dev:api": "bun scripts/dev-api.js",
     "prebuild": "node scripts/generate-icons.js",
-    "build": "tsc -b && vite build",
+    "build": "node api.js && tsc -b && vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit",
